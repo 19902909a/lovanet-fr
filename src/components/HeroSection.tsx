@@ -80,14 +80,12 @@ export const HeroSection = () => {
             </motion.div>
 
             <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-foreground">LA MUSIQUE</span>
+              <span className="text-foreground text-right">LA MUSIQUE</span>
               <br />
               <span className="gradient-text text-glow-cyan">DU FUTUR</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
-              Découvrez une collection exclusive futuristes. 
-            </p>
+            
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button variant="neon" size="xl" className="group">
