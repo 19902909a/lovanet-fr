@@ -24,7 +24,7 @@ export const Footer = () => {
       <div className="absolute inset-0 bg-gradient-to-t from-card/50 to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-6 relative z-10 bg-destructive-foreground">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16 bg-primary-foreground text-primary">
           {/* Logo Column */}
           <div className="col-span-2 md:col-span-1">
             <motion.div className="flex items-center gap-3 mb-6" whileHover={{
