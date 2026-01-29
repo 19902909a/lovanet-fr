@@ -36,17 +36,10 @@ export const Footer = () => {
               </div>
               <span className="font-display text-xl font-bold tracking-wider text-glow-cyan">N L O U N Q </span>
             </motion.div>
-            <p className="text-muted-foreground text-sm mb-6">La destination ultime pour la musique électronique et de qualité premium.</p>
+            
             
             {/* Social Links */}
-            <div className="flex gap-4">
-              {socialLinks.map((social, index) => <motion.a key={index} href={social.href} whileHover={{
-              y: -3,
-              scale: 1.1
-            }} className="w-10 h-10 rounded-lg glass flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300">
-                  <social.icon className="w-5 h-5" />
-                </motion.a>)}
-            </div>
+            
           </div>
 
           {/* Link Columns */}
