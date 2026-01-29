@@ -87,7 +87,7 @@ export const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <p>© 2026  N L O U Q. Tous droits réservés.</p>
+          <p>© 2026  N  L O U Q. Tous droits réservés.</p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-primary transition-colors">Politique de confidentialité</a>
             <a href="#" className="hover:text-primary transition-colors">Conditions d'utilisation</a>
