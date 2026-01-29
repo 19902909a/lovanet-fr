@@ -42,7 +42,7 @@ export const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map(link => <motion.a key={link.label} href={link.href} className="text-muted-foreground hover:text-primary transition-colors duration-300 font-medium tracking-wide" whileHover={{
+            {navLinks.map(link => <motion.a key={link.label} href={link.href} className="transition-colors duration-300 font-medium tracking-wide text-destructive-foreground" whileHover={{
             y: -2
           }}>
                 {link.label}

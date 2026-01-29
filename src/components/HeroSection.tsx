@@ -82,7 +82,7 @@ export const HeroSection = () => {
             <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight">
               <span className="text-foreground text-justify">LA MUSIQUE</span>
               <br />
-              <span className="gradient-text text-glow-cyan">DU FUTUR</span>
+              <span className="gradient-text text-glow-cyan text-destructive-foreground bg-destructive-foreground">DU FUTUR</span>
             </h1>
 
             
@@ -117,7 +117,7 @@ export const HeroSection = () => {
               value: "24/7",
               label: "Support"
             }].map(stat => <div key={stat.label} className="text-center lg:text-left">
-                  <div className="font-display text-2xl md:text-3xl font-bold text-primary text-glow-cyan">
+                  <div className="font-display text-2xl md:text-3xl font-bold text-glow-cyan text-destructive-foreground">
                     {stat.value}
                   </div>
                   <div className="text-muted-foreground text-sm">{stat.label}</div>
