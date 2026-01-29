@@ -47,8 +47,8 @@ export const CatalogSection = () => {
       }} viewport={{
         once: true
       }} className="text-center mb-16">
-          <span className="inline-block px-4 py-2 rounded-full glass text-secondary text-sm font-medium tracking-wider mb-4">
-            ✨ CATALOGUE
+          <span className="inline-block px-4 py-2 rounded-full glass text-sm font-medium tracking-wider mb-4 text-sidebar-foreground">
+            ✨ 
           </span>
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
             <span className="gradient-text text-primary bg-primary">Albums Populaires</span>
