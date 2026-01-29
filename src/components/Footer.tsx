@@ -32,9 +32,9 @@ export const Footer = () => {
           }}>
               <div className="relative">
                 <Music className="w-8 h-8 text-primary" />
-                <div className="absolute inset-0 blur-lg bg-primary/50" />
+                <div className="absolute inset-0 blur-lg bg-destructive-foreground text-destructive-foreground" />
               </div>
-              <span className="font-display text-xl font-bold tracking-wider text-glow-cyan">N L O U N Q </span>
+              <span className="font-display text-xl font-bold tracking-wider text-glow-cyan text-destructive-foreground">N L O U N Q </span>
             </motion.div>
             
             
@@ -47,7 +47,7 @@ export const Footer = () => {
               <h4 className="font-display font-semibold mb-4 text-foreground">{title}</h4>
               <ul className="space-y-3">
                 {links.map(link => <li key={link}>
-                    <a href="#" className="text-muted-foreground hover:text-primary transition-colors duration-300 text-sm">
+                    <a href="#" className="transition-colors duration-300 text-sm text-destructive-foreground">
                       {link}
                     </a>
                   </li>)}

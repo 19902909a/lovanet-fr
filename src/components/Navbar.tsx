@@ -35,7 +35,7 @@ export const Navbar = () => {
         }}>
             <div className="relative">
               <Music className="w-8 h-8 text-primary" />
-              <div className="absolute inset-0 blur-lg bg-primary/50" />
+              <div className="absolute inset-0 blur-lg bg-destructive-foreground" />
             </div>
             <span className="font-display text-xl font-bold tracking-wider text-glow-cyan">N L O U N Q  H W A V E</span>
           </motion.div>
