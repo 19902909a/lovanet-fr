@@ -64,7 +64,7 @@ export const Footer = () => {
         y: 0
       }} viewport={{
         once: true
-      }} className="p-8 rounded-2xl glass mb-12 bg-primary-foreground text-primary-foreground">
+      }} className="p-8 glass mb-12 rounded-xl bg-secondary-foreground text-secondary-foreground">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               
