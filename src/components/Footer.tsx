@@ -34,9 +34,7 @@ export const Footer = () => {
                 <Music className="w-8 h-8 text-primary" />
                 <div className="absolute inset-0 blur-lg bg-primary/50" />
               </div>
-              <span className="font-display text-xl font-bold tracking-wider text-glow-cyan">
-                SYNTHWAVE
-              </span>
+              <span className="font-display text-xl font-bold tracking-wider text-glow-cyan">N L O U N Q </span>
             </motion.div>
             <p className="text-muted-foreground text-sm mb-6">
               La destination ultime pour la musique électronique et synthwave de qualité premium.
