@@ -68,7 +68,7 @@ export const Footer = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               
-              <p className="text-muted-foreground text-sm">
+              <p className="text-sm text-destructive-foreground">
                 Recevez les dernières sorties et offres exclusives
               </p>
             </div>
