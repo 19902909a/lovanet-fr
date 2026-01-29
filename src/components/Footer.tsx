@@ -16,38 +16,35 @@ const socialLinks = [
 
 export const Footer = () => {
   return (
-    <footer id="contact" className="relative pt-24 pb-12 border-t border-border/50">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-t from-card/50 to-transparent pointer-events-none" />
-
-      <div className="container mx-auto px-6 relative z-10">
+    <footer id="contact" className="relative pt-24 pb-12 bg-secondary/50">
+      <div className="container mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16">
           {/* Logo Column */}
           <div className="col-span-2 md:col-span-1">
             <motion.div 
               className="flex items-center gap-3 mb-6"
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.02 }}
             >
-              <div className="relative">
-                <Music className="w-8 h-8 text-primary" />
-                <div className="absolute inset-0 blur-lg bg-primary/50" />
+              <div className="w-10 h-10 rounded-xl gradient-ios flex items-center justify-center shadow-ios-sm">
+                <Music className="w-5 h-5 text-white" />
               </div>
-              <span className="font-display text-xl font-bold tracking-wider text-glow-cyan">
-                SYNTHWAVE
+              <span className="text-xl font-bold text-foreground">
+                MusicFlow
               </span>
             </motion.div>
-            <p className="text-muted-foreground text-sm mb-6">
-              La destination ultime pour la musique électronique et synthwave de qualité premium.
+            <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
+              La destination ultime pour la musique électronique de qualité premium.
             </p>
             
             {/* Social Links */}
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               {socialLinks.map((social, index) => (
                 <motion.a
                   key={index}
                   href={social.href}
-                  whileHover={{ y: -3, scale: 1.1 }}
-                  className="w-10 h-10 rounded-lg glass flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300"
+                  whileHover={{ y: -2, scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-10 h-10 rounded-xl bg-card shadow-ios-sm flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
                 >
                   <social.icon className="w-5 h-5" />
                 </motion.a>
@@ -58,13 +55,13 @@ export const Footer = () => {
           {/* Link Columns */}
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="font-display font-semibold mb-4 text-foreground">{title}</h4>
+              <h4 className="font-semibold mb-4 text-foreground">{title}</h4>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link}>
                     <a
                       href="#"
-                      className="text-muted-foreground hover:text-primary transition-colors duration-300 text-sm"
+                      className="text-muted-foreground hover:text-primary transition-colors text-sm"
                     >
                       {link}
                     </a>
@@ -77,15 +74,15 @@ export const Footer = () => {
 
         {/* Newsletter */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="p-8 rounded-2xl glass mb-12"
+          className="p-8 rounded-3xl bg-card shadow-ios-md mb-12"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="font-display text-xl font-bold mb-2">
-                Rejoignez la <span className="gradient-text">Révolution</span>
+              <h3 className="text-xl font-bold mb-2 text-foreground">
+                Restez <span className="text-gradient">informé</span>
               </h3>
               <p className="text-muted-foreground text-sm">
                 Recevez les dernières sorties et offres exclusives
@@ -95,12 +92,12 @@ export const Footer = () => {
               <input
                 type="email"
                 placeholder="votre@email.com"
-                className="flex-1 md:w-64 px-4 py-3 rounded-lg bg-input border border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-body"
+                className="flex-1 md:w-64 h-12 px-4 rounded-xl bg-secondary border border-border focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all text-foreground"
               />
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-medium tracking-wider hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)] transition-all duration-300"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="h-12 px-6 rounded-xl gradient-ios text-white font-semibold shadow-ios-sm hover:shadow-ios-md transition-all"
               >
                 S'inscrire
               </motion.button>
@@ -110,10 +107,10 @@ export const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <p>© 2025 Synthwave. Tous droits réservés.</p>
+          <p>© 2025 MusicFlow. Tous droits réservés.</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-primary transition-colors">Politique de confidentialité</a>
-            <a href="#" className="hover:text-primary transition-colors">Conditions d'utilisation</a>
+            <a href="#" className="hover:text-primary transition-colors">Confidentialité</a>
+            <a href="#" className="hover:text-primary transition-colors">Conditions</a>
           </div>
         </div>
       </div>
