@@ -64,12 +64,10 @@ export const Footer = () => {
         y: 0
       }} viewport={{
         once: true
-      }} className="p-8 rounded-2xl glass mb-12">
+      }} className="p-8 rounded-2xl glass mb-12 bg-primary-foreground">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="font-display text-xl font-bold mb-2">
-                Rejoignez la <span className="gradient-text">Révolution</span>
-              </h3>
+              
               <p className="text-muted-foreground text-sm">
                 Recevez les dernières sorties et offres exclusives
               </p>
