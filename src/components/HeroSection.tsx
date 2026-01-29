@@ -86,8 +86,7 @@ export const HeroSection = () => {
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
-              Découvrez une collection exclusive de sons synthétiques, beats électroniques 
-              et mélodies futuristes. Votre voyage sonore commence ici.
+              Découvrez une collection exclusive futuristes. 
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
