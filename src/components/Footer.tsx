@@ -36,9 +36,7 @@ export const Footer = () => {
               </div>
               <span className="font-display text-xl font-bold tracking-wider text-glow-cyan">N L O U N Q </span>
             </motion.div>
-            <p className="text-muted-foreground text-sm mb-6">
-              La destination ultime pour la musique électronique et synthwave de qualité premium.
-            </p>
+            <p className="text-muted-foreground text-sm mb-6">La destination ultime pour la musique électronique et de qualité premium.</p>
             
             {/* Social Links */}
             <div className="flex gap-4">
