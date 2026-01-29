@@ -54,8 +54,7 @@ export const CatalogSection = () => {
             <span className="gradient-text text-primary bg-primary">Albums Populaires</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explorez notre sélection des meilleurs albums électroniques et synthwave. 
-            Chaque piste est une expérience sonore unique.
+            Explorez notre sélection des meilleurs albums. Chaque piste est une expérience sonore unique.
           </p>
         </motion.div>
 
