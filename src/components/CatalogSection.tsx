@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { AlbumCard } from "./AlbumCard";
-import { Sparkles } from "lucide-react";
 
 const albums = [
   {
@@ -44,8 +43,8 @@ const albums = [
 export const CatalogSection = () => {
   return (
     <section id="catalog" className="py-24 relative">
-      {/* Subtle background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-secondary/30 to-transparent pointer-events-none" />
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-card/30 to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-6 relative z-10">
         {/* Header */}
@@ -55,20 +54,20 @@ export const CatalogSection = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ios-purple/10 text-ios-purple text-sm font-medium mb-4">
-            <Sparkles className="w-4 h-4" />
-            Tendances
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Albums <span className="text-gradient">populaires</span>
+          <span className="inline-block px-4 py-2 rounded-full glass text-secondary text-sm font-medium tracking-wider mb-4">
+            ✨ CATALOGUE
+          </span>
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
+            <span className="gradient-text">Albums Populaires</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Découvrez notre sélection des meilleurs albums. Qualité premium, téléchargement instantané.
+            Explorez notre sélection des meilleurs albums électroniques et synthwave. 
+            Chaque piste est une expérience sonore unique.
           </p>
         </motion.div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {albums.map((album, index) => (
             <AlbumCard
               key={album.title}
@@ -83,16 +82,16 @@ export const CatalogSection = () => {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.5 }}
           className="text-center mt-12"
         >
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-card shadow-ios-md text-foreground font-semibold hover:shadow-ios-lg transition-all duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-lg border border-primary/50 text-primary font-display tracking-wider hover:bg-primary/10 hover:border-primary transition-all duration-300"
           >
             Voir tout le catalogue
-            <span className="text-primary">→</span>
+            <span className="text-xl">→</span>
           </motion.button>
         </motion.div>
       </div>

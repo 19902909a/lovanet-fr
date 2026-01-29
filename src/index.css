@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,114 +6,65 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 9%;
+    --background: 230 25% 5%;
+    --foreground: 200 100% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
+    --card: 230 30% 8%;
+    --card-foreground: 200 100% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
+    --popover: 230 30% 8%;
+    --popover-foreground: 200 100% 95%;
 
-    --primary: 211 100% 50%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 185 100% 50%;
+    --primary-foreground: 230 25% 5%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 0 0% 9%;
+    --secondary: 320 100% 60%;
+    --secondary-foreground: 230 25% 5%;
 
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
+    --muted: 230 20% 15%;
+    --muted-foreground: 220 15% 60%;
 
-    --accent: 262 83% 58%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 280 100% 65%;
+    --accent-foreground: 230 25% 5%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 210 40% 98%;
 
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
+    --border: 230 30% 20%;
+    --input: 230 30% 15%;
+    --ring: 185 100% 50%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --radius: 0.75rem;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 211 100% 50%;
+    /* Custom futuristic tokens */
+    --neon-cyan: 185 100% 50%;
+    --neon-magenta: 320 100% 60%;
+    --neon-purple: 280 100% 65%;
+    --deep-space: 230 25% 5%;
+    --surface: 230 30% 10%;
+    --surface-elevated: 230 30% 12%;
 
-    --radius: 1rem;
+    /* Gradients */
+    --gradient-neon: linear-gradient(135deg, hsl(185 100% 50%), hsl(280 100% 65%));
+    --gradient-magenta: linear-gradient(135deg, hsl(320 100% 60%), hsl(280 100% 65%));
+    --gradient-surface: linear-gradient(180deg, hsl(230 30% 12%), hsl(230 25% 5%));
 
-    /* iOS specific tokens */
-    --ios-blue: 211 100% 50%;
-    --ios-green: 142 71% 45%;
-    --ios-orange: 38 92% 50%;
-    --ios-red: 0 84% 60%;
-    --ios-purple: 262 83% 58%;
-    --ios-pink: 340 82% 59%;
-    --ios-teal: 178 75% 43%;
-    --ios-indigo: 234 89% 63%;
+    /* Glows */
+    --glow-cyan: 0 0 30px hsl(185 100% 50% / 0.5), 0 0 60px hsl(185 100% 50% / 0.3);
+    --glow-magenta: 0 0 30px hsl(320 100% 60% / 0.5), 0 0 60px hsl(320 100% 60% / 0.3);
+    --glow-subtle: 0 0 20px hsl(185 100% 50% / 0.2);
 
-    /* Glass effect */
-    --glass-bg: 0 0% 100% / 0.72;
-    --glass-border: 0 0% 100% / 0.5;
-    --glass-blur: 20px;
+    --font-display: 'Orbitron', sans-serif;
+    --font-body: 'Inter', sans-serif;
 
-    /* Shadows iOS style */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
-
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 9%;
-    --sidebar-primary: 211 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 96%;
-    --sidebar-accent-foreground: 0 0% 9%;
-    --sidebar-border: 240 6% 90%;
-    --sidebar-ring: 211 100% 50%;
-  }
-
-  .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 98%;
-
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 211 100% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 240 4% 16%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
-
-    --accent: 262 83% 58%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 211 100% 50%;
-
-    --glass-bg: 0 0% 10% / 0.72;
-    --glass-border: 0 0% 20% / 0.5;
-
-    --sidebar-background: 0 0% 7%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 211 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4% 16%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 4% 16%;
-    --sidebar-ring: 211 100% 50%;
+    --sidebar-background: 230 30% 8%;
+    --sidebar-foreground: 200 100% 95%;
+    --sidebar-primary: 185 100% 50%;
+    --sidebar-primary-foreground: 230 25% 5%;
+    --sidebar-accent: 230 30% 15%;
+    --sidebar-accent-foreground: 200 100% 95%;
+    --sidebar-border: 230 30% 20%;
+    --sidebar-ring: 185 100% 50%;
   }
 }
 
@@ -124,48 +75,53 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
   }
 }
 
 @layer utilities {
-  .glass {
-    background: hsl(var(--glass-bg));
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid hsl(var(--glass-border));
+  .text-glow-cyan {
+    text-shadow: 0 0 10px hsl(var(--neon-cyan) / 0.8), 0 0 30px hsl(var(--neon-cyan) / 0.4);
   }
 
-  .shadow-ios-sm {
-    box-shadow: var(--shadow-sm);
+  .text-glow-magenta {
+    text-shadow: 0 0 10px hsl(var(--neon-magenta) / 0.8), 0 0 30px hsl(var(--neon-magenta) / 0.4);
   }
 
-  .shadow-ios-md {
-    box-shadow: var(--shadow-md);
+  .box-glow-cyan {
+    box-shadow: var(--glow-cyan);
   }
 
-  .shadow-ios-lg {
-    box-shadow: var(--shadow-lg);
+  .box-glow-magenta {
+    box-shadow: var(--glow-magenta);
   }
 
-  .ios-card {
-    @apply bg-card rounded-2xl shadow-ios-md;
+  .gradient-neon {
+    background: var(--gradient-neon);
   }
 
-  .ios-button {
-    @apply transition-all duration-200 active:scale-95;
-  }
-
-  .gradient-ios {
-    background: linear-gradient(135deg, hsl(var(--ios-blue)), hsl(var(--ios-purple)));
-  }
-
-  .text-gradient {
-    background: linear-gradient(135deg, hsl(var(--ios-blue)), hsl(var(--ios-purple)));
+  .gradient-text {
+    background: var(--gradient-neon);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .glass {
+    background: hsl(var(--surface) / 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .hover-lift {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
   }
 }
