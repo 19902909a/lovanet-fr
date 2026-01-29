@@ -89,7 +89,7 @@ export const FeaturesSection = () => {
                   `}>
                   <feature.icon className="w-6 h-6" />
                 </div>
-                <h3 className="font-display text-lg font-semibold mb-2 group-hover:text-primary transition-colors">
+                <h3 className="font-display text-lg font-semibold mb-2 transition-colors text-destructive-foreground">
                   {feature.title}
                 </h3>
                 <p className="text-muted-foreground text-sm">
