@@ -53,15 +53,15 @@ export const FeaturesSection = () => {
             <div className="flex gap-12">
               <div>
                 <div className="font-display text-3xl font-bold text-primary text-glow-cyan">99.9%</div>
-                <div className="text-muted-foreground text-sm">Satisfaction</div>
+                
               </div>
               <div>
                 <div className="font-display text-3xl font-bold text-secondary text-glow-magenta">5★</div>
-                <div className="text-muted-foreground text-sm">Note Moyenne</div>
+                
               </div>
               <div>
-                <div className="font-display text-3xl font-bold text-accent">24h</div>
-                <div className="text-muted-foreground text-sm">Support</div>
+                
+                
               </div>
             </div>
           </motion.div>
