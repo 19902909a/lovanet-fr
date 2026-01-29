@@ -80,7 +80,7 @@ export const HeroSection = () => {
             </motion.div>
 
             <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-foreground text-right">LA MUSIQUE</span>
+              <span className="text-foreground text-justify">LA MUSIQUE</span>
               <br />
               <span className="gradient-text text-glow-cyan">DU FUTUR</span>
             </h1>
