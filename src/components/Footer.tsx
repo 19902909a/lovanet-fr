@@ -19,7 +19,7 @@ const socialLinks = [{
   href: "#"
 }];
 export const Footer = () => {
-  return <footer id="contact" className="relative pt-24 pb-12 border-t border-border/50 bg-primary">
+  return <footer id="contact" className="relative pt-24 pb-12 border-t border-border/50">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-t from-card/50 to-transparent pointer-events-none" />
 
