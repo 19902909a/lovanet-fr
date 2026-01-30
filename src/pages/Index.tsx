@@ -2,15 +2,17 @@ import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { CatalogSection } from "@/components/CatalogSection";
 import { FeaturesSection } from "@/components/FeaturesSection";
+import { WidgetsSection } from "@/components/WidgetsSection";
 import { Footer } from "@/components/Footer";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden pb-24">
       <Navbar />
       <HeroSection />
       <CatalogSection />
       <FeaturesSection />
+      <WidgetsSection />
       <Footer />
     </div>
   );
