@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Music, ShoppingCart, Menu, User } from "lucide-react";
+import { Music, ShoppingCart, Menu, User, Play } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -8,7 +8,7 @@ import { useCart } from "@/contexts/CartContext";
 const navLinks = [
   { label: "Accueil", href: "/" },
   { label: "Catalogue", href: "/catalog" },
-  { label: "Artistes", href: "#artists" },
+  { label: "Espace Média", href: "/media" },
   { label: "Contact", href: "#contact" },
 ];
 
