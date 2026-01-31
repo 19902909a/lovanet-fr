@@ -26,7 +26,7 @@ const Cart = () => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent overflow-x-hidden relative z-10">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
 
       {/* Hero */}
@@ -196,7 +196,7 @@ const Cart = () => {
                     <Separator />
                     <div className="flex justify-between">
                       <span className="font-display font-semibold">Total</span>
-                      <span className="font-display text-2xl font-bold text-primary text-glow-blue">
+                      <span className="font-display text-2xl font-bold text-primary text-glow-cyan">
                         {finalPrice.toFixed(2)}€
                       </span>
                     </div>

@@ -50,7 +50,7 @@ const Catalog = () => {
   );
 
   return (
-    <div className="min-h-screen bg-transparent overflow-x-hidden relative z-10">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
 
       {/* Hero Section */}
@@ -245,7 +245,7 @@ const Catalog = () => {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
               >
-                <div className="font-display text-3xl font-bold text-glow-blue text-primary">
+                <div className="font-display text-3xl font-bold text-glow-cyan text-primary">
                   {stat.value}
                 </div>
                 <div className="text-muted-foreground text-sm mt-1">{stat.label}</div>
