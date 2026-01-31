@@ -6,10 +6,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { AudioPlayer } from "@/components/AudioPlayer";
+import { CustomCursor } from "@/components/effects/CustomCursor";
+import { AnimatedBackground } from "@/components/effects/AnimatedBackground";
 import Index from "./pages/Index";
 import Catalog from "./pages/Catalog";
 import Cart from "./pages/Cart";
 import Profile from "./pages/Profile";
+import MediaSpace from "./pages/MediaSpace";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -19,6 +22,8 @@ const App = () => (
     <TooltipProvider>
       <AudioPlayerProvider>
         <CartProvider>
+          <CustomCursor />
+          <AnimatedBackground />
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -27,6 +32,7 @@ const App = () => (
               <Route path="/catalog" element={<Catalog />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/media" element={<MediaSpace />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

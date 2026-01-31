@@ -55,7 +55,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="min-h-screen bg-transparent overflow-x-hidden relative z-10">
       <Navbar />
 
       {/* Profile Header */}
@@ -89,7 +89,7 @@ const Profile = () => {
 
               {/* User Info */}
               <div className="text-center md:text-left flex-1">
-                <h1 className="font-display text-3xl font-bold text-glow-cyan mb-2">
+                <h1 className="font-display text-3xl font-bold text-glow-blue mb-2">
                   {userData.name}
                 </h1>
                 <p className="text-muted-foreground mb-4">{userData.email}</p>
