@@ -45,7 +45,7 @@ export const Navbar = () => {
                 <div className="absolute inset-0 blur-lg bg-primary/30" />
               </div>
               <span className="font-display text-xl font-bold tracking-wider text-glow-cyan">
-                 VAGUE H W A V E
+                NLOUNQ
               </span>
             </motion.div>
           </Link>
