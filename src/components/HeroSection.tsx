@@ -162,7 +162,7 @@ export const HeroSection = () => {
               boxShadow: 'var(--glow-cyan), inset 0 0 60px hsl(var(--primary) / 0.1)'
             }}>
                 {/* Vinyl grooves */}
-                <div className="absolute inset-4 rounded-full border border-primary/20 opacity-95 bg-secondary-foreground" />
+                
                 
                 
                 
