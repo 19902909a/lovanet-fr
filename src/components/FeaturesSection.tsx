@@ -47,7 +47,7 @@ export const FeaturesSection = () => {
 
 
 
-            <p className="text-muted-foreground text-lg mb-8">Nous sélectionnons uniquement les productions les plus innovantes et offrons une expérience d'achat premium pour les passionnés de musique.</p>
+            
 
             {/* Stats row */}
             <div className="flex gap-12">
