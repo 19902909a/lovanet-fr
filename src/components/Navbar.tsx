@@ -7,11 +7,11 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 
 const navLinks = [
-  { label: "Accueil", href: "/" },
-  { label: "Catalogue", href: "/catalog" },
-  { label: "Artistes", href: "#artists" },
-  { label: "Contact", href: "#contact" },
-];
+{ label: "Accueil", href: "/" },
+{ label: "Catalogue", href: "/catalog" },
+{ label: "Artistes", href: "#artists" },
+{ label: "Contact", href: "#contact" }];
+
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,22 +29,22 @@ export const Navbar = () => {
                 <Music className="w-8 h-8 text-primary" />
                 <div className="absolute inset-0 blur-lg bg-primary/30" />
               </div>
-              <span className="font-display text-xl font-bold tracking-wider text-glow-cyan">NLOUNQ</span>
+              
             </motion.div>
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map(link => (
-              <motion.div key={link.label} whileHover={{ y: -2 }}>
-                {link.href.startsWith("/") ? (
-                  <Link to={link.href} className={`transition-colors duration-300 font-medium tracking-wide ${location.pathname === link.href ? "text-primary text-glow-cyan" : "text-foreground hover:text-primary"}`}>
+            {navLinks.map((link) =>
+            <motion.div key={link.label} whileHover={{ y: -2 }}>
+                {link.href.startsWith("/") ?
+              <Link to={link.href} className={`transition-colors duration-300 font-medium tracking-wide ${location.pathname === link.href ? "text-primary text-glow-cyan" : "text-foreground hover:text-primary"}`}>
                     {link.label}
-                  </Link>
-                ) : (
-                  <a href={link.href} className="transition-colors duration-300 font-medium tracking-wide text-foreground hover:text-primary">{link.label}</a>
-                )}
+                  </Link> :
+
+              <a href={link.href} className="transition-colors duration-300 font-medium tracking-wide text-foreground hover:text-primary">{link.label}</a>
+              }
               </motion.div>
-            ))}
+            )}
           </div>
 
           <div className="hidden md:flex items-center gap-4">
@@ -54,23 +54,23 @@ export const Navbar = () => {
                 {totalItems > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-neon-magenta rounded-full text-xs flex items-center justify-center font-bold text-primary-foreground">{totalItems}</span>}
               </Button>
             </Link>
-            {user ? (
-              <>
+            {user ?
+            <>
                 <Link to="/profile">
                   <Button variant="ghost" size="icon"><User className="w-5 h-5" /></Button>
                 </Link>
-                {isAdmin && (
-                  <Link to="/admin">
+                {isAdmin &&
+              <Link to="/admin">
                     <Button variant="ghost" size="icon"><Shield className="w-5 h-5 text-neon-magenta" /></Button>
                   </Link>
-                )}
+              }
                 <Button variant="ghost" size="icon" onClick={signOut}><LogOut className="w-5 h-5" /></Button>
-              </>
-            ) : (
-              <Link to="/auth">
+              </> :
+
+            <Link to="/auth">
                 <Button variant="neon" size="default">Connexion</Button>
               </Link>
-            )}
+            }
           </div>
 
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
@@ -78,37 +78,37 @@ export const Navbar = () => {
           </Button>
         </div>
 
-        {isOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="md:hidden mt-4 pb-4 space-y-4">
-            {navLinks.map(link => (
-              <div key={link.label}>
-                {link.href.startsWith("/") ? (
-                  <Link to={link.href} onClick={() => setIsOpen(false)} className={`block py-2 transition-colors ${location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-primary"}`}>{link.label}</Link>
-                ) : (
-                  <a href={link.href} className="block text-muted-foreground hover:text-primary transition-colors py-2">{link.label}</a>
-                )}
+        {isOpen &&
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="md:hidden mt-4 pb-4 space-y-4">
+            {navLinks.map((link) =>
+          <div key={link.label}>
+                {link.href.startsWith("/") ?
+            <Link to={link.href} onClick={() => setIsOpen(false)} className={`block py-2 transition-colors ${location.pathname === link.href ? "text-primary" : "text-muted-foreground hover:text-primary"}`}>{link.label}</Link> :
+
+            <a href={link.href} className="block text-muted-foreground hover:text-primary transition-colors py-2">{link.label}</a>
+            }
               </div>
-            ))}
+          )}
             <div className="flex gap-4 pt-4">
               <Link to="/cart" className="flex-1">
                 <Button variant="glass" className="w-full gap-2"><ShoppingCart className="w-4 h-4" />Panier ({totalItems})</Button>
               </Link>
-              {user ? (
-                <Link to="/profile" className="flex-1">
+              {user ?
+            <Link to="/profile" className="flex-1">
                   <Button variant="glass" className="w-full gap-2"><User className="w-4 h-4" />Profil</Button>
-                </Link>
-              ) : (
-                <Link to="/auth" className="flex-1">
+                </Link> :
+
+            <Link to="/auth" className="flex-1">
                   <Button variant="neon" className="w-full">Connexion</Button>
                 </Link>
-              )}
+            }
             </div>
-            {isAdmin && (
-              <Link to="/admin"><Button variant="glass" className="w-full gap-2"><Shield className="w-4 h-4" />Admin</Button></Link>
-            )}
+            {isAdmin &&
+          <Link to="/admin"><Button variant="glass" className="w-full gap-2"><Shield className="w-4 h-4" />Admin</Button></Link>
+          }
           </motion.div>
-        )}
+        }
       </div>
-    </motion.nav>
-  );
+    </motion.nav>);
+
 };
