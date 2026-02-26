@@ -78,10 +78,10 @@ export const AlbumCard = ({
       <div className="relative overflow-hidden rounded-xl bg-card border border-border/50 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_40px_hsl(var(--primary)/0.2)]">
         {/* Image */}
         <div className="relative aspect-square overflow-hidden">
-          <img
-            src={imageUrl}
-            alt={title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+          
+
+
+
 
 
           {/* Overlay */}
