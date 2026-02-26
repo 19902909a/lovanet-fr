@@ -16,13 +16,13 @@ export const WidgetsSection = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
-        >
+          className="text-center mb-16">
+
           <span className="inline-block px-4 py-2 rounded-full glass text-sm font-medium tracking-wider mb-4 text-secondary">
             🎮 DIVERTISSEMENT
           </span>
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
-            <span className="gradient-text">Restez Connecté</span>
+            
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Météo, actualités et mini-jeux pour enrichir votre expérience musicale
@@ -34,8 +34,8 @@ export const WidgetsSection = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-          >
+            transition={{ delay: 0.1 }}>
+
             <WeatherWidget />
           </motion.div>
 
@@ -43,8 +43,8 @@ export const WidgetsSection = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-          >
+            transition={{ delay: 0.2 }}>
+
             <NewsWidget />
           </motion.div>
 
@@ -53,12 +53,12 @@ export const WidgetsSection = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="md:col-span-2 lg:col-span-1"
-          >
+            className="md:col-span-2 lg:col-span-1">
+
             <GamesWidget />
           </motion.div>
         </div>
       </div>
-    </section>
-  );
+    </section>);
+
 };
