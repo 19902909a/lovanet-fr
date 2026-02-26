@@ -82,7 +82,7 @@ export const HeroSection = () => {
             <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight">
               
               <br />
-              <span className="gradient-text text-glow-cyan text-destructive-foreground bg-destructive-foreground">DU FUTUR</span>
+              
             </h1>
 
             
