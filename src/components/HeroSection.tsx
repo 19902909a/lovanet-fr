@@ -163,7 +163,7 @@ export const HeroSection = () => {
             }}>
                 {/* Vinyl grooves */}
                 <div className="absolute inset-4 rounded-full border border-primary/20 opacity-95 bg-secondary-foreground" />
-                <div className="absolute inset-12 rounded-full border border-primary/15" />
+                
                 
                 
                 {/* Center label */}
