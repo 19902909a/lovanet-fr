@@ -39,9 +39,9 @@ export const FeaturesSection = () => {
         }} viewport={{
           once: true
         }}>
-            <span className="inline-block px-4 py-2 rounded-full glass text-accent text-sm font-medium tracking-wider mb-6">
-              🚀 POURQUOI NOUS CHOISIR
-            </span>
+            
+
+
             <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">
               L'Excellence
               <br />
