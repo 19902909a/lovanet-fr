@@ -8,11 +8,11 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { icon: Instagram, href: "#" },
-  { icon: Twitter, href: "#" },
-  { icon: Youtube, href: "#" },
-  { icon: Mail, href: "#" }
-];
+{ icon: Instagram, href: "#" },
+{ icon: Twitter, href: "#" },
+{ icon: Youtube, href: "#" },
+{ icon: Mail, href: "#" }];
+
 
 export const Footer = () => {
   return (
@@ -26,8 +26,8 @@ export const Footer = () => {
           <div className="col-span-2 md:col-span-1">
             <motion.div
               className="flex items-center gap-3 mb-6"
-              whileHover={{ scale: 1.05 }}
-            >
+              whileHover={{ scale: 1.05 }}>
+
               <div className="relative">
                 <Music className="w-8 h-8 text-primary" />
                 <div className="absolute inset-0 blur-lg bg-destructive-foreground text-destructive-foreground" />
@@ -39,38 +39,38 @@ export const Footer = () => {
 
             {/* Social Links */}
             <div className="flex gap-3">
-              {socialLinks.map(({ icon: Icon, href }) => (
-                <a
-                  key={href}
-                  href={href}
-                  className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
-                >
+              {socialLinks.map(({ icon: Icon, href }) =>
+              <a
+                key={href}
+                href={href}
+                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors">
+
                   <Icon className="w-5 h-5" />
                 </a>
-              ))}
+              )}
             </div>
           </div>
 
           {/* Link Columns */}
-          {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
+          {Object.entries(footerLinks).map(([title, links]) =>
+          <div key={title}>
               <h4 className="font-display font-semibold mb-4 text-foreground">
                 {title}
               </h4>
               <ul className="space-y-3">
-                {links.map((link) => (
-                  <li key={link}>
+                {links.map((link) =>
+              <li key={link}>
                     <a
-                      href="#"
-                      className="transition-colors duration-300 text-sm text-muted-foreground hover:text-primary"
-                    >
+                  href="#"
+                  className="transition-colors duration-300 text-sm text-muted-foreground hover:text-primary">
+
                       {link}
                     </a>
                   </li>
-                ))}
+              )}
               </ul>
             </div>
-          ))}
+          )}
         </div>
 
         {/* Newsletter */}
@@ -78,32 +78,32 @@ export const Footer = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="p-8 glass mb-12 rounded-xl"
-        >
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <h3 className="font-display text-lg font-semibold mb-1">
-                Newsletter NLOUNQ
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Recevez les dernières sorties et offres exclusives
-              </p>
-            </div>
-            <div className="flex gap-3 w-full md:w-auto">
-              <input
-                type="email"
-                placeholder="votre@email.com"
-                className="flex-1 md:w-64 px-4 py-3 rounded-lg bg-input border border-border focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-body"
-              />
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 rounded-lg bg-gradient-to-r from-primary to-accent text-primary-foreground font-display font-medium tracking-wider hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)] transition-all duration-300"
-              >
-                S'inscrire
-              </motion.button>
-            </div>
-          </div>
+          className="p-8 glass mb-12 rounded-xl">
+
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         </motion.div>
 
         {/* Bottom Bar */}
@@ -119,6 +119,6 @@ export const Footer = () => {
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>);
+
 };
