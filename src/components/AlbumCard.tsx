@@ -21,7 +21,7 @@ export const AlbumCard = ({
   price,
   imageUrl,
   index,
-  id,
+  id
 }: AlbumCardProps) => {
   const { playTrack, currentTrack, isPlaying, togglePlayPause, addToQueue } = useAudioPlayer();
   const { addToCart, isInCart } = useCart();
@@ -37,7 +37,7 @@ export const AlbumCard = ({
     duration: 240 + index * 30,
     audioUrl: getAudioUrlForIndex(index),
     imageUrl,
-    price,
+    price
   };
 
   const handlePlay = (e: React.MouseEvent) => {
@@ -73,69 +73,69 @@ export const AlbumCard = ({
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
       viewport={{ once: true }}
-      className="group relative"
-    >
+      className="group relative">
+
       <div className="relative overflow-hidden rounded-xl bg-card border border-border/50 transition-all duration-500 hover:border-primary/50 hover:shadow-[0_0_40px_hsl(var(--primary)/0.2)]">
         {/* Image */}
         <div className="relative aspect-square overflow-hidden">
           <img
             src={imageUrl}
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          />
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+
 
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
 
           {/* Play button */}
           <motion.div
             initial={{ scale: 0 }}
             whileHover={{ scale: 1.1 }}
-            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          >
+            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+
             <Button
               variant="neon"
               size="icon"
               className="w-16 h-16 rounded-full"
-              onClick={handlePlay}
-            >
-              {isCurrentTrack && isPlaying ? (
-                <Pause className="w-8 h-8" />
-              ) : (
-                <Play className="w-8 h-8 ml-1" />
-              )}
+              onClick={handlePlay}>
+
+              {isCurrentTrack && isPlaying ?
+              <Pause className="w-8 h-8" /> :
+
+              <Play className="w-8 h-8 ml-1" />
+              }
             </Button>
           </motion.div>
 
           {/* Queue button */}
           <button
             onClick={handleAddToQueue}
-            className="absolute top-4 left-4 w-10 h-10 rounded-full glass flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
-          >
+            className="absolute top-4 left-4 w-10 h-10 rounded-full glass flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110">
+
             <Plus className="w-5 h-5 text-primary" />
           </button>
 
           {/* Like button */}
           <button
             onClick={handleLike}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full glass flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
-          >
+            className="absolute top-4 right-4 w-10 h-10 rounded-full glass flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110">
+
             <Heart
-              className={`w-5 h-5 ${isLiked ? "text-secondary fill-secondary" : "text-secondary"}`}
-            />
+              className={`w-5 h-5 ${isLiked ? "text-secondary fill-secondary" : "text-secondary"}`} />
+
           </button>
 
           {/* Now Playing Indicator */}
-          {isCurrentTrack && (
-            <div className="absolute bottom-4 left-4 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center gap-2">
+          {isCurrentTrack &&
+          <div className="absolute bottom-4 left-4 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center gap-2">
               <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-                className="w-2 h-2 rounded-full bg-primary-foreground"
-              />
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+              className="w-2 h-2 rounded-full bg-primary-foreground" />
+
               En lecture
             </div>
-          )}
+          }
         </div>
 
         {/* Content */}
@@ -151,8 +151,8 @@ export const AlbumCard = ({
               variant={isInCart(trackId) ? "neon" : "glass"}
               size="sm"
               className="gap-2"
-              onClick={handleAddToCart}
-            >
+              onClick={handleAddToCart}>
+
               <ShoppingCart className="w-4 h-4" />
               {isInCart(trackId) ? "Ajouté" : "Ajouter"}
             </Button>
@@ -162,6 +162,6 @@ export const AlbumCard = ({
         {/* Glow effect on hover */}
         <div className="absolute -inset-px rounded-xl bg-gradient-to-r from-primary via-secondary to-accent opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-500 -z-10" />
       </div>
-    </motion.div>
-  );
+    </motion.div>);
+
 };
