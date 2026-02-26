@@ -52,7 +52,7 @@ export const FeaturesSection = () => {
             {/* Stats row */}
             <div className="flex gap-12">
               <div>
-                <div className="font-display text-3xl font-bold text-primary text-glow-cyan">99.9%</div>
+                
                 
               </div>
               <div>
