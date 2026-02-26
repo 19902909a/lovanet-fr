@@ -74,13 +74,7 @@ export const Footer = () => {
         </div>
 
         {/* Newsletter */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="p-8 glass mb-12 rounded-xl">
-
-          
+        
 
 
 
@@ -104,7 +98,13 @@ export const Footer = () => {
 
 
 
-        </motion.div>
+
+
+
+
+
+
+
 
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
