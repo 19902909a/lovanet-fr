@@ -45,7 +45,7 @@ export const FeaturesSection = () => {
             <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">
               L'Excellence
               <br />
-              <span className="gradient-text">Sonore Garantie</span>
+              
             </h2>
             <p className="text-muted-foreground text-lg mb-8">Nous sélectionnons uniquement les productions les plus innovantes et offrons une expérience d'achat premium pour les passionnés de musique.</p>
 
