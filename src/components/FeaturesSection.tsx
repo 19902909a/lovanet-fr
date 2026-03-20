@@ -68,34 +68,34 @@ export const FeaturesSection = () => {
 
           {/* Features Grid */}
           <div className="grid sm:grid-cols-2 gap-6">
-            {features.map((feature, index) => <motion.div key={feature.title} initial={{
-            opacity: 0,
-            y: 30
-          }} whileInView={{
-            opacity: 1,
-            y: 0
-          }} viewport={{
-            once: true
-          }} transition={{
-            delay: index * 0.1
-          }} whileHover={{
-            y: -5,
-            scale: 1.02
-          }} className="group p-6 rounded-2xl glass hover:border-primary/50 transition-all duration-300">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300
-                    ${feature.color === 'primary' ? 'bg-primary/20 text-primary group-hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)]' : ''}
-                    ${feature.color === 'secondary' ? 'bg-secondary/20 text-secondary group-hover:shadow-[0_0_30px_hsl(var(--secondary)/0.5)]' : ''}
-                    ${feature.color === 'accent' ? 'bg-accent/20 text-accent group-hover:shadow-[0_0_30px_hsl(var(--accent)/0.5)]' : ''}
-                  `}>
-                  <feature.icon className="w-6 h-6" />
-                </div>
-                <h3 className="font-display text-lg font-semibold mb-2 transition-colors text-destructive-foreground">
-                  {feature.title}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  {feature.description}
-                </p>
-              </motion.div>)}
+            {features.map((feature, index) => {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          )}
           </div>
         </div>
       </div>
