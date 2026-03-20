@@ -17,13 +17,13 @@ export const CatalogSection = () => {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
-        >
+          className="text-center mb-16">
+          
           <span className="inline-block px-4 py-2 rounded-full glass text-sm font-medium tracking-wider mb-4 text-primary">
             ✨ NOUVEAUTÉS
           </span>
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
-            <span className="gradient-text">Albums Populaires</span>
+            
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Découvrez notre sélection des meilleures productions électroniques du moment
@@ -32,17 +32,17 @@ export const CatalogSection = () => {
 
         {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {displayAlbums.map((album, index) => (
-            <AlbumCard
-              key={album.id}
-              id={album.id}
-              title={album.title}
-              artist={album.artist}
-              price={album.price}
-              imageUrl={album.imageUrl}
-              index={index}
-            />
-          ))}
+          {displayAlbums.map((album, index) =>
+          <AlbumCard
+            key={album.id}
+            id={album.id}
+            title={album.title}
+            artist={album.artist}
+            price={album.price}
+            imageUrl={album.imageUrl}
+            index={index} />
+
+          )}
         </div>
 
         {/* View All Button */}
@@ -51,20 +51,20 @@ export const CatalogSection = () => {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.5 }}
-          className="text-center mt-12"
-        >
+          className="text-center mt-12">
+          
           <Link to="/catalog">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-lg border border-primary/50 text-primary font-display tracking-wider hover:bg-primary/10 hover:border-primary transition-all duration-300"
-            >
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-lg border border-primary/50 text-primary font-display tracking-wider hover:bg-primary/10 hover:border-primary transition-all duration-300">
+              
               Voir tout le catalogue
               <span className="text-xl">→</span>
             </motion.button>
           </Link>
         </motion.div>
       </div>
-    </section>
-  );
+    </section>);
+
 };
