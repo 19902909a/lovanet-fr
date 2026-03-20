@@ -22,61 +22,61 @@ export const Navbar = () => {
   return (
     <motion.nav initial={{ y: -100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, ease: "easeOut" }} className="fixed top-0 left-0 right-0 z-50 glass">
       <div className="container mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          <Link to="/">
-            <motion.div className="flex items-center gap-3" whileHover={{ scale: 1.05 }}>
-              <div className="relative">
-                <Music className="w-8 h-8 text-primary" />
-                <div className="absolute inset-0 blur-lg bg-primary/30" />
-              </div>
-              
-            </motion.div>
-          </Link>
+        
 
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) =>
-            <motion.div key={link.label} whileHover={{ y: -2 }}>
-                {link.href.startsWith("/") ?
-              <Link to={link.href} className={`transition-colors duration-300 font-medium tracking-wide ${location.pathname === link.href ? "text-primary text-glow-cyan" : "text-foreground hover:text-primary"}`}>
-                    {link.label}
-                  </Link> :
 
-              <a href={link.href} className="transition-colors duration-300 font-medium tracking-wide text-foreground hover:text-primary">{link.label}</a>
-              }
-              </motion.div>
-            )}
-          </div>
 
-          <div className="hidden md:flex items-center gap-4">
-            <Link to="/cart">
-              <Button variant="ghost" size="icon" className="relative">
-                <ShoppingCart className="w-5 h-5" />
-                {totalItems > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-neon-magenta rounded-full text-xs flex items-center justify-center font-bold text-primary-foreground">{totalItems}</span>}
-              </Button>
-            </Link>
-            {user ?
-            <>
-                <Link to="/profile">
-                  <Button variant="ghost" size="icon"><User className="w-5 h-5" /></Button>
-                </Link>
-                {isAdmin &&
-              <Link to="/admin">
-                    <Button variant="ghost" size="icon"><Shield className="w-5 h-5 text-neon-magenta" /></Button>
-                  </Link>
-              }
-                <Button variant="ghost" size="icon" onClick={signOut}><LogOut className="w-5 h-5" /></Button>
-              </> :
 
-            <Link to="/auth">
-                <Button variant="neon" size="default">Connexion</Button>
-              </Link>
-            }
-          </div>
 
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
-            <Menu className="w-6 h-6" />
-          </Button>
-        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
 
         {isOpen &&
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="md:hidden mt-4 pb-4 space-y-4">
