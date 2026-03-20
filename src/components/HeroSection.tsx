@@ -55,75 +55,75 @@ export const HeroSection = () => {
       <div className="container mx-auto px-6 pt-32 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center bg-destructive-foreground">
           {/* Text Content */}
-          <motion.div initial={{
-          opacity: 0,
-          x: -50
-        }} animate={{
-          opacity: 1,
-          x: 0
-        }} transition={{
-          duration: 0.8,
-          delay: 0.2
-        }} className="text-center lg:text-left bg-primary-foreground">
-            <motion.div initial={{
-            opacity: 0,
-            y: 20
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            delay: 0.4
-          }} className="inline-block mb-6">
-              <span className="px-4 py-2 rounded-full glass text-primary text-sm font-medium tracking-wider">
-                🎵 NOUVELLE ÈRE MUSICALE
-              </span>
-            </motion.div>
+          
 
-            <h1 className="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              
-              <br />
-              
-            </h1>
 
-            
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button variant="neon" size="xl" className="group">
-                <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                Explorer
-              </Button>
-              <Button variant="outline" size="xl">
-                Catalogue
-              </Button>
-            </div>
 
-            {/* Stats */}
-            <motion.div initial={{
-            opacity: 0,
-            y: 30
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            delay: 0.8
-          }} className="grid grid-cols-3 gap-8 mt-12">
-              {[{
-              value: "50K+",
-              label: "Pistes"
-            }, {
-              value: "1M+",
-              label: "Clients"
-            }, {
-              value: "24/7",
-              label: "Support"
-            }].map((stat) => <div key={stat.label} className="text-center lg:text-left">
-                  <div className="font-display text-2xl md:text-3xl font-bold text-glow-cyan text-destructive-foreground">
-                    {stat.value}
-                  </div>
-                  <div className="text-muted-foreground text-sm">{stat.label}</div>
-                </div>)}
-            </motion.div>
-          </motion.div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
 
           {/* Visual Element */}
           <motion.div initial={{
