@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
-import { Play, ShoppingBag, Youtube, Music2, Cube, Sparkles } from "lucide-react";
+import { Play, ShoppingBag, Youtube, Music2 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { VideoCard } from "@/components/VideoCard";
 import { Button } from "@/components/ui/button";
-import { videos } from "@/data/videos";
-import { products } from "@/data/videos";
+import { videos, products } from "@/data/videos";
 
 const tags = ["Lovanet", "Manga animé", "YouTube", "TikTok", "Shop", "3D", "Live Selection"];
 const reactions = [
@@ -61,7 +60,7 @@ const Index = () => {
 
             <div className="flex flex-wrap gap-2 pt-2">
               {tags.map((t) => (
-                <span key={t} className="px-3 py-1 rounded-full bg-pill/60 border border-border text-xs tracking-wider uppercase text-muted-foreground">
+                <span key={t} className="px-3 py-1 rounded-full bg-secondary border border-border text-xs tracking-wider uppercase text-muted-foreground">
                   {t}
                 </span>
               ))}
@@ -71,7 +70,7 @@ const Index = () => {
               {reactions.map((r) => (
                 <button
                   key={r.label}
-                  className="px-4 py-2 rounded-full bg-pill/60 border border-border text-xs font-semibold uppercase tracking-wider hover:border-primary/60 hover:bg-primary/10 transition-colors"
+                  className="px-4 py-2 rounded-full bg-secondary border border-border text-xs font-semibold uppercase tracking-wider hover:border-primary/60 hover:bg-primary/10 transition-colors"
                 >
                   {r.emoji} {r.label}
                 </button>
