@@ -3,17 +3,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AudioPlayerProvider } from "@/contexts/AudioPlayerContext";
-import { CartProvider } from "@/contexts/CartContext";
-import { AuthProvider } from "@/hooks/useAuth";
-import { AudioPlayer } from "@/components/AudioPlayer";
 import Index from "./pages/Index";
-import Catalog from "./pages/Catalog";
-import Cart from "./pages/Cart";
-import Profile from "./pages/Profile";
-import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
-import ResetPassword from "./pages/ResetPassword";
+import ChaineYoutube from "./pages/ChaineYoutube";
+import LecteursVideo from "./pages/LecteursVideo";
+import PrimeVideo from "./pages/PrimeVideo";
+import Tiktok from "./pages/Tiktok";
+import Shop from "./pages/Shop";
+import Nlounq from "./pages/Nlounq";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,26 +19,20 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        <AuthProvider>
-          <AudioPlayerProvider>
-            <CartProvider>
-              <Toaster />
-              <Sonner />
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/catalog" element={<Catalog />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <AudioPlayer />
-            </CartProvider>
-          </AudioPlayerProvider>
-        </AuthProvider>
+        <Toaster />
+        <Sonner />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/chaine-youtube" element={<ChaineYoutube />} />
+          <Route path="/lecteurs-video" element={<LecteursVideo />} />
+          <Route path="/prime-video" element={<PrimeVideo />} />
+          <Route path="/tiktok" element={<Tiktok />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/nlounq" element={<Nlounq />} />
+          <Route path="/contact" element={<Contact />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
