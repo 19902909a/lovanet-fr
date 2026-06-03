@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Play, ShoppingBag, Youtube, Music2 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
+import { RecentEpisodesCarousel } from "@/components/RecentEpisodesCarousel";
 import { VideoCard } from "@/components/VideoCard";
 import { Button } from "@/components/ui/button";
 import { videos, products } from "@/data/videos";
@@ -115,6 +116,21 @@ const Index = () => {
             <VideoCard key={v.id} video={v} />
           ))}
         </div>
+      </section>
+
+      {/* Recent Episodes Carousel */}
+      <section className="container mx-auto px-4 lg:px-8 py-16">
+        <div className="flex items-baseline justify-between mb-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Fresh drops</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold">
+              Épisodes <span className="text-primary text-glow-cyan">récents</span>
+            </h2>
+            <p className="text-sm text-muted-foreground mt-2">Les derniers moments anime publiés cette semaine.</p>
+          </div>
+          <Link to="/chaine-youtube" className="text-sm text-primary hover:underline whitespace-nowrap">Tout voir →</Link>
+        </div>
+        <RecentEpisodesCarousel />
       </section>
 
       {/* Shop preview */}
