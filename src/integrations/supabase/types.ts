@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      imported_videos: {
+        Row: {
+          created_at: string
+          description: string | null
+          episode: string | null
+          external_id: string | null
+          id: string
+          is_recent: boolean
+          position: number
+          published_at: string | null
+          source: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          episode?: string | null
+          external_id?: string | null
+          id?: string
+          is_recent?: boolean
+          position?: number
+          published_at?: string | null
+          source: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          episode?: string | null
+          external_id?: string | null
+          id?: string
+          is_recent?: boolean
+          position?: number
+          published_at?: string | null
+          source?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       media_library: {
         Row: {
           alt_text: string | null
