@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Play, Calendar, Youtube, Music2, Tv } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Calendar, Youtube, Music2, Tv, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { videos as fallbackVideos, thumb as ytThumb } from "@/data/videos";
 
@@ -24,6 +24,7 @@ const sourceMeta: Record<ImportedVideo["source"], { label: string; Icon: typeof 
 export const RecentEpisodesCarousel = () => {
   const [items, setItems] = useState<ImportedVideo[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(8);
 
   useEffect(() => {
     let active = true;
@@ -58,6 +59,8 @@ export const RecentEpisodesCarousel = () => {
       }));
   }, [items]);
 
+  const visibleRecents = useMemo(() => recents.slice(0, visibleCount), [recents, visibleCount]);
+
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
@@ -67,6 +70,10 @@ export const RecentEpisodesCarousel = () => {
     if (!el) return;
     setCanPrev(el.scrollLeft > 4);
     setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+    // Progressive loading: when near the end, reveal more items
+    if (el.scrollLeft + el.clientWidth > el.scrollWidth - 320) {
+      setVisibleCount((c) => Math.min(c + 4, recents.length));
+    }
   };
 
   useEffect(() => {
@@ -79,7 +86,7 @@ export const RecentEpisodesCarousel = () => {
       el.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
     };
-  }, []);
+  }, [recents.length]);
 
   const scrollBy = (dir: 1 | -1) => {
     const el = scrollerRef.current;
@@ -92,6 +99,12 @@ export const RecentEpisodesCarousel = () => {
     d
       ? new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })
       : "";
+
+  const isNew = (d?: string | null) => {
+    if (!d) return false;
+    const diff = Date.now() - new Date(d).getTime();
+    return diff < 7 * 24 * 60 * 60 * 1000;
+  };
 
   const linkFor = (v: ImportedVideo): { to: string; external: boolean } => {
     if (v.source === "youtube" && v.external_id) {
@@ -130,10 +143,24 @@ export const RecentEpisodesCarousel = () => {
         ref={scrollerRef}
         className="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 -mx-4 px-4 lg:mx-0 lg:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {recents.map((v) => {
+        {!loaded &&
+          Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={`sk-${i}`}
+              className="snap-start shrink-0 w-[280px] sm:w-[320px] rounded-2xl overflow-hidden bg-card border border-border animate-pulse"
+            >
+              <div className="aspect-video bg-muted" />
+              <div className="p-4 space-y-2">
+                <div className="h-3 bg-muted rounded w-3/4" />
+                <div className="h-3 bg-muted rounded w-1/2" />
+              </div>
+            </div>
+          ))}
+        {visibleRecents.map((v) => {
           const { to, external } = linkFor(v);
           const { label, Icon } = sourceMeta[v.source];
           const cover = v.thumbnail_url || (v.external_id ? ytThumb(v.external_id) : "");
+          const fresh = isNew(v.published_at);
           const cardClass =
             "group snap-start shrink-0 w-[280px] sm:w-[320px] rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all hover:-translate-y-1";
           const inner = (
@@ -150,11 +177,19 @@ export const RecentEpisodesCarousel = () => {
                 <Icon className="w-3 h-3" />
                 {label}
               </span>
-              {v.episode && (
-                <span className="absolute top-3 right-3 px-2.5 py-1 rounded-md bg-background/80 backdrop-blur text-foreground text-[11px] font-semibold">
-                  {v.episode}
-                </span>
-              )}
+              <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
+                {fresh && (
+                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[10px] font-bold uppercase tracking-wider shadow-[0_0_18px_hsl(var(--primary)/0.5)] animate-pulse">
+                    <Sparkles className="w-3 h-3" />
+                    Nouveau
+                  </span>
+                )}
+                {v.episode && (
+                  <span className="px-2.5 py-1 rounded-md bg-background/80 backdrop-blur text-foreground text-[11px] font-semibold">
+                    {v.episode}
+                  </span>
+                )}
+              </div>
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center shadow-[0_0_30px_hsl(var(--primary)/0.6)]">
                   <Play className="w-6 h-6 text-primary-foreground fill-current" />
@@ -162,7 +197,10 @@ export const RecentEpisodesCarousel = () => {
               </div>
             </div>
             <div className="p-4">
-              <h3 className="font-semibold text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+              <h3
+                title={v.title}
+                className="font-semibold text-sm leading-snug group-hover:text-primary transition-colors min-h-[2.5rem]"
+              >
                 {v.title}
               </h3>
               <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
