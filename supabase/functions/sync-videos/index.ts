@@ -115,10 +115,24 @@ Deno.serve(async (req) => {
     }
 
     if (allRows.length > 0) {
+      // In-batch dedupe (keep first occurrence of each source+external_id)
+      const seen = new Set<string>();
+      const deduped = allRows.filter((r) => {
+        if (!r.external_id) return true;
+        const key = `${r.source}:${r.external_id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
       const { error } = await supabase
         .from('imported_videos')
-        .upsert(allRows, { onConflict: 'source,external_id' });
+        .upsert(deduped, {
+          onConflict: 'source,external_id',
+          ignoreDuplicates: false,
+        });
       if (error) throw error;
+      results.push({ source: 'upserted', count: deduped.length });
     }
 
     return new Response(JSON.stringify({ ok: true, results }), {
