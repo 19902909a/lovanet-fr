@@ -1,13 +1,62 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Play, Calendar } from "lucide-react";
-import { videos, thumb, type Video } from "@/data/videos";
+import { ChevronLeft, ChevronRight, Play, Calendar, Youtube, Music2, Tv } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { videos as fallbackVideos, thumb as ytThumb } from "@/data/videos";
+
+type ImportedVideo = {
+  id: string;
+  source: "youtube" | "tiktok" | "prime";
+  external_id: string | null;
+  title: string;
+  thumbnail_url: string | null;
+  video_url: string;
+  published_at: string | null;
+  episode: string | null;
+};
+
+const sourceMeta: Record<ImportedVideo["source"], { label: string; Icon: typeof Youtube }> = {
+  youtube: { label: "YouTube", Icon: Youtube },
+  tiktok: { label: "TikTok", Icon: Music2 },
+  prime: { label: "Prime Video", Icon: Tv },
+};
 
 export const RecentEpisodesCarousel = () => {
-  const recents: Video[] = videos
-    .filter((v) => v.recent)
-    .slice()
-    .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+  const [items, setItems] = useState<ImportedVideo[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase
+        .from("imported_videos")
+        .select("id, source, external_id, title, thumbnail_url, video_url, published_at, episode")
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .limit(30);
+      if (!active) return;
+      setItems((data as ImportedVideo[] | null) ?? []);
+      setLoaded(true);
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const recents = useMemo<ImportedVideo[]>(() => {
+    if (items.length > 0) return items;
+    return fallbackVideos
+      .filter((v) => v.recent)
+      .map((v) => ({
+        id: v.id,
+        source: "youtube" as const,
+        external_id: v.id,
+        title: v.title,
+        thumbnail_url: ytThumb(v.id),
+        video_url: `/lecteurs-video?video=${v.id}`,
+        published_at: v.date ?? null,
+        episode: v.episode ?? null,
+      }));
+  }, [items]);
 
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -44,6 +93,13 @@ export const RecentEpisodesCarousel = () => {
       ? new Date(d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })
       : "";
 
+  const linkFor = (v: ImportedVideo): { to: string; external: boolean } => {
+    if (v.source === "youtube" && v.external_id) {
+      return { to: `/lecteurs-video?video=${v.external_id}`, external: false };
+    }
+    return { to: v.video_url, external: true };
+  };
+
   return (
     <div className="relative">
       <button
@@ -65,26 +121,34 @@ export const RecentEpisodesCarousel = () => {
         <ChevronRight className="w-5 h-5" />
       </button>
 
+      {loaded && items.length === 0 && (
+        <p className="text-sm text-muted-foreground mb-4">
+          Aucune vidéo importée pour le moment — la synchronisation peut être déclenchée depuis l'administration.
+        </p>
+      )}
       <div
         ref={scrollerRef}
         className="flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 -mx-4 px-4 lg:mx-0 lg:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {recents.map((v) => (
-          <Link
-            key={v.id}
-            to={`/lecteurs-video?video=${v.id}`}
-            className="group snap-start shrink-0 w-[280px] sm:w-[320px] rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all hover:-translate-y-1"
-          >
+        {recents.map((v) => {
+          const { to, external } = linkFor(v);
+          const { label, Icon } = sourceMeta[v.source];
+          const cover = v.thumbnail_url || (v.external_id ? ytThumb(v.external_id) : "");
+          const cardClass =
+            "group snap-start shrink-0 w-[280px] sm:w-[320px] rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all hover:-translate-y-1";
+          const inner = (
+            <>
             <div className="relative aspect-video overflow-hidden">
               <img
-                src={thumb(v.id)}
+                src={cover}
                 alt={v.title}
                 loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-              <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
-                Nouveau
+              <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
+                <Icon className="w-3 h-3" />
+                {label}
               </span>
               {v.episode && (
                 <span className="absolute top-3 right-3 px-2.5 py-1 rounded-md bg-background/80 backdrop-blur text-foreground text-[11px] font-semibold">
@@ -102,17 +166,27 @@ export const RecentEpisodesCarousel = () => {
                 {v.title}
               </h3>
               <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                <span className="truncate pr-2">{v.series}</span>
-                {v.date && (
+                <span className="truncate pr-2">{label}</span>
+                {v.published_at && (
                   <span className="flex items-center gap-1 shrink-0">
                     <Calendar className="w-3 h-3" />
-                    {fmt(v.date)}
+                    {fmt(v.published_at)}
                   </span>
                 )}
               </div>
             </div>
-          </Link>
-        ))}
+            </>
+          );
+          return external ? (
+            <a key={v.id} href={to} target="_blank" rel="noreferrer" className={cardClass}>
+              {inner}
+            </a>
+          ) : (
+            <Link key={v.id} to={to} className={cardClass}>
+              {inner}
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
