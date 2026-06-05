@@ -5,7 +5,9 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 import { RecentEpisodesCarousel } from "@/components/RecentEpisodesCarousel";
 import { VideoCard } from "@/components/VideoCard";
 import { Button } from "@/components/ui/button";
-import { videos, products } from "@/data/videos";
+import { videos as rawVideos, products } from "@/data/videos";
+
+const videos = [...rawVideos].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 
 const tags = ["Lovanet", "Manga animé", "YouTube", "TikTok", "Shop", "3D", "Live Selection"];
 const reactions = [
