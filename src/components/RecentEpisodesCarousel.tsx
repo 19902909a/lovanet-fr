@@ -2,7 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Play, Calendar, Youtube, Music2, Tv, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { videos as fallbackVideos, thumb as ytThumb } from "@/data/videos";
+import { videos as fallbackVideos } from "@/data/videos";
+
+// Prefer maxresdefault (16:9, full frame) and fall back to hqdefault
+const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
+const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
 type ImportedVideo = {
   id: string;
@@ -147,7 +151,7 @@ export const RecentEpisodesCarousel = () => {
           Array.from({ length: 4 }).map((_, i) => (
             <div
               key={`sk-${i}`}
-              className="snap-start shrink-0 w-[280px] sm:w-[320px] rounded-2xl overflow-hidden bg-card border border-border animate-pulse"
+              className="snap-start shrink-0 w-[340px] sm:w-[400px] rounded-2xl overflow-hidden bg-card border border-border animate-pulse"
             >
               <div className="aspect-video bg-muted" />
               <div className="p-4 space-y-2">
@@ -162,15 +166,22 @@ export const RecentEpisodesCarousel = () => {
           const cover = v.thumbnail_url || (v.external_id ? ytThumb(v.external_id) : "");
           const fresh = isNew(v.published_at);
           const cardClass =
-            "group snap-start shrink-0 w-[280px] sm:w-[320px] rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all hover:-translate-y-1";
+            "group snap-start shrink-0 w-[340px] sm:w-[400px] rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all hover:-translate-y-1";
           const inner = (
             <>
-            <div className="relative aspect-video overflow-hidden">
+            <div className="relative aspect-video overflow-hidden bg-black">
               <img
                 src={cover}
                 alt={v.title}
                 loading="lazy"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-contain group-hover:scale-[1.03] transition-transform duration-500"
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  if (v.external_id && !img.dataset.fallback) {
+                    img.dataset.fallback = "1";
+                    img.src = ytThumbFallback(v.external_id);
+                  }
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
               <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
