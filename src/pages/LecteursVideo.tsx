@@ -1,11 +1,15 @@
 import { useSearchParams } from "react-router-dom";
 import { PageShell } from "@/components/PageShell";
-import { videos } from "@/data/videos";
+import { videos as rawVideos } from "@/data/videos";
 import { VideoCard } from "@/components/VideoCard";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 const LecteursVideo = () => {
   const [params, setParams] = useSearchParams();
+  const videos = useMemo(
+    () => [...rawVideos].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "")),
+    [],
+  );
   const initial = params.get("video") || videos[2].id;
   const [active, setActive] = useState(initial);
 
