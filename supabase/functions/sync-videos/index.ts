@@ -23,14 +23,25 @@ async function fetchYouTube(apiKey: string): Promise<Row[]> {
   const uploadsId = chJson.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
   if (!uploadsId) return [];
 
-  // 2. Fetch the 25 latest uploads
-  const plRes = await fetch(
-    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=25&playlistId=${uploadsId}&key=${apiKey}`,
-  );
-  const plJson = await plRes.json();
-  if (!plRes.ok) throw new Error(`YouTube playlist error: ${JSON.stringify(plJson)}`);
+  // 2. Paginate through ALL uploads (50 per page, up to 10 pages = 500 videos)
+  const items: any[] = [];
+  let pageToken: string | undefined;
+  for (let page = 0; page < 10; page++) {
+    const url = new URL('https://www.googleapis.com/youtube/v3/playlistItems');
+    url.searchParams.set('part', 'snippet');
+    url.searchParams.set('maxResults', '50');
+    url.searchParams.set('playlistId', uploadsId);
+    url.searchParams.set('key', apiKey);
+    if (pageToken) url.searchParams.set('pageToken', pageToken);
+    const plRes = await fetch(url.toString());
+    const plJson = await plRes.json();
+    if (!plRes.ok) throw new Error(`YouTube playlist error: ${JSON.stringify(plJson)}`);
+    items.push(...(plJson.items ?? []));
+    pageToken = plJson.nextPageToken;
+    if (!pageToken) break;
+  }
 
-  return (plJson.items ?? []).map((it: any): Row => {
+  return items.map((it: any): Row => {
     const sn = it.snippet ?? {};
     const vid = sn.resourceId?.videoId;
     const thumb =
