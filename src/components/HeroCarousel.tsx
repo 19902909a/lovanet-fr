@@ -137,16 +137,28 @@ export const HeroCarousel = () => {
   // Stable cards: one per video; only their angular position changes.
   const cards = allVideos.map((v, i) => ({ key: v.id, v, slotIdx: i }));
 
-  // Touch swipe (vertical) on mobile
-  const touchStartY = useRef<number | null>(null);
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
+  // Drag-to-scroll (mouse + touch): moving vertically scrolls the wheel
+  // rapidly. 1 card per ~40px of drag.
+  const dragRef = useRef<{ id: number; lastY: number } | null>(null);
+  const PX_PER_CARD = 40;
+  const onPointerDown = (e: React.PointerEvent) => {
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    dragRef.current = { id: e.pointerId, lastY: e.clientY };
   };
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartY.current == null) return;
-    const dy = e.changedTouches[0].clientY - touchStartY.current;
-    if (Math.abs(dy) > 40) advance(dy < 0 ? 1 : -1);
-    touchStartY.current = null;
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d || d.id !== e.pointerId) return;
+    const dy = e.clientY - d.lastY;
+    if (dy === 0) return;
+    d.lastY = e.clientY;
+    setProg((p) => {
+      let n = (p - dy / (PX_PER_CARD * N)) % 1;
+      if (n < 0) n += 1;
+      return n;
+    });
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (dragRef.current?.id === e.pointerId) dragRef.current = null;
   };
 
 
