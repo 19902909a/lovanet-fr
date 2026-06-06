@@ -85,10 +85,14 @@ const Index = () => {
             </p>
 
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="shimmer-btn rounded-full gap-2 text-white border-0 hover:scale-[1.03] transition-transform" style={{ background: "var(--gradient-magenta)" }}>
+              <Button
+                asChild
+                size="lg"
+                className="btn-magnetic btn-holo rounded-full gap-2 text-white border-0"
+              >
                 <Link to="/lecteurs-video"><Play className="w-4 h-4 fill-current" /> Regarder maintenant</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full gap-2">
+              <Button asChild size="lg" variant="outline" className="btn-magnetic rounded-full gap-2">
                 <Link to="/shop"><ShoppingBag className="w-4 h-4" /> Boutique créateur</Link>
               </Button>
             </div>
@@ -141,7 +145,12 @@ const Index = () => {
               <Link
                 key={p.to}
                 to={p.to}
-                className="tilt-card group relative p-5 rounded-2xl bg-card border border-border transition-all duration-300"
+                className={cn(
+                  "tilt-card group relative p-5 rounded-2xl bg-card border border-border transition-all duration-300",
+                  i === 0 && "neon-edge",
+                  i === 1 && "depth-card",
+                  i === 2 && "holo-card",
+                )}
               >
                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-white bg-gradient-to-br group-hover:scale-110 transition-transform shadow-lg", tints[i])}>
                   <p.icon className="w-5 h-5" />
