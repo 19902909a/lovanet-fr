@@ -2,6 +2,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import lovanetIcon from "@/assets/lovanet-icon.png";
 
 const navItems = [
   { to: "/", label: "Accueil" },
@@ -18,20 +19,19 @@ const extraItems = [
 ];
 
 const CloudLogo = () => (
-  <svg viewBox="0 0 64 40" className="w-9 h-9" aria-hidden>
-    <defs>
-      <linearGradient id="cloudg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stopColor="hsl(var(--neon-magenta))" />
-        <stop offset="100%" stopColor="hsl(var(--neon-purple))" />
-      </linearGradient>
-    </defs>
-    <path
-      d="M18 30 a12 12 0 0 1 0-22 a14 14 0 0 1 26 4 a10 10 0 0 1 4 18 z"
-      fill="hsl(var(--background))"
-      stroke="url(#cloudg)"
-      strokeWidth="2"
+  <div className="relative w-10 h-10 group/logo">
+    <div
+      className="absolute inset-0 rounded-full blur-xl opacity-60 group-hover/logo:opacity-100 transition-opacity"
+      style={{ background: "var(--gradient-magenta)" }}
     />
-  </svg>
+    <img
+      src={lovanetIcon}
+      alt="Lovanet"
+      width={40}
+      height={40}
+      className="relative w-10 h-10 object-contain drop-shadow-[0_4px_12px_hsl(var(--neon-magenta)/0.5)] group-hover/logo:scale-110 transition-transform duration-300"
+    />
+  </div>
 );
 
 export const Navbar = () => {
