@@ -428,6 +428,17 @@
     .animate-hero-rise, .hero-float { animation: none !important; }
   }
 
+  /* Luminous dial halo — slow counter-clockwise spin */
+  @keyframes halo-spin-ccw {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-360deg); }
+  }
+  .halo-spin { animation: halo-spin-ccw 18s linear infinite; }
+  .dial-glow { animation: neon-edge-pulse 4s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    .halo-spin, .dial-glow { animation: none !important; }
+  }
+
   /* 3D extruded text */
   .text-3d {
     color: hsl(var(--foreground));
