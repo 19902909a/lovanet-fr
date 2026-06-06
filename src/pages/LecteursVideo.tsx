@@ -42,7 +42,7 @@ const LecteursVideo = () => {
 
   return (
     <PageShell>
-      <section className="container mx-auto px-4 lg:px-8 py-12 text-center">
+      <section className="container mx-auto px-4 lg:px-8 py-12">
         <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-2">Lecteurs vidéo</p>
         <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold">
           <span className="gradient-text">Lecture immersive</span>
@@ -158,8 +158,8 @@ const LecteursVideo = () => {
       </section>
 
       <section className="container mx-auto px-4 lg:px-8 pb-16">
-        <h3 className="font-display text-xl font-bold mb-4">Sélection en rotation</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <h2 className="font-display text-3xl sm:text-4xl font-bold mb-6">Sélection en rotation</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {videos
             .filter((v) => v.id !== activeVideo.id)
             .map((v) => (
