@@ -1,106 +1,173 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PageShell } from "@/components/PageShell";
-import { thumb as ytThumb, videos as fallbackVideos } from "@/data/videos";
-import { Music2, Sparkles } from "lucide-react";
-import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-
-type ImportedVideo = {
-  id: string;
-  source: "youtube" | "tiktok" | "prime";
-  external_id: string | null;
-  title: string;
-  thumbnail_url: string | null;
-  video_url: string;
-  published_at: string | null;
-};
-
-const isNew = (d?: string | null) => {
-  if (!d) return false;
-  return Date.now() - new Date(d).getTime() < 7 * 24 * 60 * 60 * 1000;
-};
+import { videos as fallbackVideos } from "@/data/videos";
+import { Music2, Heart, MessageCircle, Share2, ArrowUp, ArrowDown, ExternalLink, VolumeX, Volume2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const Tiktok = () => {
-  const [items, setItems] = useState<ImportedVideo[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const list = [...fallbackVideos].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+  const [idx, setIdx] = useState(0);
+  const [muted, setMuted] = useState(true);
+  const [orientation, setOrientation] = useState<"vertical" | "horizontal">("vertical");
+  const v = list[idx];
+
+  const go = useCallback(
+    (dir: 1 | -1) => setIdx((i) => (i + dir + list.length) % list.length),
+    [list.length]
+  );
 
   useEffect(() => {
-    let active = true;
-    (async () => {
-      const { data } = await supabase
-        .from("imported_videos")
-        .select("id, source, external_id, title, thumbnail_url, video_url, published_at")
-        .eq("source", "tiktok")
-        .order("published_at", { ascending: false, nullsFirst: false })
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (!active) return;
-      setItems((data as ImportedVideo[] | null) ?? []);
-      setLoaded(true);
-    })();
-    return () => {
-      active = false;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown") go(1);
+      else if (e.key === "ArrowUp") go(-1);
+      else if (e.key.toLowerCase() === "m") setMuted((m) => !m);
     };
-  }, []);
-
-  const fallback = [...fallbackVideos]
-    .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [go]);
 
   return (
     <PageShell>
-    <section className="container mx-auto px-4 lg:px-8 py-16">
-      <div className="w-12 h-12 rounded-2xl bg-primary/15 text-primary flex items-center justify-center mb-4">
-        <Music2 className="w-6 h-6" />
-      </div>
-      <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">@animemomentsAnimeofficiel</p>
-      <h1 className="font-display text-4xl sm:text-5xl font-extrabold mb-3">TikTok</h1>
-      <p className="text-muted-foreground max-w-2xl">Posts courts, réactions rapides et moments anime viraux.</p>
-    </section>
+      <section className="container mx-auto px-4 lg:px-8 py-12 text-center">
+        <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-2">Feed officiel</p>
+        <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold">
+          <span className="bg-gradient-to-r from-pink-400 via-fuchsia-500 to-rose-500 bg-clip-text text-transparent">
+            TikTok
+          </span>
+        </h1>
+        <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
+          Feed vertical infini · swipe haut/bas pour naviguer · démarrage automatique.
+        </p>
+      </section>
 
-    <section className="container mx-auto px-4 lg:px-8 pb-16">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        {loaded && items.length > 0
-          ? items.map((v) => {
-              const cover = v.thumbnail_url || "";
-              const fresh = isNew(v.published_at);
-              return (
-                <a
-                  key={v.id}
-                  href={v.video_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group relative aspect-[9/16] rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60"
-                >
-                  {cover && (
-                    <img src={cover} alt={v.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/30" />
-                  {fresh && (
-                    <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[9px] font-bold uppercase animate-pulse">
-                      <Sparkles className="w-2.5 h-2.5" /> Nouveau
-                    </span>
-                  )}
-                  <div title={v.title} className="absolute bottom-3 left-3 right-3 text-white text-xs font-semibold leading-snug line-clamp-3">
-                    {v.title}
-                  </div>
-                </a>
-              );
-            })
-          : fallback.map((v) => (
-              <Link
-                key={v.id}
-                to={`/lecteurs-video?video=${v.id}`}
-                className="group relative aspect-[9/16] rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60"
+      <section className="container mx-auto px-4 lg:px-8 pb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3">
+            <div className="px-3 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-xs font-bold flex items-center gap-1.5">
+              <Music2 className="w-3.5 h-3.5" /> TikTok
+            </div>
+            <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+              Feed vertical · {idx + 1}/{list.length}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMuted((m) => !m)}
+              className="px-3 py-2 rounded-full bg-secondary border border-border text-xs font-semibold hover:border-pink-500/60 transition-colors flex items-center gap-1.5"
+            >
+              {muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+              {muted ? "Son OFF" : "Son ON"}
+            </button>
+            <div className="inline-flex p-1 rounded-full bg-secondary border border-border">
+              <button
+                onClick={() => setOrientation("vertical")}
+                className={cn("px-3 py-1.5 text-xs rounded-full font-semibold", orientation === "vertical" ? "bg-background" : "text-muted-foreground")}
               >
-                <img src={ytThumb(v.id)} alt={v.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/30" />
-                <div className="absolute bottom-3 left-3 right-3 text-white text-xs font-semibold leading-snug line-clamp-3">
-                  {v.title}
-                </div>
-              </Link>
-            ))}
-      </div>
-    </section>
+                ▯ Vertical
+              </button>
+              <button
+                onClick={() => setOrientation("horizontal")}
+                className={cn("px-3 py-1.5 text-xs rounded-full font-semibold", orientation === "horizontal" ? "bg-background" : "text-muted-foreground")}
+              >
+                ▭ Horizontal
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative flex items-center justify-center gap-4">
+          {/* Up arrow */}
+          <button
+            onClick={() => go(-1)}
+            className="hidden md:flex w-12 h-12 rounded-full bg-secondary/80 border border-border hover:border-pink-500/60 items-center justify-center transition-colors"
+            aria-label="Précédent"
+          >
+            <ArrowUp className="w-5 h-5" />
+          </button>
+
+          {/* Player */}
+          <div
+            className={cn(
+              "relative rounded-3xl overflow-hidden bg-black border border-pink-500/30 shadow-[0_40px_120px_-40px_hsl(var(--neon-magenta)/0.6)]",
+              orientation === "vertical" ? "aspect-[9/16] w-full max-w-sm" : "aspect-video w-full max-w-3xl"
+            )}
+          >
+            <iframe
+              key={`${v.id}-${muted}`}
+              src={`https://www.youtube.com/embed/${v.id}?autoplay=1&rel=0&mute=${muted ? 1 : 0}&loop=1&playlist=${v.id}`}
+              title={v.title}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+
+            {/* Right-side actions overlay */}
+            <div className="absolute right-3 bottom-24 flex flex-col gap-3">
+              <button className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white hover:scale-110 transition-transform">
+                <Heart className="w-5 h-5" />
+              </button>
+              <button className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white hover:scale-110 transition-transform">
+                <MessageCircle className="w-5 h-5" />
+              </button>
+              <a
+                href={`https://www.youtube.com/watch?v=${v.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white hover:scale-110 transition-transform"
+              >
+                <Share2 className="w-5 h-5" />
+              </a>
+            </div>
+
+            {/* Caption */}
+            <div className="absolute left-3 right-16 bottom-3 text-white">
+              <p className="text-[10px] uppercase tracking-wider text-white/70">{v.series}</p>
+              <h3 className="text-sm font-bold leading-snug line-clamp-3 mt-0.5">{v.title}</h3>
+            </div>
+          </div>
+
+          {/* Down arrow */}
+          <button
+            onClick={() => go(1)}
+            className="hidden md:flex w-12 h-12 rounded-full bg-secondary/80 border border-border hover:border-pink-500/60 items-center justify-center transition-colors"
+            aria-label="Suivant"
+          >
+            <ArrowDown className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Mobile nav */}
+        <div className="md:hidden mt-4 flex items-center justify-center gap-3">
+          <button
+            onClick={() => go(-1)}
+            className="w-12 h-12 rounded-full bg-secondary border border-border flex items-center justify-center"
+          >
+            <ArrowUp className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => go(1)}
+            className="w-12 h-12 rounded-full bg-secondary border border-border flex items-center justify-center"
+          >
+            <ArrowDown className="w-5 h-5" />
+          </button>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground mt-4">
+          Swipe haut/bas · clavier ↑/↓ · M pour son
+        </p>
+
+        <div className="text-center mt-4">
+          <a
+            href={`https://www.youtube.com/watch?v=${v.id}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white"
+            style={{ background: "var(--gradient-magenta)" }}
+          >
+            Ouvrir l'original <ExternalLink className="w-4 h-4" />
+          </a>
+        </div>
+      </section>
     </PageShell>
   );
 };
