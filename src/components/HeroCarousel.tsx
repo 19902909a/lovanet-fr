@@ -120,12 +120,14 @@ export const HeroCarousel = () => {
     const tick = (t: number) => {
       const dt = (t - last) / 1000;
       last = t;
-      // Continuous autoplay — never blocks, never pauses on hover.
-      setProg((p) => {
-        let n = (p + dt / loopSecRef.current) % 1;
-        if (n < 0) n += 1;
-        return n;
-      });
+      // Autoplay — pauses while a card is hovered so the preview is stable.
+      if (!pausedRef.current) {
+        setProg((p) => {
+          let n = (p + dt / loopSecRef.current) % 1;
+          if (n < 0) n += 1;
+          return n;
+        });
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -265,6 +267,8 @@ export const HeroCarousel = () => {
               willChange: "transform",
               backfaceVisibility: "hidden",
             }}
+            onPointerEnter={() => setPaused(true)}
+            onPointerLeave={() => setPaused(false)}
           >
             {/* Deep back body — stacked slices give visible thickness */}
             {[-32, -26, -20, -14, -8, -3].map((zd, idx, arr) => {
@@ -349,7 +353,7 @@ export const HeroCarousel = () => {
                 title={c.v.title}
                 thumbnail={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
                 muted={!soundOn}
-                delay={200}
+                delay={0}
                 autoPlay
                 className="!aspect-video w-full h-full"
               >

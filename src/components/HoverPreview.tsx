@@ -30,7 +30,7 @@ export const HoverPreview = ({
   thumbnail,
   vertical,
   muted = true,
-  delay = 280,
+  delay = 0,
   autoPlay = false,
   children,
   className = "",
