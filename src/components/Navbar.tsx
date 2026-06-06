@@ -1,18 +1,38 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Play, ExternalLink, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 const navItems = [
-  { to: "/", label: "Anime Moments" },
-  { to: "/chaine-youtube", label: "Chaîne YouTube" },
+  { to: "/", label: "Accueil" },
+  { to: "/lecteurs-video", label: "Lecteurs vidéo" },
+  { to: "/chaine-youtube", label: "YouTube" },
   { to: "/prime-video", label: "Prime Vidéo" },
   { to: "/tiktok", label: "TikTok" },
-  { to: "/shop", label: "Shop Anime" },
+  { to: "/shop", label: "Shop" },
+];
+
+const extraItems = [
   { to: "/nlounq", label: "NLOUNQ" },
   { to: "/contact", label: "Contact" },
 ];
+
+const CloudLogo = () => (
+  <svg viewBox="0 0 64 40" className="w-9 h-9" aria-hidden>
+    <defs>
+      <linearGradient id="cloudg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="hsl(var(--neon-magenta))" />
+        <stop offset="100%" stopColor="hsl(var(--neon-purple))" />
+      </linearGradient>
+    </defs>
+    <path
+      d="M18 30 a12 12 0 0 1 0-22 a14 14 0 0 1 26 4 a10 10 0 0 1 4 18 z"
+      fill="hsl(var(--background))"
+      stroke="url(#cloudg)"
+      strokeWidth="2"
+    />
+  </svg>
+);
 
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -20,20 +40,15 @@ export const Navbar = () => {
 
   return (
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border">
-      <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-full border-2 border-primary/60 flex items-center justify-center bg-primary/10 group-hover:bg-primary/20 transition-colors">
-            <Play className="w-4 h-4 text-primary fill-primary" />
-          </div>
-          <div className="hidden sm:flex flex-col leading-tight">
-            <span className="font-display font-extrabold tracking-wider text-sm">ANIMEMOMENTS</span>
-            <span className="text-[10px] text-muted-foreground tracking-[0.2em]">
-              ANIMEOFFICIEL <span className="text-primary font-semibold">OFFICIAL</span>
-            </span>
-          </div>
+      <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <Link to="/" className="flex items-center gap-2 group shrink-0">
+          <CloudLogo />
+          <span className="font-display font-extrabold tracking-wide text-lg gradient-text">
+            Lovanet
+          </span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-1">
+        <nav className="hidden lg:flex items-center gap-1 mx-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -41,8 +56,10 @@ export const Navbar = () => {
               end={item.to === "/"}
               className={({ isActive }) =>
                 cn(
-                  "px-3 py-2 text-sm rounded-lg transition-colors",
-                  isActive ? "text-primary" : "text-foreground/80 hover:text-foreground"
+                  "px-4 py-2 text-sm rounded-full transition-all",
+                  isActive
+                    ? "bg-secondary text-foreground shadow-[inset_0_0_0_1px_hsl(var(--border))]"
+                    : "text-foreground/70 hover:text-foreground"
                 )
               }
             >
@@ -51,18 +68,13 @@ export const Navbar = () => {
           ))}
         </nav>
 
-        <div className="hidden md:flex items-center gap-2">
-          <Button asChild variant="outline" size="sm" className="gap-2 rounded-full">
-            <a href="https://www.tiktok.com" target="_blank" rel="noreferrer">
-              TikTok <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </Button>
-          <Button asChild size="sm" className="gap-2 rounded-full bg-primary hover:bg-primary/90">
-            <a href="https://www.youtube.com" target="_blank" rel="noreferrer">
-              YouTube <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </Button>
-        </div>
+        <Link
+          to="/shop"
+          className="hidden md:inline-flex items-center px-5 py-2 rounded-full text-sm font-semibold text-white shadow-[0_8px_24px_-6px_hsl(var(--neon-magenta)/0.6)] hover:scale-[1.03] transition-transform"
+          style={{ background: "var(--gradient-magenta)" }}
+        >
+          Boutique
+        </Link>
 
         <button
           className="lg:hidden p-2 rounded-lg hover:bg-secondary"
@@ -76,7 +88,7 @@ export const Navbar = () => {
       {open && (
         <div className="lg:hidden border-t border-border bg-background/95 backdrop-blur-xl">
           <nav className="container mx-auto px-4 py-3 flex flex-col gap-1">
-            {navItems.map((item) => (
+            {[...navItems, ...extraItems].map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}

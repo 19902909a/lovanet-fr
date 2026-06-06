@@ -45,8 +45,8 @@ const Index = () => {
               @animemomentsAnimeofficiel · Lovanet manga animé
             </p>
             <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[0.95]">
-              ANIME<br />
-              <span className="text-glow-cyan text-primary">MOMENTS</span>
+              <span className="gradient-text">ANIME</span><br />
+              <span className="gradient-text">MOMENTS</span>
             </h1>
             <p className="text-base text-muted-foreground max-w-lg">
               Lovanet présente les mangas animés, vidéos anime, moments forts et contenus directs YouTube / TikTok.
