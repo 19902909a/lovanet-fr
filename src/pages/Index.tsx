@@ -64,7 +64,7 @@ const Index = () => {
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-fuchsia-200 ring-1 ring-fuchsia-400/40 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 transition-colors"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse" />
-              @animemomentsAnimeofficiel · Lovanet manga animé
+              AnimemomentsAnimeofficiel
             </a>
             <h1
               className="neon-rainbow-text font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black leading-[0.95] tracking-tight"
