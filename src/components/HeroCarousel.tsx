@@ -31,8 +31,8 @@ export const HeroCarousel = () => {
 
   // Half-dial layout (left semicircle, like the 6 → 9 → 12 hours of a watch)
   const N = 6;
-  const START_ANGLE = 345;   // top-most visible slot (~12 o'clock)
-  const STEP = 30;           // degrees between slots
+  const START_ANGLE = 300;   // top-most visible slot — small left-side arc
+  const STEP = 12;           // tight step → subtle rotation between cards
   const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card"];
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,9 +47,9 @@ export const HeroCarousel = () => {
     return () => ro.disconnect();
   }, []);
 
-  // Dial geometry — radius scales with container, card sized to fit comfortably
-  const R = Math.max(180, Math.min(size.w * 0.55, size.h * 0.45));
-  const cardW = Math.max(160, Math.min(R * 0.78, 260));
+  // Dial geometry — centered in container; radius and card scale with size
+  const R = Math.max(160, Math.min(size.w * 0.42, size.h * 0.42));
+  const cardW = Math.max(180, Math.min(R * 0.95, 280));
 
   type Card = { key: number; v: Video; slotIdx: number };
   const nextKey = useRef(N);
@@ -123,11 +123,11 @@ export const HeroCarousel = () => {
     const dx = R * Math.sin(rad);   // x offset from the dial center (right edge)
     const dy = -R * Math.cos(rad);  // y offset (screen y grows downward)
     const visible = slotIdx >= 0 && slotIdx < N;
-    const tangentTilt = (a - 270) * 0.35; // gentle radial tilt — 0 at 9 o'clock
+    const tangentTilt = (a - 270) * 0.18; // very gentle tilt — 0 at 9 o'clock
     const middle = (N - 1) / 2;
     const z = visible ? 10 + Math.round(20 - Math.abs(slotIdx - middle) * 3) : 1;
     return {
-      left: "100%",
+      left: "50%",
       top: "50%",
       width: cardW,
       aspectRatio: "16 / 9",
@@ -135,6 +135,9 @@ export const HeroCarousel = () => {
       transformOrigin: "center center",
       opacity: visible ? 1 : 0,
       zIndex: z,
+      filter: visible
+        ? `drop-shadow(0 0 18px hsl(var(--neon-magenta) / 0.35)) drop-shadow(0 8px 24px hsl(var(--neon-purple) / 0.25))`
+        : "none",
     };
   };
 
@@ -150,13 +153,29 @@ export const HeroCarousel = () => {
       {/* Decorative dial ring (anchored to the right edge, like a watch face) */}
       <div
         aria-hidden
-        className="absolute pointer-events-none rounded-full border border-fuchsia-400/20"
+        className="absolute pointer-events-none rounded-full border border-fuchsia-400/25 dial-glow"
         style={{
           width: R * 2,
           height: R * 2,
-          left: `calc(100% - ${R}px)`,
+          left: `calc(50% - ${R}px)`,
           top: `calc(50% - ${R}px)`,
-          boxShadow: "inset 0 0 60px hsl(var(--neon-magenta) / 0.08)",
+          boxShadow:
+            "inset 0 0 80px hsl(var(--neon-magenta) / 0.12), 0 0 60px hsl(var(--neon-cyan) / 0.18)",
+        }}
+      />
+      {/* Soft rotating halo behind the cards for a luminous wheel effect */}
+      <div
+        aria-hidden
+        className="absolute pointer-events-none rounded-full halo-spin"
+        style={{
+          width: R * 1.6,
+          height: R * 1.6,
+          left: `calc(50% - ${R * 0.8}px)`,
+          top: `calc(50% - ${R * 0.8}px)`,
+          background:
+            "conic-gradient(from 0deg, hsl(var(--neon-magenta)/0.0), hsl(var(--neon-magenta)/0.35), hsl(var(--neon-cyan)/0.0))",
+          filter: "blur(40px)",
+          opacity: 0.55,
         }}
       />
       <button
