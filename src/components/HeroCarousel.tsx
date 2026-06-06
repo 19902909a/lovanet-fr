@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { videos } from "@/data/videos";
 import { supabase } from "@/integrations/supabase/client";
+import { HoverPreview } from "@/components/HoverPreview";
 
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
 const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
@@ -343,31 +344,16 @@ export const HeroCarousel = () => {
               className="card-3d-front relative w-full aspect-video overflow-hidden rounded-xl bg-muted"
               style={{ transform: "translateZ(2px)" }}
             >
-              <img
-                src={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
-                alt={c.v.title}
-                loading="eager"
-                decoding="async"
-                draggable={false}
-                className="w-full h-full object-cover select-none pointer-events-none"
-                onLoad={(e) => {
-                  const img = e.currentTarget;
-                  if (img.naturalWidth > 0 && img.naturalWidth <= 120) {
-                    const step = img.dataset.fallback ?? "0";
-                    if (step === "0") { img.dataset.fallback = "1"; img.src = ytThumbHq(c.v.id); }
-                    else if (step === "1") { img.dataset.fallback = "2"; img.src = ytThumbFallback(c.v.id); }
-                    else if (step === "2") { img.dataset.fallback = "3"; img.src = placeholderThumb(c.v.id, c.v.title); }
-                  }
-                }}
-                onError={(e) => {
-                  const img = e.currentTarget;
-                  const step = img.dataset.fallback ?? "0";
-                  if (step === "0") { img.dataset.fallback = "1"; img.src = ytThumbHq(c.v.id); }
-                  else if (step === "1") { img.dataset.fallback = "2"; img.src = ytThumbFallback(c.v.id); }
-                  else if (step === "2") { img.dataset.fallback = "3"; img.src = placeholderThumb(c.v.id, c.v.title); }
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+              <HoverPreview
+                videoId={c.v.id}
+                title={c.v.title}
+                thumbnail={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
+                muted={!soundOn}
+                delay={200}
+                className="!aspect-video w-full h-full"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+              </HoverPreview>
               {/* Glossy highlight for relief */}
               <div
                 aria-hidden
