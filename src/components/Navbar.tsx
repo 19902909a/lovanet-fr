@@ -2,7 +2,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import lovanetIcon from "@/assets/lovanet-icon.png";
+import lovanetLogo from "@/assets/lovanet-logo.jpg.asset.json";
 
 const navItems = [
   { to: "/", label: "Accueil" },
@@ -18,21 +18,6 @@ const extraItems = [
   { to: "/contact", label: "Contact" },
 ];
 
-const CloudLogo = () => (
-  <div className="relative w-10 h-10 group/logo">
-    <div
-      className="absolute inset-0 rounded-full blur-xl opacity-60 group-hover/logo:opacity-100 transition-opacity"
-      style={{ background: "var(--gradient-magenta)" }}
-    />
-    <img
-      src={lovanetIcon}
-      alt="Lovanet"
-      width={40}
-      height={40}
-      className="relative w-10 h-10 object-contain drop-shadow-[0_4px_12px_hsl(var(--neon-magenta)/0.5)] group-hover/logo:scale-110 transition-transform duration-300"
-    />
-  </div>
-);
 
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -41,11 +26,12 @@ export const Navbar = () => {
   return (
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border">
       <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2 group shrink-0">
-          <CloudLogo />
-          <span className="font-display font-extrabold tracking-wide text-lg gradient-text">
-            Lovanet
-          </span>
+        <Link to="/" className="flex items-center shrink-0 group">
+          <img
+            src={lovanetLogo.url}
+            alt="Lovanet"
+            className="h-9 w-auto object-contain group-hover:scale-[1.03] transition-transform duration-300"
+          />
         </Link>
 
         <nav className="hidden lg:flex items-center gap-1 mx-auto">
