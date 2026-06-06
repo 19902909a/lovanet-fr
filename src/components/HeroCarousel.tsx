@@ -171,7 +171,9 @@ export const HeroCarousel = () => {
   // the nearest slots are visible. This prevents the first 5 cards from masking
   // the rest and makes the whole DB catalogue complete the loop.
   const MAX_ANG = 75; // degrees from center → near top/bottom of the wheel
-  const VISIBLE_RADIUS = Math.min(6, Math.max(2, Math.floor((N - 1) / 2)));
+  // Show as many cards as possible around the wheel so nothing visibly
+  // "pops" in or out. We keep a comfortable cap to avoid overdraw.
+  const VISIBLE_RADIUS = Math.min(10, Math.max(2, Math.floor((N - 1) / 2)));
   const wheelR = Math.max(R * 0.9, cardH * 1.18);
   const styleFor = (slotIdx: number): React.CSSProperties => {
     const phase = prog * N;
@@ -180,7 +182,7 @@ export const HeroCarousel = () => {
     if (offset < 0) offset += N;
     offset -= N / 2;
     const absOffset = Math.abs(offset);
-    const visible = absOffset <= VISIBLE_RADIUS + 0.55;
+    const visible = absOffset <= VISIBLE_RADIUS + 1.5;
     const clampedOffset = Math.max(-VISIBLE_RADIUS, Math.min(VISIBLE_RADIUS, offset));
     const ang = (clampedOffset / VISIBLE_RADIUS) * MAX_ANG;
     const rad = (ang * Math.PI) / 180;
@@ -188,9 +190,9 @@ export const HeroCarousel = () => {
     const y = Math.sin(rad) * wheelR;
     // Front-facing factor (1 = center, 0 = edge)
     const front = Math.cos(rad);
-    // Opacity & z: front card on top, edges fade
-    const edgeFade = Math.max(0, 1 - Math.max(0, absOffset - VISIBLE_RADIUS) / 0.55);
-    const opacity = visible ? Math.max(0, front * 1.08) * edgeFade : 0;
+    // Opacity & z: front card on top, edges fade smoothly without popping
+    const edgeFade = Math.max(0, 1 - Math.max(0, absOffset - (VISIBLE_RADIUS - 0.5)) / 2);
+    const opacity = visible ? Math.min(1, Math.max(0, front) * 1.15) * edgeFade : 0;
     const z = visible ? 100 + Math.round((VISIBLE_RADIUS - absOffset) * 10) : 0;
     return {
       left: CENTER_X - cardW / 2,
@@ -282,7 +284,7 @@ export const HeroCarousel = () => {
             className={`tilt-card group absolute rounded-xl ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:z-50 ${variant}`}
             style={{
               ...styleFor(c.slotIdx),
-              transition: "opacity 0.6s ease, filter 0.6s ease",
+      transition: "opacity 0.18s linear, filter 0.3s ease",
               willChange: "transform",
               contain: "layout paint",
               backfaceVisibility: "hidden",
