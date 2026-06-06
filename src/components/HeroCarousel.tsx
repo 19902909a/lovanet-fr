@@ -67,7 +67,7 @@ export const HeroCarousel = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
             <div className="absolute bottom-2 left-3 right-3">
-              <div className="text-[10px] uppercase tracking-wider text-fuchsia-200/90 font-semibold">
+              <div className="text-[11px] text-fuchsia-200/90 font-medium">
                 Anime Moment
               </div>
               <div className="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-2">
