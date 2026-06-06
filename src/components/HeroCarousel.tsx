@@ -350,6 +350,7 @@ export const HeroCarousel = () => {
                 thumbnail={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
                 muted={!soundOn}
                 delay={200}
+                autoPlay
                 className="!aspect-video w-full h-full"
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
