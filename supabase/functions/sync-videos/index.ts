@@ -3,13 +3,9 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
 const YT_HANDLE = 'animemomentsanimeofficiel';
 
-// Series blocked from being imported / displayed
-const BLOCKED_KEYWORDS = ['otaku ni yasashii', 'mahou shoujo', 'madoka magica', 'madoka'];
-
-function isBlocked(text: string | null | undefined): boolean {
-  if (!text) return false;
-  const t = text.toLowerCase();
-  return BLOCKED_KEYWORDS.some((k) => t.includes(k));
+// No keyword filter — import every episode from the channel.
+function isBlocked(_text: string | null | undefined): boolean {
+  return false;
 }
 
 type Row = {
