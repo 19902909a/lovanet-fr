@@ -267,6 +267,8 @@ export const HeroCarousel = () => {
               willChange: "transform",
               backfaceVisibility: "hidden",
             }}
+            onPointerEnter={() => setPaused(true)}
+            onPointerLeave={() => setPaused(false)}
           >
             {/* Deep back body — stacked slices give visible thickness */}
             {[-32, -26, -20, -14, -8, -3].map((zd, idx, arr) => {
