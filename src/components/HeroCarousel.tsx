@@ -112,24 +112,18 @@ export const HeroCarousel = () => {
   pausedRef.current = paused;
   // Mouse-driven speed: -1..+1 from hover position (top = up, bottom = down).
   // 0 means use the default autoplay speed.
-  const hoverSpeedRef = useRef(0);
   useEffect(() => {
     let raf = 0;
     let last = performance.now();
     const tick = (t: number) => {
       const dt = (t - last) / 1000;
       last = t;
-      const hv = hoverSpeedRef.current;
-      // When hovering: speed scales with cursor distance from center (±3x).
-      // Otherwise: gentle autoplay forward.
-      const speed = hv !== 0 ? hv * 3 : (pausedRef.current ? 0 : 1);
-      if (speed !== 0) {
-        setProg((p) => {
-          let n = (p + (dt / loopSecRef.current) * speed) % 1;
-          if (n < 0) n += 1;
-          return n;
-        });
-      }
+      // Continuous autoplay — never blocks, never pauses on hover.
+      setProg((p) => {
+        let n = (p + dt / loopSecRef.current) % 1;
+        if (n < 0) n += 1;
+        return n;
+      });
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -154,18 +148,6 @@ export const HeroCarousel = () => {
     touchStartY.current = null;
   };
 
-  // Mouse hover controls direction & speed.
-  const onMouseMove = (e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const y = e.clientY - rect.top;
-    const rel = (y / rect.height) * 2 - 1; // -1 top, +1 bottom
-    // top half → forward (up the arc), bottom half → backward
-    hoverSpeedRef.current = -Math.max(-1, Math.min(1, rel));
-  };
-  const onMouseLeaveCarousel = () => {
-    hoverSpeedRef.current = 0;
-    setPaused(false);
-  };
 
   // iOS-style date wheel: every catalogue video owns a stable card, while only
   // the nearest slots are visible. This prevents the first 5 cards from masking
@@ -216,9 +198,6 @@ export const HeroCarousel = () => {
       ref={containerRef}
       className="relative w-full h-[460px] sm:h-[520px] overflow-hidden"
       style={{ perspective: "1400px", perspectiveOrigin: "50% 50%" }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseMove={onMouseMove}
-      onMouseLeave={onMouseLeaveCarousel}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
