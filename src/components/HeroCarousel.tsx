@@ -157,7 +157,7 @@ export const HeroCarousel = () => {
   // Visible arc: ~13 cards on screen at once so the motion is obvious and
   // every catalogue video clearly travels through the center.
   const VISIBLE_RADIUS = Math.min(6, Math.max(3, Math.floor((N - 1) / 2)));
-  const wheelR = Math.max(R * 1.05, cardH * 1.45);
+  const wheelR = Math.max(R * 1.35, cardH * 1.9);
   const styleFor = (slotIdx: number): React.CSSProperties => {
     const phase = prog * N;
     const rawOffset = slotIdx - phase;
