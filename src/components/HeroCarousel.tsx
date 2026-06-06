@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { videos } from "@/data/videos";
 import { HoverPreview } from "@/components/HoverPreview";
@@ -26,21 +26,39 @@ const placeholderThumb = (id: string, title: string) => {
 };
 
 export const HeroCarousel = () => {
-  const items = videos.slice(0, 6);
   const [soundOn, setSoundOn] = useState(false);
-  // Free-form stacked layout matching the source capture (% positions inside container)
-  // No rotation — cards are straight rectangles overlapping at different offsets.
-  const layout = [
-    { top: 2,  left: 18, rot: 0, w: 300, z: 6 }, // Mama's — top
-    { top: 10, left: 54, rot: 0, w: 200, z: 2 }, // peek behind right
-    { top: 28, left: 32, rot: 0, w: 280, z: 5 }, // You're Lucky
-    { top: 38, left: 2,  rot: 0, w: 300, z: 4 }, // I Mean
-    { top: 52, left: 30, rot: 0, w: 290, z: 3 }, // So It's Something Else
-    { top: 66, left: 16, rot: 0, w: 270, z: 7 }, // A Lot Did Happen
+  const [offset, setOffset] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-rotate every 10s — videos rise upward through the stack
+  useEffect(() => {
+    if (paused) return;
+    const id = window.setInterval(() => {
+      setOffset((o) => (o + 1) % videos.length);
+    }, 10000);
+    return () => window.clearInterval(id);
+  }, [paused]);
+
+  // 6 stacked slots — each gets its own 3D pose + variant
+  const slots = [
+    { top: 2,  left: 18, w: 300, z: 6, rx: -8,  ry: 10,  rz: -2, variant: "neon-edge"  },
+    { top: 10, left: 54, w: 220, z: 2, rx: 6,   ry: -14, rz: 3,  variant: "holo-card"  },
+    { top: 28, left: 32, w: 280, z: 5, rx: -4,  ry: 8,   rz: -1, variant: "depth-card" },
+    { top: 38, left: 2,  w: 300, z: 4, rx: 8,   ry: -10, rz: 2,  variant: "holo-card"  },
+    { top: 52, left: 30, w: 290, z: 3, rx: -6,  ry: 12,  rz: -3, variant: "neon-edge"  },
+    { top: 66, left: 16, w: 270, z: 7, rx: 4,   ry: -8,  rz: 1,  variant: "depth-card" },
   ];
+  const items = slots.map((_, i) => videos[(i + offset) % videos.length]);
 
   return (
-    <div className="relative w-full h-[460px] sm:h-[520px]">
+    <div
+      ref={containerRef}
+      className="relative w-full h-[460px] sm:h-[520px]"
+      style={{ perspective: "1400px", perspectiveOrigin: "50% 40%" }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
       <button
         type="button"
         onClick={() => setSoundOn((s) => !s)}
@@ -50,21 +68,40 @@ export const HeroCarousel = () => {
         {soundOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
         {soundOn ? "Son" : "Muet"}
       </button>
+
+      {/* Progress ring around the sound button */}
+      <div className="absolute top-2 right-2 z-[55] pointer-events-none">
+        <div
+          key={offset}
+          className="w-[90px] h-[34px] rounded-full ring-1 ring-fuchsia-400/40"
+          style={{
+            animation: paused ? "none" : "neon-edge-pulse 10s linear",
+          }}
+        />
+      </div>
+
       {items.map((v, i) => {
-        const l = layout[i];
+        const l = slots[i];
         return (
           <div
-            key={v.id}
-            className="tilt-card group absolute rounded-xl overflow-hidden ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:z-50"
+            key={`slot-${i}`}
+            className="absolute hover:z-50 overflow-hidden rounded-xl"
             style={{
               top: `${l.top}%`,
               left: `${l.left}%`,
               width: l.w,
-              transform: `rotate(${l.rot}deg)`,
               zIndex: l.z,
               aspectRatio: "16 / 9",
+              transformStyle: "preserve-3d",
+              transform: `rotateX(${l.rx}deg) rotateY(${l.ry}deg) rotateZ(${l.rz}deg)`,
+              transition: "transform 0.6s cubic-bezier(0.2,0.8,0.2,1)",
             }}
           >
+            <div
+              key={`${v.id}-${offset}`}
+              className={`animate-hero-rise tilt-card group relative w-full h-full rounded-xl overflow-hidden ring-1 ring-white/10 shadow-[0_30px_70px_-20px_rgba(0,0,0,0.7)] ${l.variant}`}
+              style={{ animationDelay: `${i * 80}ms` }}
+            >
             <HoverPreview
               videoId={v.id}
               title={v.title}
@@ -97,6 +134,7 @@ export const HeroCarousel = () => {
                 </div>
               </div>
             </HoverPreview>
+            </div>
           </div>
         );
       })}
