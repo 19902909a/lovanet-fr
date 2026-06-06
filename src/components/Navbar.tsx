@@ -44,8 +44,8 @@ export const Navbar = () => {
                 cn(
                   "px-4 py-2 text-sm rounded-full transition-all",
                   isActive
-                    ? "bg-secondary text-foreground shadow-[inset_0_0_0_1px_hsl(var(--border))]"
-                    : "text-foreground/70 hover:text-foreground"
+                    ? "text-primary"
+                    : "text-foreground/70 hover:text-primary"
                 )
               }
             >
