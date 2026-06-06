@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Play } from "lucide-react";
 
 type Props = {
@@ -10,6 +10,8 @@ type Props = {
   muted?: boolean;
   /** delay before iframe loads on hover, in ms */
   delay?: number;
+  /** Start playing automatically without waiting for hover (default true). */
+  autoPlay?: boolean;
   /** extra overlays rendered above the player (badges, captions...) */
   children?: ReactNode;
   className?: string;
@@ -29,13 +31,18 @@ export const HoverPreview = ({
   vertical,
   muted = true,
   delay = 280,
+  autoPlay = true,
   children,
   className = "",
   onImgLoad,
   onImgError,
 }: Props) => {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(autoPlay);
   const timer = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (autoPlay) setActive(true);
+  }, [autoPlay, videoId]);
 
   const start = () => {
     if (timer.current) window.clearTimeout(timer.current);
