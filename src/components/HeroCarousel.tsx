@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Volume2, VolumeX, ChevronUp, ChevronDown } from "lucide-react";
 import { videos, type Video } from "@/data/videos";
 import { HoverPreview } from "@/components/HoverPreview";
 
@@ -46,31 +46,61 @@ export const HeroCarousel = () => {
     slots.map((_, i) => ({ key: i, v: videos[i % videos.length], slotIdx: i })),
   );
 
-  // Diaporama: every 10s, all cards rise one slot; top exits, new enters at bottom
-  useEffect(() => {
-    if (paused) return;
-    const tick = () => {
-      // 1) Insert the new card at the bottom-offscreen position (slotIdx = slots.length)
+  // Advance one step: all cards rise (next) or sink (prev) one slot
+  const advance = useCallback((dir: 1 | -1) => {
+    if (dir === 1) {
       const incoming: Card = {
         key: nextKey.current++,
         v: videos[nextPool.current++ % videos.length],
-        slotIdx: slots.length,
+        slotIdx: slots.length, // enter from bottom
       };
       setCards((prev) => [...prev, incoming]);
-      // 2) Next frame, shift everyone up by 1 → CSS transitions glide them to new slot
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setCards((prev) => prev.map((c) => ({ ...c, slotIdx: c.slotIdx - 1 })));
         });
       });
-      // 3) After the glide, prune the card that exited above
       window.setTimeout(() => {
         setCards((prev) => prev.filter((c) => c.slotIdx > -2));
       }, 1200);
-    };
-    const id = window.setInterval(tick, 10000);
+    } else {
+      // Reverse: new card enters from top, everyone sinks one slot
+      nextPool.current = (nextPool.current - 1 + videos.length * 1000) % videos.length;
+      const incoming: Card = {
+        key: nextKey.current++,
+        v: videos[nextPool.current % videos.length],
+        slotIdx: -1, // enter from top
+      };
+      setCards((prev) => [incoming, ...prev]);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setCards((prev) => prev.map((c) => ({ ...c, slotIdx: c.slotIdx + 1 })));
+        });
+      });
+      window.setTimeout(() => {
+        setCards((prev) => prev.filter((c) => c.slotIdx < slots.length + 1));
+      }, 1200);
+    }
+  }, [slots.length]);
+
+  // Auto-advance every 5s
+  useEffect(() => {
+    if (paused) return;
+    const id = window.setInterval(() => advance(1), 5000);
     return () => window.clearInterval(id);
-  }, [paused]);
+  }, [paused, advance]);
+
+  // Touch swipe (vertical) on mobile
+  const touchStartY = useRef<number | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartY.current == null) return;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(dy) > 40) advance(dy < 0 ? 1 : -1);
+    touchStartY.current = null;
+  };
 
   const styleFor = (slotIdx: number): React.CSSProperties => {
     if (slotIdx >= 0 && slotIdx < slots.length) {
@@ -99,6 +129,8 @@ export const HeroCarousel = () => {
       className="relative w-full h-[460px] sm:h-[520px] overflow-hidden"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       <button
         type="button"
@@ -109,6 +141,25 @@ export const HeroCarousel = () => {
         {soundOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
         {soundOn ? "Son" : "Muet"}
       </button>
+
+      {/* Prev / Next controls */}
+      <button
+        type="button"
+        onClick={() => advance(-1)}
+        aria-label="Précédent"
+        className="btn-magnetic absolute left-2 top-1/2 -translate-y-12 z-[60] w-10 h-10 rounded-full bg-black/60 backdrop-blur text-white ring-1 ring-white/20 hover:ring-fuchsia-400/60 transition flex items-center justify-center"
+      >
+        <ChevronUp className="w-5 h-5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => advance(1)}
+        aria-label="Suivant"
+        className="btn-magnetic absolute left-2 top-1/2 translate-y-2 z-[60] w-10 h-10 rounded-full bg-black/60 backdrop-blur text-white ring-1 ring-white/20 hover:ring-fuchsia-400/60 transition flex items-center justify-center"
+      >
+        <ChevronDown className="w-5 h-5" />
+      </button>
+
       {cards.map((c) => {
         const variant =
           c.slotIdx >= 0 && c.slotIdx < slots.length
