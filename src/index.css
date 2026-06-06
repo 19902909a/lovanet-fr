@@ -542,4 +542,29 @@
     0% { transform: translateY(-100%); }
     100% { transform: translateY(100%); }
   }
+
+  /* Thick 3D card: relief + interactive hover lift */
+  .card-3d {
+    transform-style: preserve-3d;
+  }
+  .card-3d:hover {
+    transform: translate3d(0, -6px, 24px) scale(1.06) !important;
+    filter:
+      drop-shadow(0 0 28px hsl(var(--neon-magenta) / 0.65))
+      drop-shadow(0 24px 40px hsl(var(--neon-purple) / 0.55)) !important;
+    z-index: 80 !important;
+  }
+  .card-3d-front {
+    transition: transform 0.4s cubic-bezier(.22,1,.36,1);
+  }
+  .card-3d:hover .card-3d-front {
+    transform: translateZ(14px) !important;
+  }
+  .card-3d-gloss {
+    transition: opacity 0.4s ease;
+    opacity: 0.85;
+  }
+  .card-3d:hover .card-3d-gloss {
+    opacity: 1;
+  }
 }

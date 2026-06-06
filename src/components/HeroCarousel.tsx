@@ -257,32 +257,91 @@ export const HeroCarousel = () => {
         return (
           <div
             key={c.key}
-            className={`group absolute rounded-xl ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:z-50 ${variant}`}
+            className={`card-3d group absolute rounded-xl ring-1 ring-white/10 hover:z-50 ${variant}`}
             style={{
               ...styleFor(c.slotIdx),
-      transition: "opacity 0.18s linear, filter 0.3s ease",
+              transition: "opacity 0.18s linear, filter 0.3s ease, transform 0.4s cubic-bezier(.22,1,.36,1)",
               willChange: "transform",
-              contain: "layout paint",
               backfaceVisibility: "hidden",
             }}
           >
-            {/* Thick 3D body — slices stacked on Z to simulate card depth */}
-            {[-14, -10, -6, -2].map((zd) => (
-              <div
-                key={zd}
-                aria-hidden
-                className="absolute inset-0 rounded-xl"
-                style={{
-                  transform: `translateZ(${zd}px)`,
-                  background: `linear-gradient(180deg, hsl(var(--neon-purple) / ${0.55 + (zd + 14) * 0.02}), hsl(0 0% 4% / 0.95))`,
-                  boxShadow: zd === -14 ? "0 0 0 1px hsl(var(--neon-magenta) / 0.35)" : undefined,
-                }}
-              />
-            ))}
-            {/* Front face */}
+            {/* Deep back body — stacked slices give visible thickness */}
+            {[-32, -26, -20, -14, -8, -3].map((zd, idx, arr) => {
+              const t = (arr.length - 1 - idx) / (arr.length - 1); // 1=back .. 0=near
+              return (
+                <div
+                  key={zd}
+                  aria-hidden
+                  className="absolute inset-0 rounded-xl"
+                  style={{
+                    transform: `translateZ(${zd}px)`,
+                    background: `linear-gradient(180deg, hsl(var(--neon-purple) / ${0.25 + t * 0.45}), hsl(280 60% 6% / 0.98))`,
+                    boxShadow:
+                      zd === -32
+                        ? "0 0 0 1px hsl(var(--neon-magenta) / 0.55), 0 30px 60px -10px hsl(var(--neon-magenta) / 0.45)"
+                        : "inset 0 0 0 1px hsl(0 0% 100% / 0.04)",
+                  }}
+                />
+              );
+            })}
+
+            {/* Beveled side faces — real edges visible when tilted */}
+            {/* Top face */}
             <div
-              className="relative w-full aspect-video overflow-hidden rounded-xl bg-muted"
-              style={{ transform: "translateZ(0)" }}
+              aria-hidden
+              className="absolute left-0 right-0 top-0 pointer-events-none"
+              style={{
+                height: "32px",
+                transform: "rotateX(90deg) translateZ(0px)",
+                transformOrigin: "top center",
+                background:
+                  "linear-gradient(180deg, hsl(0 0% 100% / 0.35), hsl(290 60% 18% / 0.95))",
+                borderRadius: "0 0 6px 6px",
+              }}
+            />
+            {/* Bottom face */}
+            <div
+              aria-hidden
+              className="absolute left-0 right-0 bottom-0 pointer-events-none"
+              style={{
+                height: "32px",
+                transform: "rotateX(-90deg) translateZ(0px)",
+                transformOrigin: "bottom center",
+                background:
+                  "linear-gradient(0deg, hsl(0 0% 0% / 0.85), hsl(290 60% 14% / 0.95))",
+                borderRadius: "6px 6px 0 0",
+              }}
+            />
+            {/* Left face */}
+            <div
+              aria-hidden
+              className="absolute top-0 bottom-0 left-0 pointer-events-none"
+              style={{
+                width: "32px",
+                transform: "rotateY(-90deg) translateZ(0px)",
+                transformOrigin: "left center",
+                background:
+                  "linear-gradient(90deg, hsl(290 60% 22% / 0.95), hsl(290 60% 10% / 0.95))",
+              }}
+            />
+            {/* Right face */}
+            <div
+              aria-hidden
+              className="absolute top-0 bottom-0 right-0 pointer-events-none"
+              style={{
+                width: "32px",
+                transform: "rotateY(90deg) translateZ(0px)",
+                transformOrigin: "right center",
+                background:
+                  "linear-gradient(270deg, hsl(var(--neon-magenta) / 0.55), hsl(290 60% 10% / 0.95))",
+                boxShadow: "inset 0 0 12px hsl(var(--neon-magenta) / 0.45)",
+              }}
+            />
+
+            {/* Front face (image) — pushed forward for clear relief */}
+            <div
+              className="card-3d-front relative w-full aspect-video overflow-hidden rounded-xl bg-muted"
+              style={{ transform: "translateZ(2px)" }}
             >
               <img
                 src={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
@@ -312,10 +371,20 @@ export const HeroCarousel = () => {
               {/* Glossy highlight for relief */}
               <div
                 aria-hidden
-                className="absolute inset-0 pointer-events-none rounded-xl"
+                className="card-3d-gloss absolute inset-0 pointer-events-none rounded-xl"
                 style={{
                   background:
-                    "linear-gradient(155deg, hsl(0 0% 100% / 0.18) 0%, hsl(0 0% 100% / 0) 35%, hsl(0 0% 100% / 0) 65%, hsl(0 0% 0% / 0.25) 100%)",
+                    "linear-gradient(135deg, hsl(0 0% 100% / 0.32) 0%, hsl(0 0% 100% / 0.06) 28%, hsl(0 0% 100% / 0) 55%, hsl(0 0% 0% / 0.35) 100%)",
+                  mixBlendMode: "screen",
+                }}
+              />
+              {/* Inner rim light */}
+              <div
+                aria-hidden
+                className="absolute inset-0 pointer-events-none rounded-xl"
+                style={{
+                  boxShadow:
+                    "inset 0 1px 0 hsl(0 0% 100% / 0.35), inset 0 -1px 0 hsl(0 0% 0% / 0.5), inset 0 0 24px hsl(var(--neon-magenta) / 0.25)",
                 }}
               />
               <div className="absolute bottom-2 left-3 right-3 z-10">
