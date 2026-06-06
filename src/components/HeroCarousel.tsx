@@ -105,8 +105,9 @@ export const HeroCarousel = () => {
 
   // Continuous progress in [0,1). The full catalogue gets a real loop, not
   // only the few visible cards, so 34 videos all pass through the center.
-  const loopSecRef = useRef(46);
-  loopSecRef.current = Math.max(46, N * 1.35);
+  // ~1s per card so the whole catalogue defiles visibly
+  const loopSecRef = useRef(26);
+  loopSecRef.current = Math.max(20, N * 1.0);
   const [prog, setProg] = useState(0);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
@@ -152,12 +153,10 @@ export const HeroCarousel = () => {
   // iOS-style date wheel: every catalogue video owns a stable card, while only
   // the nearest slots are visible. This prevents the first 5 cards from masking
   // the rest and makes the whole DB catalogue complete the loop.
-  const MAX_ANG = 75; // degrees from center → near top/bottom of the wheel
-  // Visible arc: ~9 cards on screen at once spread over the dial, while ALL
-  // N catalogue videos take a turn passing through the center. A smaller
-  // window gives each card meaningful angular space so movement is obvious
-  // even with 26+ videos in the loop.
-  const VISIBLE_RADIUS = Math.min(4, Math.max(2, Math.floor((N - 1) / 2)));
+  const MAX_ANG = 60; // degrees from center → near top/bottom of the wheel
+  // Visible arc: ~13 cards on screen at once so the motion is obvious and
+  // every catalogue video clearly travels through the center.
+  const VISIBLE_RADIUS = Math.min(6, Math.max(3, Math.floor((N - 1) / 2)));
   const wheelR = Math.max(R * 0.9, cardH * 1.18);
   const styleFor = (slotIdx: number): React.CSSProperties => {
     const phase = prog * N;
@@ -262,7 +261,7 @@ export const HeroCarousel = () => {
         return (
           <div
             key={c.key}
-            className={`tilt-card group absolute rounded-xl ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:z-50 ${variant}`}
+            className={`group absolute rounded-xl ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:z-50 ${variant}`}
             style={{
               ...styleFor(c.slotIdx),
       transition: "opacity 0.18s linear, filter 0.3s ease",
