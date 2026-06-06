@@ -4,9 +4,9 @@ import { ChevronLeft, ChevronRight, Play, Calendar, Youtube, Music2, Tv, Sparkle
 import { supabase } from "@/integrations/supabase/client";
 import { videos as fallbackVideos } from "@/data/videos";
 
-// Prefer maxresdefault (16:9, full frame) and fall back to hqdefault
+// Both are true 16:9 — no black bars, no cropping in an aspect-video card
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
-const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
 
 type ImportedVideo = {
   id: string;
@@ -169,37 +169,12 @@ export const RecentEpisodesCarousel = () => {
             "group snap-start shrink-0 w-[340px] sm:w-[400px] rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all hover:-translate-y-1";
           const inner = (
             <>
-            <div className="relative aspect-video overflow-hidden">
-              <div
-                aria-hidden
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(135deg, hsl(195 100% 60%) 0%, hsl(270 90% 65%) 50%, hsl(330 95% 65%) 100%)",
-                }}
-              />
-              <div
-                aria-hidden
-                className="absolute inset-0 opacity-70 mix-blend-screen"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at 20% 20%, hsl(180 100% 70% / 0.55), transparent 50%), radial-gradient(circle at 80% 80%, hsl(300 100% 70% / 0.5), transparent 55%)",
-                }}
-              />
-              <div
-                aria-hidden
-                className="absolute inset-0 opacity-25"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(hsl(0 0% 100% / 0.08) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100% / 0.08) 1px, transparent 1px)",
-                  backgroundSize: "22px 22px",
-                }}
-              />
+            <div className="relative aspect-video overflow-hidden bg-muted">
               <img
                 src={cover}
                 alt={v.title}
                 loading="lazy"
-                className="relative z-10 w-full h-full object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.45)] group-hover:scale-[1.03] transition-transform duration-500"
+                className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
                 onError={(e) => {
                   const img = e.currentTarget;
                   if (v.external_id && !img.dataset.fallback) {
@@ -208,7 +183,7 @@ export const RecentEpisodesCarousel = () => {
                   }
                 }}
               />
-              <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/70 via-black/5 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent pointer-events-none" />
               <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
                 <Icon className="w-3 h-3" />
                 {label}
