@@ -31,7 +31,7 @@ export const HoverPreview = ({
   vertical,
   muted = true,
   delay = 280,
-  autoPlay = true,
+  autoPlay = false,
   children,
   className = "",
   onImgLoad,
