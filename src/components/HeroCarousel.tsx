@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX, ChevronUp, ChevronDown } from "lucide-react";
-import { videos, type Video } from "@/data/videos";
-import { HoverPreview } from "@/components/HoverPreview";
+import { videos } from "@/data/videos";
 
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
 const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
