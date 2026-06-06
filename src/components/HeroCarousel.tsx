@@ -42,8 +42,9 @@ export const HeroCarousel = () => {
       const { data, error } = await supabase
         .from("imported_videos")
         .select("external_id, title, thumbnail_url, source, published_at")
+        .eq("source", "youtube")
         .order("published_at", { ascending: false })
-        .limit(60);
+        .limit(200);
       if (cancelled || error || !data?.length) return;
       const mapped: WheelVideo[] = data.map((r) => ({
         id: r.external_id,
