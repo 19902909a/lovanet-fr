@@ -128,45 +128,36 @@ export const HeroCarousel = () => {
     setPaused(false);
   };
 
-  // Stacked catalog: each card climbs along the LEFT arc of the ring
-  // (the blue curve drawn by the user), bottom → top, then loops back.
-  // Cards stay upright (no Y rotation); they just slide up along the arc.
-  // Angle sweep on the left half of the circle: from ~150° (bottom-left)
-  // up to ~210° (top-left). 0° = right, 90° = bottom, 180° = left, 270° = top.
-  const A_START = Math.PI * 0.78;   // bottom-left (≈ 140°)
-  const A_END   = Math.PI * 1.22;   // top-left    (≈ 220°)
-  const arcR    = R * 0.92;         // hug the inside of the ring
+  // iOS-style date wheel: a vertical cylinder of cards centered in the dial.
+  // The focused card sits flat in the middle; cards above/below tilt back
+  // along an X-axis rotation, scaled by perspective.
+  // We span ±MAX_ANG degrees so the wheel looks like a half-roulette.
+  const MAX_ANG = 75; // degrees from center → near top/bottom of the wheel
+  const wheelR  = Math.min(R * 0.78, cardH * (N / 3.2)); // cylinder radius
   const styleFor = (slotIdx: number): React.CSSProperties => {
-    // Each slot has a phase; prog advances them all toward the top.
-    // t in [0,1): 0 = bottom of the arc, 1 = top of the arc.
+    // Continuous phase per slot; prog rotates the whole wheel.
     let t = (slotIdx / N + prog) % 1;
     if (t < 0) t += 1;
-    // Going from bottom → top means decreasing y, so interpolate angle
-    // from A_START (bottom) to A_END (top) — but invert so progress moves UP.
-    const a = A_START + (1 - t) * (A_END - A_START);
-    // Wait — we want t=0 at bottom going up to t=1 at top, so:
-    const ang = A_START + t * (A_END - A_START);
-    const cx = CENTER_X + Math.cos(ang) * arcR;
-    const cy = CENTER_Y + Math.sin(ang) * arcR;
-    // Push each card slightly inward as it climbs (stacking effect)
-    const inward = (1 - Math.abs(0.5 - t) * 2) * cardW * 0.15;
-    const nx = -Math.cos(ang); // inward normal x
-    const ny = -Math.sin(ang);
-    const x = cx + nx * inward;
-    const y = cy + ny * inward;
-    // Fade in at the bottom, fade out at the top
-    const opacity = Math.min(1, Math.sin(t * Math.PI) * 1.6);
-    // Slightly bigger in the middle of the climb
-    const scale = 0.88 + Math.sin(t * Math.PI) * 0.18;
-    // Higher cards (further along) sit behind; bottom cards in front
-    const z = 100 + Math.round((1 - t) * 50);
-    void a;
+    // Map t∈[0,1) → angle∈[-MAX_ANG, +MAX_ANG] wrapping continuously.
+    // Center the band: shift t so 0.5 is the front.
+    let ang = (t - 0.5) * (MAX_ANG * 2);
+    // Wrap: cards past ±MAX_ANG come back the other side
+    if (ang > MAX_ANG) ang -= MAX_ANG * 2;
+    if (ang < -MAX_ANG) ang += MAX_ANG * 2;
+    const rad = (ang * Math.PI) / 180;
+    // Vertical offset on the cylinder
+    const y = Math.sin(rad) * wheelR;
+    // Front-facing factor (1 = center, 0 = edge)
+    const front = Math.cos(rad);
+    // Opacity & z: front card on top, edges fade
+    const opacity = Math.max(0, front * 1.1);
+    const z = 100 + Math.round(front * 100);
     return {
-      left: 0,
-      top: 0,
+      left: CENTER_X - cardW / 2,
+      top: CENTER_Y - cardH / 2,
       width: cardW,
       aspectRatio: "16 / 9",
-      transform: `translate(${x - cardW / 2}px, ${y - cardH / 2}px) scale(${scale})`,
+      transform: `translateY(${y}px) perspective(900px) rotateX(${-ang}deg)`,
       transformOrigin: "center center",
       opacity,
       zIndex: z,
