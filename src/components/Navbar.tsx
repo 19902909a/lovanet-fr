@@ -30,7 +30,7 @@ export const Navbar = () => {
           <img
             src={lovanetLogo.url}
             alt="Lovanet"
-            className="h-16 w-auto object-contain group-hover:scale-[1.03] transition-transform duration-300"
+            className="h-16 w-auto object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-[-3deg] group-hover:drop-shadow-[0_0_18px_hsl(var(--neon-magenta)/0.9)] animate-logo-float"
           />
         </Link>
 
