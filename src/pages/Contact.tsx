@@ -23,7 +23,7 @@ const Contact = () => {
             toast({ title: "Message envoyé", description: "Lovanet te répond rapidement." });
             (e.target as HTMLFormElement).reset();
           }}
-          className="space-y-4 p-6 rounded-2xl bg-card border border-border"
+          className="tilt-card space-y-4 p-6 rounded-2xl bg-card border border-border neon-edge"
         >
           <div className="space-y-2">
             <Label htmlFor="name">Nom</Label>
