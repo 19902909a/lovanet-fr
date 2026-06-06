@@ -66,9 +66,19 @@ const Index = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse" />
               @animemomentsAnimeofficiel · Lovanet manga animé
             </a>
-            <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[0.95]">
-              <span className="gradient-text">ANIME</span><br />
-              <span className="gradient-text">MOMENTS</span>
+            <h1
+              className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black leading-[0.95] tracking-tight"
+              style={{
+                background:
+                  "linear-gradient(135deg, #ffffff 0%, #f472b6 35%, #a855f7 65%, #06b6d4 100%)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                color: "transparent",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              ANIME<br />MOMENTS
             </h1>
             <p className="text-base text-muted-foreground max-w-lg">
               Lovanet présente les mangas animés, vidéos anime, moments forts et contenus directs YouTube / TikTok.
@@ -85,7 +95,7 @@ const Index = () => {
 
             <div className="flex flex-wrap gap-2 pt-2">
               {tags.map((t) => (
-                <span key={t} className="px-3 py-1 rounded-full bg-secondary border border-border text-xs tracking-wider uppercase text-muted-foreground">
+                <span key={t} className="px-3 py-1 rounded-full bg-secondary/70 border border-border text-xs text-muted-foreground">
                   {t}
                 </span>
               ))}
@@ -95,7 +105,7 @@ const Index = () => {
               {reactions.map((r) => (
                 <button
                   key={r.label}
-                  className="px-4 py-2 rounded-full bg-secondary border border-border text-xs font-semibold uppercase tracking-wider hover:border-primary/60 hover:bg-primary/10 transition-colors"
+                  className="px-4 py-2 rounded-full bg-secondary/70 border border-border text-xs font-semibold hover:border-primary/60 hover:bg-primary/10 transition-colors"
                 >
                   {r.emoji} {r.label}
                 </button>
