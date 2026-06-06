@@ -104,34 +104,36 @@ export const HeroCarousel = () => {
     touchStartY.current = null;
   };
 
-  // Cards positioned around the dial like markers on a volume knob.
-  // The whole RING rotates mechanically; each card stays UPRIGHT (counter-rotated),
-  // so the orientation is fixed and the assembly rotates automatically.
-  const ringR = R * 0.78; // orbit radius for card centers
+  // iPod CoverFlow: horizontal catalog that curves in 3D.
+  // Center card faces forward, side cards rotate away in Y.
+  // prog drives a continuous horizontal advance.
+  const spread = cardW * 0.55; // horizontal spacing between adjacent cards
   const styleFor = (slotIdx: number): React.CSSProperties => {
-    // Evenly spaced around the circle. prog drives the steady rotation.
-    // angle 0 = top (12 o'clock), increases clockwise.
-    const baseAngle = (slotIdx / N) * 360;
-    const angleDeg = baseAngle + prog * 360;
-    const rad = (angleDeg * Math.PI) / 180;
-    const dx = ringR * Math.sin(rad);     // 12 o'clock = (0, -ringR)
-    const dy = -ringR * Math.cos(rad);
-    // Cards stay perfectly horizontal — orientation FIXE, no per-card tilt
-    const tilt = 0;
-    // Front of the dial (bottom half) bigger, back smaller — depth cue only
-    const depth = (1 - Math.cos(rad)) / 2; // 0 top → 1 bottom
-    const scale = 0.82 + depth * 0.26;
-    const z = 10 + Math.round(depth * 40);
+    // Offset around 0 = the focused (front) card.
+    // Distribute slots from -(N-1)/2 to (N-1)/2 then advance with prog.
+    const half = (N - 1) / 2;
+    let off = slotIdx - half - prog * N;
+    // Wrap into [-N/2, N/2) so cards loop seamlessly
+    off = ((off + N / 2) % N + N) % N - N / 2;
+    const abs = Math.abs(off);
+    // 3D rotation: ±55° saturating after the first card on each side
+    const rotY = Math.max(-55, Math.min(55, -off * 55));
+    // Horizontal x: small spread for the focused card, larger for side cards
+    const x = off * spread + Math.sign(off) * Math.min(abs, 1) * cardW * 0.18;
+    // Side cards smaller + faded
+    const scale = 1 - Math.min(abs, 2.5) * 0.12;
+    const opacity = Math.max(0, 1 - Math.max(0, abs - 2) * 0.5);
+    const z = 100 - Math.round(abs * 10);
     return {
       left: 0,
       top: 0,
       width: cardW,
       aspectRatio: "16 / 9",
-      transform: `translate(${CENTER_X + dx - cardW / 2}px, ${CENTER_Y + dy - cardH / 2}px) rotate(${tilt}deg) scale(${scale})`,
+      transform: `translate(${CENTER_X + x - cardW / 2}px, ${CENTER_Y - cardH / 2}px) perspective(900px) rotateY(${rotY}deg) scale(${scale})`,
       transformOrigin: "center center",
-      opacity: 1,
+      opacity,
       zIndex: z,
-      filter: `drop-shadow(0 0 18px hsl(var(--neon-magenta) / 0.35)) drop-shadow(0 8px 24px hsl(var(--neon-purple) / 0.25))`,
+      filter: `drop-shadow(0 0 18px hsl(var(--neon-magenta) / 0.35)) drop-shadow(0 12px 28px hsl(var(--neon-purple) / 0.35))`,
     };
   };
 
