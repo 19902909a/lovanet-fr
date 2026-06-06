@@ -29,17 +29,17 @@ export const HeroCarousel = () => {
   const [soundOn, setSoundOn] = useState(false);
   const [paused, setPaused] = useState(false);
 
-  // Arc path (CCW): cards enter at bottom-right → pass through the middle → exit at bottom-left.
-  // Math angle convention (CCW from +x axis): 0° = right, 90° = top, 180° = left.
-  // i=0 is the card about to exit (left), i=N-1 is the last entered (right).
+  // Roulette half-wheel anchored on the LEFT edge.
+  // Visible arc is the right hemisphere (≈ -48° → +48°). Cards rise from bottom to top.
+  // Math angle convention: 0° = right, +90° = up, -90° = down.
   const N = 6;
-  const ENTRY_ANGLE = 55;    // bottom-right entry
-  const EXIT_ANGLE = 125;    // bottom-left exit
-  const STEP = (EXIT_ANGLE - ENTRY_ANGLE) / (N - 1); // CCW spacing between cards
+  const TOP_ANGLE = -48;   // i = 0 (about to exit at the top)
+  const BOTTOM_ANGLE = 48; // i = N-1 (just entered at the bottom)
+  const STEP = (BOTTOM_ANGLE - TOP_ANGLE) / (N - 1);
   const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card"];
-  // Dial center expressed as fractions of the container (below the bottom edge → keeps arc in view)
-  const CENTER_X = 0.5;
-  const CENTER_Y = 1.05;
+  // Wheel center: just past the left edge, vertically centered
+  const CENTER_X = 0.0;
+  const CENTER_Y = 0.5;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 520, h: 520 });
@@ -53,9 +53,9 @@ export const HeroCarousel = () => {
     return () => ro.disconnect();
   }, []);
 
-  // Dial geometry — radius keeps cards inside the container (no top-edge clipping)
-  const R = Math.max(180, Math.min(size.h * 0.62, size.w * 0.55));
-  const cardW = Math.max(160, Math.min(R * 0.75, 240));
+  // Wheel radius — keeps the rightmost card inside the container with no clipping
+  const R = Math.max(180, Math.min(size.w * 0.62, size.h * 0.45));
+  const cardW = Math.max(160, Math.min(R * 0.85, 240));
 
   type Card = { key: number; v: Video; slotIdx: number };
   const nextKey = useRef(N);
@@ -120,18 +120,16 @@ export const HeroCarousel = () => {
     touchStartY.current = null;
   };
 
-  // Polar position on the arc.
-  // angleFor(0)  = EXIT_ANGLE  → leftmost (about to exit)
-  // angleFor(N-1)= ENTRY_ANGLE → rightmost (just entered)
-  const angleFor = (i: number) => EXIT_ANGLE - i * STEP;
+  // Polar position on the wheel.
+  // angleFor(0) = TOP_ANGLE (exit), angleFor(N-1) = BOTTOM_ANGLE (entry).
+  const angleFor = (i: number) => TOP_ANGLE + i * STEP;
   const styleFor = (slotIdx: number): React.CSSProperties => {
     const a = angleFor(slotIdx);
     const rad = (a * Math.PI) / 180;
-    // Math y-up → screen y-down: y_offset = -sin(angle)*R
-    const dx = R * Math.cos(rad);
-    const dy = -R * Math.sin(rad);
+    const dx = R * Math.cos(rad);     // angle 0 = pointing right
+    const dy = -R * Math.sin(rad);    // +sin = up in math → -y in screen
     const visible = slotIdx >= 0 && slotIdx < N;
-    const tangentTilt = -(a - 90) * 0.25; // gentle radial tilt — 0 at top of arc
+    const tangentTilt = -a * 0.6;     // wheel-spoke tilt — top cards lean right, bottom lean left
     const middle = (N - 1) / 2;
     const z = visible ? 10 + Math.round(20 - Math.abs(slotIdx - middle) * 3) : 1;
     return {
