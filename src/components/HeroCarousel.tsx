@@ -41,11 +41,10 @@ export const HeroCarousel = () => {
     return () => { cache.length = 0; };
   }, []);
 
-  // Stack of horizontal cards inside the circular dial.
-  // Cards rise from the bottom to the top of the dial along a gentle S-curve,
-  // each one slightly offset on x with a small tangent tilt.
-  const N = 7;
-  const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card", "neon-edge"];
+  // One card PER video — no duplicates, no pop-in. Each card keeps a stable
+  // identity and just rotates around the wheel.
+  const N = Math.max(1, videos.length);
+  const variantPool = ["neon-edge", "holo-card", "depth-card"];
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 520, h: 520 });
@@ -107,13 +106,8 @@ export const HeroCarousel = () => {
     setProg((p) => (p + dir / N + 1) % 1);
   }, []);
 
-  // Cycle the video pool so every video shows up over time.
-  const baseOffset = Math.floor(prog * N);
-  const cards = Array.from({ length: N }, (_, i) => ({
-    key: i,
-    v: videos[((i + baseOffset) % videos.length + videos.length) % videos.length],
-    slotIdx: i,
-  }));
+  // Stable cards: one per video; only their angular position changes.
+  const cards = videos.map((v, i) => ({ key: v.id, v, slotIdx: i }));
 
   // Touch swipe (vertical) on mobile
   const touchStartY = useRef<number | null>(null);
