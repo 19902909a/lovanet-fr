@@ -32,8 +32,8 @@ export const HeroCarousel = () => {
   // Stack of horizontal cards inside the circular dial.
   // Cards rise from the bottom to the top of the dial along a gentle S-curve,
   // each one slightly offset on x with a small tangent tilt.
-  const N = 6;
-  const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card"];
+  const N = 7;
+  const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card", "neon-edge"];
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 520, h: 520 });
@@ -54,15 +54,15 @@ export const HeroCarousel = () => {
   // Card size — short horizontal stripes that fit inside the dial
   const cardW = Math.max(120, Math.min(R * 0.85, 200));
   const cardH = cardW * (9 / 16);
-  // Vertical travel band inside the dial (with margin so cards don't clip)
-  const margin = cardH * 0.55;
+  // Tight vertical travel band so cards visibly OVERLAP and feel stacked
+  const margin = cardH * 0.45;
   const yTop = CENTER_Y - R + margin;
   const yBottom = CENTER_Y + R - margin;
-  // Horizontal curve amplitude (S-curve sweep)
-  const ampX = R * 0.32;
+  // Horizontal curve amplitude (incurvée vers la droite au milieu)
+  const ampX = R * 0.38;
 
-  // Continuous progress in [0,1). Full loop ~ 18s.
-  const LOOP_SEC = 18;
+  // Continuous progress in [0,1). Full loop ~ 10s → progression bien visible.
+  const LOOP_SEC = 10;
   const [prog, setProg] = useState(0);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
