@@ -23,14 +23,16 @@ const placeholderThumb = (id: string, title: string) => {
 };
 
 export const HeroCarousel = () => {
-  const items = videos.slice(0, 5);
+  const items = videos.slice(0, 6);
   // Free-form stacked layout matching the source capture (% positions inside container)
+  // No rotation — cards are straight rectangles overlapping at different offsets.
   const layout = [
-    { top: 6,  left: 4,  rot: -4, w: 230, z: 2 },
-    { top: 0,  left: 30, rot: -1, w: 280, z: 5 },
-    { top: 18, left: 12, rot:  2, w: 260, z: 4 },
-    { top: 42, left: 36, rot:  3, w: 250, z: 6 },
-    { top: 50, left: 60, rot: -2, w: 240, z: 3 },
+    { top: 2,  left: 18, rot: 0, w: 300, z: 6 }, // Mama's — top
+    { top: 10, left: 54, rot: 0, w: 200, z: 2 }, // peek behind right
+    { top: 28, left: 32, rot: 0, w: 280, z: 5 }, // You're Lucky
+    { top: 38, left: 2,  rot: 0, w: 300, z: 4 }, // I Mean
+    { top: 52, left: 30, rot: 0, w: 290, z: 3 }, // So It's Something Else
+    { top: 66, left: 16, rot: 0, w: 270, z: 7 }, // A Lot Did Happen
   ];
 
   return (
@@ -65,7 +67,7 @@ export const HeroCarousel = () => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
             <div className="absolute bottom-2 left-3 right-3">
-              <div className="text-[10px] uppercase tracking-wider text-fuchsia-200/90 font-semibold">
+              <div className="text-[11px] text-fuchsia-200/90 font-medium">
                 Anime Moment
               </div>
               <div className="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-2">
