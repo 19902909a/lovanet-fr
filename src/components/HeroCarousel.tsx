@@ -29,11 +29,15 @@ export const HeroCarousel = () => {
   const [soundOn, setSoundOn] = useState(false);
   const [paused, setPaused] = useState(false);
 
-  // Half-dial layout (left semicircle, like the 6 → 9 → 12 hours of a watch)
+  // Arc path: cards enter at bottom-left → pass through top-center → exit to the right.
+  // Angles use screen convention (θ CW from +x axis). Higher i = closer to entry (bottom-left).
   const N = 6;
-  const START_ANGLE = 300;   // top-most visible slot — small left-side arc
-  const STEP = 12;           // tight step → subtle rotation between cards
+  const START_ANGLE = 350;   // exit point (right edge)
+  const STEP = 36;           // CW spacing between cards
   const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card"];
+  // Dial center expressed as fractions of the container
+  const CENTER_X = 0.5;
+  const CENTER_Y = 0.62;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 520, h: 520 });
@@ -47,9 +51,9 @@ export const HeroCarousel = () => {
     return () => ro.disconnect();
   }, []);
 
-  // Dial geometry — centered in container; radius and card scale with size
-  const R = Math.max(160, Math.min(size.w * 0.42, size.h * 0.42));
-  const cardW = Math.max(180, Math.min(R * 0.95, 280));
+  // Dial geometry — radius scales with container; card sized to fit comfortably
+  const R = Math.max(160, Math.min(size.w * 0.4, size.h * 0.4));
+  const cardW = Math.max(170, Math.min(R * 0.95, 260));
 
   type Card = { key: number; v: Video; slotIdx: number };
   const nextKey = useRef(N);
@@ -114,21 +118,22 @@ export const HeroCarousel = () => {
     touchStartY.current = null;
   };
 
-  // Polar position on the left half-dial.
-  // θ = 0° → 12 o'clock (top), 90° → 3, 180° → 6, 270° → 9 (left).
+  // Polar position on the arc.
+  // angleFor(0) → exit (right). angleFor(N-1) → entry (bottom-left).
+  // Standard screen convention: x = cos(θ), y = sin(θ) (y grows downward).
   const angleFor = (i: number) => START_ANGLE - i * STEP;
   const styleFor = (slotIdx: number): React.CSSProperties => {
     const a = angleFor(slotIdx);
     const rad = (a * Math.PI) / 180;
-    const dx = R * Math.sin(rad);   // x offset from the dial center (right edge)
-    const dy = -R * Math.cos(rad);  // y offset (screen y grows downward)
+    const dx = R * Math.cos(rad);
+    const dy = R * Math.sin(rad);
     const visible = slotIdx >= 0 && slotIdx < N;
-    const tangentTilt = (a - 270) * 0.18; // very gentle tilt — 0 at 9 o'clock
+    const tangentTilt = (a + 90) * 0.12; // gentle tangent tilt along the path
     const middle = (N - 1) / 2;
     const z = visible ? 10 + Math.round(20 - Math.abs(slotIdx - middle) * 3) : 1;
     return {
-      left: "50%",
-      top: "50%",
+      left: `${CENTER_X * 100}%`,
+      top: `${CENTER_Y * 100}%`,
       width: cardW,
       aspectRatio: "16 / 9",
       transform: `translate(calc(${dx}px - 50%), calc(${dy}px - 50%)) rotate(${tangentTilt}deg)`,
@@ -150,15 +155,15 @@ export const HeroCarousel = () => {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Decorative dial ring (anchored to the right edge, like a watch face) */}
+      {/* Decorative dial ring */}
       <div
         aria-hidden
         className="absolute pointer-events-none rounded-full border border-fuchsia-400/25 dial-glow"
         style={{
           width: R * 2,
           height: R * 2,
-          left: `calc(50% - ${R}px)`,
-          top: `calc(50% - ${R}px)`,
+          left: `calc(${CENTER_X * 100}% - ${R}px)`,
+          top: `calc(${CENTER_Y * 100}% - ${R}px)`,
           boxShadow:
             "inset 0 0 80px hsl(var(--neon-magenta) / 0.12), 0 0 60px hsl(var(--neon-cyan) / 0.18)",
         }}
@@ -170,8 +175,8 @@ export const HeroCarousel = () => {
         style={{
           width: R * 1.6,
           height: R * 1.6,
-          left: `calc(50% - ${R * 0.8}px)`,
-          top: `calc(50% - ${R * 0.8}px)`,
+          left: `calc(${CENTER_X * 100}% - ${R * 0.8}px)`,
+          top: `calc(${CENTER_Y * 100}% - ${R * 0.8}px)`,
           background:
             "conic-gradient(from 0deg, hsl(var(--neon-magenta)/0.0), hsl(var(--neon-magenta)/0.35), hsl(var(--neon-cyan)/0.0))",
           filter: "blur(40px)",
