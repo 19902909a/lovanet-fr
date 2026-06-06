@@ -29,16 +29,14 @@ export const HeroCarousel = () => {
   const [soundOn, setSoundOn] = useState(false);
   const [paused, setPaused] = useState(false);
 
-  // Roulette half-wheel anchored on the LEFT edge.
-  // Visible arc is the right hemisphere (≈ -48° → +48°). Cards rise from bottom to top.
+  // Full roulette wheel CENTERED in the container.
+  // Cards revolve around the center; background dial/halo stay identical, cards pass over it.
   // Math angle convention: 0° = right, +90° = up, -90° = down.
   const N = 6;
-  const TOP_ANGLE = -48;   // i = 0 (about to exit at the top)
-  const BOTTOM_ANGLE = 48; // i = N-1 (just entered at the bottom)
-  const STEP = (BOTTOM_ANGLE - TOP_ANGLE) / (N - 1);
+  const STEP = 360 / N; // 60° between cards
   const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card"];
-  // Wheel center: just past the left edge, vertically centered
-  const CENTER_X = 0.0;
+  // Wheel center: middle of the container
+  const CENTER_X = 0.5;
   const CENTER_Y = 0.5;
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,58 +51,25 @@ export const HeroCarousel = () => {
     return () => ro.disconnect();
   }, []);
 
-  // Wheel radius — keeps the rightmost card inside the container with no clipping
-  const R = Math.max(180, Math.min(size.w * 0.62, size.h * 0.45));
-  const cardW = Math.max(160, Math.min(R * 0.85, 240));
+  // Wheel radius — keep cards fully inside the container
+  const cardW = Math.max(140, Math.min(size.w * 0.22, 210));
+  const R = Math.max(120, Math.min(size.w * 0.32, size.h * 0.32));
 
-  type Card = { key: number; v: Video; slotIdx: number };
-  const nextKey = useRef(N);
-  const nextPool = useRef(N);
-  const [cards, setCards] = useState<Card[]>(() =>
-    Array.from({ length: N }, (_, i) => ({ key: i, v: videos[i % videos.length], slotIdx: i })),
-  );
-
-  // Advance one step: all cards rise (next) or sink (prev) one slot
+  // Rotation index: increments to spin the wheel; cards keep their pool slot.
+  const [rot, setRot] = useState(0);
   const advance = useCallback((dir: 1 | -1) => {
-    if (dir === 1) {
-      const incoming: Card = {
-        key: nextKey.current++,
-        v: videos[nextPool.current++ % videos.length],
-        slotIdx: N, // enter from below 6 o'clock
-      };
-      setCards((prev) => [...prev, incoming]);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setCards((prev) => prev.map((c) => ({ ...c, slotIdx: c.slotIdx - 1 })));
-        });
-      });
-      window.setTimeout(() => {
-        setCards((prev) => prev.filter((c) => c.slotIdx > -2));
-      }, 1200);
-    } else {
-      // Reverse: new card enters from top, everyone sinks one slot
-      nextPool.current = (nextPool.current - 1 + videos.length * 1000) % videos.length;
-      const incoming: Card = {
-        key: nextKey.current++,
-        v: videos[nextPool.current % videos.length],
-        slotIdx: -1, // enter from top
-      };
-      setCards((prev) => [incoming, ...prev]);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setCards((prev) => prev.map((c) => ({ ...c, slotIdx: c.slotIdx + 1 })));
-        });
-      });
-      window.setTimeout(() => {
-        setCards((prev) => prev.filter((c) => c.slotIdx < N + 1));
-      }, 1200);
-    }
+    setRot((r) => r + dir);
   }, []);
+  const cards = Array.from({ length: N }, (_, i) => ({
+    key: i,
+    v: videos[i % videos.length],
+    slotIdx: i,
+  }));
 
-  // Auto-advance every 5s
+  // Auto-advance every 4s — automatic roulette
   useEffect(() => {
     if (paused) return;
-    const id = window.setInterval(() => advance(1), 5000);
+    const id = window.setInterval(() => advance(1), 4000);
     return () => window.clearInterval(id);
   }, [paused, advance]);
 
@@ -120,30 +85,30 @@ export const HeroCarousel = () => {
     touchStartY.current = null;
   };
 
-  // Polar position on the wheel.
-  // angleFor(0) = TOP_ANGLE (exit), angleFor(N-1) = BOTTOM_ANGLE (entry).
-  const angleFor = (i: number) => TOP_ANGLE + i * STEP;
+  // Polar position on the wheel — full circle, starts at top and goes clockwise.
+  // a = 0 at the top (12 o'clock); positive = CW.
+  const angleFor = (i: number) => (i + rot) * STEP; // degrees from top, CW
   const styleFor = (slotIdx: number): React.CSSProperties => {
     const a = angleFor(slotIdx);
     const rad = (a * Math.PI) / 180;
-    const dx = R * Math.cos(rad);     // angle 0 = pointing right
-    const dy = -R * Math.sin(rad);    // +sin = up in math → -y in screen
-    const visible = slotIdx >= 0 && slotIdx < N;
-    const tangentTilt = -a * 0.6;     // wheel-spoke tilt — top cards lean right, bottom lean left
-    const middle = (N - 1) / 2;
-    const z = visible ? 10 + Math.round(20 - Math.abs(slotIdx - middle) * 3) : 1;
+    const dx = R * Math.sin(rad);   // 12 o'clock = (0, -R)
+    const dy = -R * Math.cos(rad);
+    // Card stays upright relative to the viewer — slight tangent tilt for life
+    const tilt = Math.sin(rad) * 6;
+    // Front of the wheel (bottom half) appears bigger; back of the wheel smaller
+    const depth = (1 - Math.cos(rad)) / 2; // 0 at top, 1 at bottom
+    const scale = 0.78 + depth * 0.32;     // 0.78 → 1.10
+    const z = 10 + Math.round(depth * 40);
     return {
       left: `${CENTER_X * 100}%`,
       top: `${CENTER_Y * 100}%`,
       width: cardW,
       aspectRatio: "16 / 9",
-      transform: `translate(calc(${dx}px - 50%), calc(${dy}px - 50%)) rotate(${tangentTilt}deg)`,
+      transform: `translate(calc(${dx}px - 50%), calc(${dy}px - 50%)) rotate(${tilt}deg) scale(${scale})`,
       transformOrigin: "center center",
-      opacity: visible ? 1 : 0,
+      opacity: 1,
       zIndex: z,
-      filter: visible
-        ? `drop-shadow(0 0 18px hsl(var(--neon-magenta) / 0.35)) drop-shadow(0 8px 24px hsl(var(--neon-purple) / 0.25))`
-        : "none",
+      filter: `drop-shadow(0 0 18px hsl(var(--neon-magenta) / 0.35)) drop-shadow(0 8px 24px hsl(var(--neon-purple) / 0.25))`,
     };
   };
 
