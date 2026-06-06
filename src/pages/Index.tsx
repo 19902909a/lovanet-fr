@@ -3,14 +3,13 @@ import { Play, ShoppingBag, Youtube, Music2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
-import { RecentEpisodesCarousel } from "@/components/RecentEpisodesCarousel";
 import { VideoCard } from "@/components/VideoCard";
 import { Button } from "@/components/ui/button";
 import { videos as rawVideos, products } from "@/data/videos";
 
 const videos = [...rawVideos].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 
-const tags = ["Lovanet", "Manga animé", "YouTube", "TikTok", "Shop", "3D", "Live Selection"];
+const tags = ["Lovanet", "Manga animé", "YouTube", "TikTok", "Shop", "3D", "Live", "Selection"];
 const reactions = [
   { emoji: "🔥", label: "Hot" },
   { emoji: "😂", label: "Fun" },
@@ -58,9 +57,15 @@ const Index = () => {
 
         <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
-            <p className="text-xs tracking-[0.25em] text-muted-foreground uppercase">
+            <a
+              href="https://www.youtube.com/channel/UC0T9pcWA9_lpdB6-ZucZYmw"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-fuchsia-200 ring-1 ring-fuchsia-400/40 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse" />
               @animemomentsAnimeofficiel · Lovanet manga animé
-            </p>
+            </a>
             <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[0.95]">
               <span className="gradient-text">ANIME</span><br />
               <span className="gradient-text">MOMENTS</span>
@@ -145,19 +150,19 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Recent Episodes Carousel */}
+      {/* Moments forts · 16 */}
       <section className="container mx-auto px-4 lg:px-8 py-16">
         <div className="flex items-baseline justify-between mb-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Fresh drops</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold">
-              Épisodes <span className="text-primary text-glow-cyan">récents</span>
-            </h2>
-            <p className="text-sm text-muted-foreground mt-2">Les derniers moments anime publiés cette semaine.</p>
-          </div>
-          <Link to="/chaine-youtube" className="text-sm text-primary hover:underline whitespace-nowrap">Tout voir →</Link>
+          <h2 className="font-display text-3xl sm:text-4xl font-bold">
+            Moments forts <span className="text-muted-foreground font-normal">· {Math.min(videos.length, 16)}</span>
+          </h2>
+          <Link to="/lecteurs-video" className="text-sm text-primary hover:underline whitespace-nowrap">Lecteur immersif →</Link>
         </div>
-        <RecentEpisodesCarousel />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {videos.slice(0, 16).map((v) => (
+            <VideoCard key={v.id} video={v} />
+          ))}
+        </div>
       </section>
 
       {/* Shop preview */}
