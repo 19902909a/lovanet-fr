@@ -133,7 +133,6 @@ export const HeroCarousel = () => {
   // along an X-axis rotation, scaled by perspective.
   // We span ±MAX_ANG degrees so the wheel looks like a half-roulette.
   const MAX_ANG = 75; // degrees from center → near top/bottom of the wheel
-  const STEP    = (MAX_ANG * 2) / N; // angular spacing between cards
   const wheelR  = Math.min(R * 0.78, cardH * (N / 3.2)); // cylinder radius
   const styleFor = (slotIdx: number): React.CSSProperties => {
     // Continuous phase per slot; prog rotates the whole wheel.
