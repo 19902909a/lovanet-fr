@@ -47,12 +47,12 @@ export const HeroCarousel = () => {
     return () => ro.disconnect();
   }, []);
 
-  // Dial geometry — circle centered in the container
+  // Dial geometry — circle centered higher in the container
   const CENTER_X = size.w * 0.5;
-  const CENTER_Y = size.h * 0.5;
-  const R = Math.max(150, Math.min(size.w * 0.32, size.h * 0.45));
-  // Card size — short horizontal stripes that fit inside the dial
-  const cardW = Math.max(120, Math.min(R * 0.85, 200));
+  const CENTER_Y = size.h * 0.42;
+  const R = Math.max(180, Math.min(size.w * 0.4, size.h * 0.55));
+  // Card size — much bigger
+  const cardW = Math.max(220, Math.min(R * 1.25, 360));
   const cardH = cardW * (9 / 16);
   // Tight vertical travel band so cards visibly OVERLAP and feel stacked
   const margin = cardH * 0.45;
@@ -61,8 +61,8 @@ export const HeroCarousel = () => {
   // Horizontal curve amplitude (incurvée vers la droite au milieu)
   const ampX = R * 0.38;
 
-  // Continuous progress in [0,1). Full loop ~ 10s → progression bien visible.
-  const LOOP_SEC = 10;
+  // Continuous progress in [0,1). Full loop ~ 22s → défilement lent.
+  const LOOP_SEC = 22;
   const [prog, setProg] = useState(0);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
@@ -246,28 +246,30 @@ export const HeroCarousel = () => {
               willChange: "transform",
             }}
           >
-            <HoverPreview
-              videoId={c.v.id}
-              title={c.v.title}
-              thumbnail={ytThumb(c.v.id)}
-              muted={!soundOn}
-              onImgLoad={(e) => {
-                const img = e.currentTarget;
-                if (img.naturalWidth > 0 && img.naturalWidth <= 120) {
+            <div className="relative w-full aspect-video overflow-hidden bg-muted">
+              <img
+                src={ytThumb(c.v.id)}
+                alt={c.v.title}
+                loading="lazy"
+                draggable={false}
+                className="w-full h-full object-cover select-none pointer-events-none"
+                onLoad={(e) => {
+                  const img = e.currentTarget;
+                  if (img.naturalWidth > 0 && img.naturalWidth <= 120) {
+                    const step = img.dataset.fallback ?? "0";
+                    if (step === "0") { img.dataset.fallback = "1"; img.src = ytThumbHq(c.v.id); }
+                    else if (step === "1") { img.dataset.fallback = "2"; img.src = ytThumbFallback(c.v.id); }
+                    else if (step === "2") { img.dataset.fallback = "3"; img.src = placeholderThumb(c.v.id, c.v.title); }
+                  }
+                }}
+                onError={(e) => {
+                  const img = e.currentTarget;
                   const step = img.dataset.fallback ?? "0";
                   if (step === "0") { img.dataset.fallback = "1"; img.src = ytThumbHq(c.v.id); }
                   else if (step === "1") { img.dataset.fallback = "2"; img.src = ytThumbFallback(c.v.id); }
                   else if (step === "2") { img.dataset.fallback = "3"; img.src = placeholderThumb(c.v.id, c.v.title); }
-                }
-              }}
-              onImgError={(e) => {
-                const img = e.currentTarget;
-                const step = img.dataset.fallback ?? "0";
-                if (step === "0") { img.dataset.fallback = "1"; img.src = ytThumbHq(c.v.id); }
-                else if (step === "1") { img.dataset.fallback = "2"; img.src = ytThumbFallback(c.v.id); }
-                else if (step === "2") { img.dataset.fallback = "3"; img.src = placeholderThumb(c.v.id, c.v.title); }
-              }}
-            >
+                }}
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
               <div className="absolute bottom-2 left-3 right-3 z-10">
                 <div className="text-[11px] text-fuchsia-200/90 font-medium">
@@ -277,7 +279,7 @@ export const HeroCarousel = () => {
                   {c.v.title}
                 </div>
               </div>
-            </HoverPreview>
+            </div>
           </div>
         );
       })}
