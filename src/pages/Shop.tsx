@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 const Shop = () => (
   <PageShell>
     <section className="container mx-auto px-4 lg:px-8 py-16 text-center">
-      <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-2">Shop creator</p>
+      <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Shop creator</p>
       <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-3">
         <span className="gradient-text">Boutique Anime</span>
       </h1>
