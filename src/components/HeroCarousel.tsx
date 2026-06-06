@@ -150,32 +150,19 @@ export const HeroCarousel = () => {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Decorative dial ring */}
-      <div
-        aria-hidden
-        className="absolute pointer-events-none rounded-full border border-fuchsia-400/25 dial-glow"
-        style={{
-          width: R * 2,
-          height: R * 2,
-          left: `calc(${CENTER_X * 100}% - ${R}px)`,
-          top: `calc(${CENTER_Y * 100}% - ${R}px)`,
-          boxShadow:
-            "inset 0 0 80px hsl(var(--neon-magenta) / 0.12), 0 0 60px hsl(var(--neon-cyan) / 0.18)",
-        }}
-      />
-      {/* Soft rotating halo behind the cards for a luminous wheel effect */}
+      {/* Ambient glow behind the path */}
       <div
         aria-hidden
         className="absolute pointer-events-none rounded-full halo-spin"
         style={{
-          width: R * 1.6,
-          height: R * 1.6,
-          left: `calc(${CENTER_X * 100}% - ${R * 0.8}px)`,
-          top: `calc(${CENTER_Y * 100}% - ${R * 0.8}px)`,
+          width: arcR * 2,
+          height: arcR * 2,
+          left: x0 - arcR,
+          top: yArcStart - arcR,
           background:
-            "conic-gradient(from 0deg, hsl(var(--neon-magenta)/0.0), hsl(var(--neon-magenta)/0.35), hsl(var(--neon-cyan)/0.0))",
-          filter: "blur(40px)",
-          opacity: 0.55,
+            "conic-gradient(from 0deg, hsl(var(--neon-magenta)/0.0), hsl(var(--neon-magenta)/0.3), hsl(var(--neon-cyan)/0.0))",
+          filter: "blur(50px)",
+          opacity: 0.45,
         }}
       />
       <button
