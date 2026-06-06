@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Play, ShoppingBag, Youtube, Music2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { RecentEpisodesCarousel } from "@/components/RecentEpisodesCarousel";
@@ -31,13 +32,29 @@ const Index = () => {
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />
-        <div
-          className="absolute inset-0 -z-10 opacity-30"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 20%, hsl(var(--primary)/0.25), transparent 40%), radial-gradient(circle at 80% 60%, hsl(var(--neon-purple)/0.2), transparent 40%)",
-          }}
-        />
+        {/* Animated gradient blobs */}
+        <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 -left-20 w-96 h-96 rounded-full blur-3xl opacity-30 animate-blob"
+            style={{ background: "radial-gradient(circle, hsl(var(--neon-magenta)), transparent 70%)" }} />
+          <div className="absolute top-1/3 right-0 w-[28rem] h-[28rem] rounded-full blur-3xl opacity-25 animate-blob animation-delay-2000"
+            style={{ background: "radial-gradient(circle, hsl(var(--neon-purple)), transparent 70%)" }} />
+          <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full blur-3xl opacity-20 animate-blob animation-delay-4000"
+            style={{ background: "radial-gradient(circle, hsl(var(--neon-cyan)), transparent 70%)" }} />
+        </div>
+        {/* Floating sparkles */}
+        <div className="absolute inset-0 -z-10 pointer-events-none">
+          {[...Array(6)].map((_, i) => (
+            <span
+              key={i}
+              className="sparkle absolute w-1.5 h-1.5 rounded-full bg-white/70 shadow-[0_0_8px_hsl(var(--neon-magenta))]"
+              style={{
+                left: `${10 + i * 15}%`,
+                bottom: '10%',
+                animationDelay: `${i * 0.9}s`,
+              }}
+            />
+          ))}
+        </div>
 
         <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
@@ -53,7 +70,7 @@ const Index = () => {
             </p>
 
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="rounded-full gap-2 bg-primary hover:bg-primary/90">
+              <Button asChild size="lg" className="shimmer-btn rounded-full gap-2 text-white border-0 hover:scale-[1.03] transition-transform" style={{ background: "var(--gradient-magenta)" }}>
                 <Link to="/lecteurs-video"><Play className="w-4 h-4 fill-current" /> Regarder maintenant</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-full gap-2">
@@ -98,19 +115,27 @@ const Index = () => {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          {platforms.map((p) => (
-            <Link
-              key={p.to}
-              to={p.to}
-              className="group p-5 rounded-2xl bg-card border border-border hover:border-primary/60 hover:bg-card/80 transition-all"
-            >
-              <div className="w-10 h-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                <p.icon className="w-5 h-5" />
-              </div>
-              <div className="font-display font-bold text-lg group-hover:text-primary transition-colors">{p.title}</div>
-              <p className="text-sm text-muted-foreground mt-1">{p.desc}</p>
-            </Link>
-          ))}
+          {platforms.map((p, i) => {
+            const tints = [
+              "from-rose-500 to-red-600",
+              "from-sky-500 to-blue-600",
+              "from-pink-500 to-fuchsia-600",
+              "from-purple-500 to-violet-600",
+            ];
+            return (
+              <Link
+                key={p.to}
+                to={p.to}
+                className="group border-beam relative p-5 rounded-2xl bg-card border border-border hover:bg-card/80 transition-all hover:-translate-y-1 duration-300"
+              >
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-white bg-gradient-to-br group-hover:scale-110 transition-transform shadow-lg", tints[i])}>
+                  <p.icon className="w-5 h-5" />
+                </div>
+                <div className="font-display font-bold text-lg group-hover:gradient-text transition-colors">{p.title}</div>
+                <p className="text-sm text-muted-foreground mt-1">{p.desc}</p>
+              </Link>
+            );
+          })}
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
