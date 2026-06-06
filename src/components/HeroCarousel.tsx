@@ -120,12 +120,14 @@ export const HeroCarousel = () => {
     const tick = (t: number) => {
       const dt = (t - last) / 1000;
       last = t;
-      // Continuous autoplay — never blocks, never pauses on hover.
-      setProg((p) => {
-        let n = (p + dt / loopSecRef.current) % 1;
-        if (n < 0) n += 1;
-        return n;
-      });
+      // Autoplay — pauses while a card is hovered so the preview is stable.
+      if (!pausedRef.current) {
+        setProg((p) => {
+          let n = (p + dt / loopSecRef.current) % 1;
+          if (n < 0) n += 1;
+          return n;
+        });
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
