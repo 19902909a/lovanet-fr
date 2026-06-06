@@ -678,3 +678,11 @@
       0 20px 48px -10px hsl(280 100% 65% / 0.55);
   }
 }
+
+@layer utilities {
+  @keyframes logo-float {
+    0%, 100% { transform: translateY(0) rotate(0deg); filter: drop-shadow(0 0 6px hsl(var(--neon-magenta) / 0.5)); }
+    50% { transform: translateY(-4px) rotate(1.5deg); filter: drop-shadow(0 0 14px hsl(var(--neon-purple) / 0.85)); }
+  }
+  .animate-logo-float { animation: logo-float 4s ease-in-out infinite; }
+}
