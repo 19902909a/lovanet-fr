@@ -104,32 +104,45 @@ export const HeroCarousel = () => {
     touchStartY.current = null;
   };
 
-  // iPod CoverFlow: horizontal catalog that curves in 3D.
-  // Center card faces forward, side cards rotate away in Y.
-  // prog drives a continuous horizontal advance.
-  const spread = cardW * 0.55; // horizontal spacing between adjacent cards
+  // Stacked catalog: each card climbs along the LEFT arc of the ring
+  // (the blue curve drawn by the user), bottom → top, then loops back.
+  // Cards stay upright (no Y rotation); they just slide up along the arc.
+  // Angle sweep on the left half of the circle: from ~150° (bottom-left)
+  // up to ~210° (top-left). 0° = right, 90° = bottom, 180° = left, 270° = top.
+  const A_START = Math.PI * 0.78;   // bottom-left (≈ 140°)
+  const A_END   = Math.PI * 1.22;   // top-left    (≈ 220°)
+  const arcR    = R * 0.92;         // hug the inside of the ring
   const styleFor = (slotIdx: number): React.CSSProperties => {
-    // Offset around 0 = the focused (front) card.
-    // Distribute slots from -(N-1)/2 to (N-1)/2 then advance with prog.
-    const half = (N - 1) / 2;
-    let off = slotIdx - half - prog * N;
-    // Wrap into [-N/2, N/2) so cards loop seamlessly
-    off = ((off + N / 2) % N + N) % N - N / 2;
-    const abs = Math.abs(off);
-    // 3D rotation: ±55° saturating after the first card on each side
-    const rotY = Math.max(-55, Math.min(55, -off * 55));
-    // Horizontal x: small spread for the focused card, larger for side cards
-    const x = off * spread + Math.sign(off) * Math.min(abs, 1) * cardW * 0.18;
-    // Side cards smaller + faded
-    const scale = 1 - Math.min(abs, 2.5) * 0.12;
-    const opacity = Math.max(0, 1 - Math.max(0, abs - 2) * 0.5);
-    const z = 100 - Math.round(abs * 10);
+    // Each slot has a phase; prog advances them all toward the top.
+    // t in [0,1): 0 = bottom of the arc, 1 = top of the arc.
+    let t = (slotIdx / N + prog) % 1;
+    if (t < 0) t += 1;
+    // Going from bottom → top means decreasing y, so interpolate angle
+    // from A_START (bottom) to A_END (top) — but invert so progress moves UP.
+    const a = A_START + (1 - t) * (A_END - A_START);
+    // Wait — we want t=0 at bottom going up to t=1 at top, so:
+    const ang = A_START + t * (A_END - A_START);
+    const cx = CENTER_X + Math.cos(ang) * arcR;
+    const cy = CENTER_Y + Math.sin(ang) * arcR;
+    // Push each card slightly inward as it climbs (stacking effect)
+    const inward = (1 - Math.abs(0.5 - t) * 2) * cardW * 0.15;
+    const nx = -Math.cos(ang); // inward normal x
+    const ny = -Math.sin(ang);
+    const x = cx + nx * inward;
+    const y = cy + ny * inward;
+    // Fade in at the bottom, fade out at the top
+    const opacity = Math.min(1, Math.sin(t * Math.PI) * 1.6);
+    // Slightly bigger in the middle of the climb
+    const scale = 0.88 + Math.sin(t * Math.PI) * 0.18;
+    // Higher cards (further along) sit behind; bottom cards in front
+    const z = 100 + Math.round((1 - t) * 50);
+    void a;
     return {
       left: 0,
       top: 0,
       width: cardW,
       aspectRatio: "16 / 9",
-      transform: `translate(${CENTER_X + x - cardW / 2}px, ${CENTER_Y - cardH / 2}px) perspective(900px) rotateY(${rotY}deg) scale(${scale})`,
+      transform: `translate(${x - cardW / 2}px, ${y - cardH / 2}px) scale(${scale})`,
       transformOrigin: "center center",
       opacity,
       zIndex: z,
