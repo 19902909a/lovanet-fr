@@ -148,7 +148,7 @@ export const HeroCarousel = () => {
   const wheelR  = Math.min(R * 0.78, cardH * (N / 3.2)); // cylinder radius
   const styleFor = (slotIdx: number): React.CSSProperties => {
     // Continuous phase per slot; prog rotates the whole wheel.
-    let t = (slotIdx / N + prog) % 1;
+    let t = (slotIdx / N - prog) % 1;
     if (t < 0) t += 1;
     // Map t∈[0,1) → angle∈[-MAX_ANG, +MAX_ANG] wrapping continuously.
     // Center the band: shift t so 0.5 is the front.
