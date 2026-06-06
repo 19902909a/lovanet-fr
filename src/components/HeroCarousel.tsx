@@ -29,10 +29,11 @@ export const HeroCarousel = () => {
   const [soundOn, setSoundOn] = useState(false);
   const [paused, setPaused] = useState(false);
 
-  // Vertical conveyor that CURVES at the top.
-  // Cards rise straight up from the bottom, then swing out along a quarter-arc and loop.
-  const N = 7;
-  const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card", "neon-edge"];
+  // Stack of horizontal cards inside the circular dial.
+  // Cards rise from the bottom to the top of the dial along a gentle S-curve,
+  // each one slightly offset on x with a small tangent tilt.
+  const N = 6;
+  const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card"];
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 520, h: 520 });
@@ -46,20 +47,22 @@ export const HeroCarousel = () => {
     return () => ro.disconnect();
   }, []);
 
-  // Card size + path geometry
-  const cardW = Math.max(140, Math.min(size.w * 0.24, 220));
+  // Dial geometry — circle centered in the container
+  const CENTER_X = size.w * 0.5;
+  const CENTER_Y = size.h * 0.5;
+  const R = Math.max(150, Math.min(size.w * 0.32, size.h * 0.45));
+  // Card size — short horizontal stripes that fit inside the dial
+  const cardW = Math.max(120, Math.min(R * 0.85, 200));
   const cardH = cardW * (9 / 16);
-  const x0 = size.w * 0.58;                                  // vertical column x
-  const yBottom = size.h - cardH / 2 - 12;                   // first card spawn
-  const yArcStart = size.h * 0.42;                           // arc begins here
-  const arcR = Math.max(120, Math.min(size.w * 0.32, size.h * 0.36));
-  const straightLen = Math.max(0, yBottom - yArcStart);
-  const arcLen = (Math.PI / 2) * arcR;
-  const total = straightLen + arcLen;
-  const ts = total > 0 ? straightLen / total : 0.5;          // cut point in [0,1]
+  // Vertical travel band inside the dial (with margin so cards don't clip)
+  const margin = cardH * 0.55;
+  const yTop = CENTER_Y - R + margin;
+  const yBottom = CENTER_Y + R - margin;
+  // Horizontal curve amplitude (S-curve sweep)
+  const ampX = R * 0.32;
 
-  // Continuous progress in [0,1). Full loop ~ 22s.
-  const LOOP_SEC = 22;
+  // Continuous progress in [0,1). Full loop ~ 18s.
+  const LOOP_SEC = 18;
   const [prog, setProg] = useState(0);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
@@ -101,32 +104,26 @@ export const HeroCarousel = () => {
     touchStartY.current = null;
   };
 
-  // Position along the path for a normalized t in [0,1]: straight then quarter-arc.
+  // Position along the path for a normalized t in [0,1].
+  // t = 0 → bottom of dial. t = 1 → top of dial. x follows a sine S-curve.
   const pointAt = (t: number) => {
-    if (t <= ts) {
-      const u = ts > 0 ? t / ts : 0;
-      return { x: x0, y: yBottom - u * straightLen, tilt: 0, depth: u };
-    }
-    const u = (t - ts) / (1 - ts);
-    const theta = u * (Math.PI / 2);
-    return {
-      x: x0 - arcR + arcR * Math.cos(theta),
-      y: yArcStart - arcR * Math.sin(theta),
-      tilt: -theta * (180 / Math.PI), // card leans into the curve
-      depth: 1 + u * 0.3,
-    };
+    const y = yBottom - t * (yBottom - yTop);
+    const x = CENTER_X + ampX * Math.sin(t * Math.PI);   // bulge right in the middle
+    // Tilt = tangent of the curve (derivative dx/dy converted to degrees)
+    const tilt = Math.cos(t * Math.PI) * 8;              // ±8° at top/bottom, 0 in middle
+    return { x, y, tilt };
   };
 
   const styleFor = (slotIdx: number): React.CSSProperties => {
-    // Card slotIdx 0 is the most-advanced one, N-1 just spawned at bottom.
+    // slotIdx 0 = closest to top (about to loop), N-1 = just spawned at bottom
     const t = (prog + slotIdx / N) % 1;
     const p = pointAt(t);
-    // Fade in at spawn, fade out before loop
-    const fadeIn = Math.min(1, t / 0.05);
-    const fadeOut = Math.min(1, (1 - t) / 0.08);
+    // Fade in near bottom spawn and out near top exit
+    const fadeIn = Math.min(1, t / 0.06);
+    const fadeOut = Math.min(1, (1 - t) / 0.06);
     const opacity = Math.max(0, Math.min(fadeIn, fadeOut));
-    // Cards near bottom slightly bigger, smaller as they swing out
-    const scale = 1.05 - p.depth * 0.18;
+    // Bottom cards slightly bigger (closer), top smaller (farther)
+    const scale = 1.04 - t * 0.22;
     const z = 10 + Math.round((1 - t) * 30);
     return {
       left: 0,
@@ -150,15 +147,28 @@ export const HeroCarousel = () => {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Ambient glow behind the path */}
+      {/* Neon dial ring (decorative background) */}
+      <div
+        aria-hidden
+        className="absolute pointer-events-none rounded-full border border-fuchsia-400/40 dial-glow"
+        style={{
+          width: R * 2,
+          height: R * 2,
+          left: CENTER_X - R,
+          top: CENTER_Y - R,
+          boxShadow:
+            "inset 0 0 80px hsl(var(--neon-magenta) / 0.15), 0 0 60px hsl(var(--neon-magenta) / 0.35)",
+        }}
+      />
+      {/* Soft rotating halo behind the cards */}
       <div
         aria-hidden
         className="absolute pointer-events-none rounded-full halo-spin"
         style={{
-          width: arcR * 2,
-          height: arcR * 2,
-          left: x0 - arcR,
-          top: yArcStart - arcR,
+          width: R * 1.6,
+          height: R * 1.6,
+          left: CENTER_X - R * 0.8,
+          top: CENTER_Y - R * 0.8,
           background:
             "conic-gradient(from 0deg, hsl(var(--neon-magenta)/0.0), hsl(var(--neon-magenta)/0.3), hsl(var(--neon-cyan)/0.0))",
           filter: "blur(50px)",
