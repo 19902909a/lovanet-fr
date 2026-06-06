@@ -171,9 +171,11 @@ export const HeroCarousel = () => {
   // the nearest slots are visible. This prevents the first 5 cards from masking
   // the rest and makes the whole DB catalogue complete the loop.
   const MAX_ANG = 75; // degrees from center → near top/bottom of the wheel
-  // Show as many cards as possible around the wheel so nothing visibly
-  // "pops" in or out. We keep a comfortable cap to avoid overdraw.
-  const VISIBLE_RADIUS = Math.min(10, Math.max(2, Math.floor((N - 1) / 2)));
+  // Visible arc: ~9 cards on screen at once spread over the dial, while ALL
+  // N catalogue videos take a turn passing through the center. A smaller
+  // window gives each card meaningful angular space so movement is obvious
+  // even with 26+ videos in the loop.
+  const VISIBLE_RADIUS = Math.min(4, Math.max(2, Math.floor((N - 1) / 2)));
   const wheelR = Math.max(R * 0.9, cardH * 1.18);
   const styleFor = (slotIdx: number): React.CSSProperties => {
     const phase = prog * N;
