@@ -3,6 +3,15 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
 const YT_HANDLE = 'animemomentsanimeofficiel';
 
+// Series blocked from being imported / displayed
+const BLOCKED_KEYWORDS = ['otaku ni yasashii', 'mahou shoujo', 'madoka magica', 'madoka'];
+
+function isBlocked(text: string | null | undefined): boolean {
+  if (!text) return false;
+  const t = text.toLowerCase();
+  return BLOCKED_KEYWORDS.some((k) => t.includes(k));
+}
+
 type Row = {
   source: 'youtube' | 'tiktok' | 'prime';
   external_id: string;
@@ -59,7 +68,7 @@ async function fetchYouTube(apiKey: string): Promise<Row[]> {
       video_url: `https://www.youtube.com/watch?v=${vid}`,
       published_at: sn.publishedAt ?? null,
     };
-  });
+  }).filter((r) => !isBlocked(r.title) && !isBlocked(r.description));
 }
 
 async function fetchTikTok(): Promise<Row[]> {
@@ -92,7 +101,7 @@ async function fetchTikTok(): Promise<Row[]> {
     thumbnail_url: v.cover_image_url ?? null,
     video_url: v.share_url,
     published_at: v.create_time ? new Date(v.create_time * 1000).toISOString() : null,
-  }));
+  })).filter((r) => !isBlocked(r.title) && !isBlocked(r.description));
 }
 
 Deno.serve(async (req) => {
