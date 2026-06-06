@@ -207,10 +207,12 @@ export const HeroCarousel = () => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[460px] sm:h-[520px] overflow-hidden"
+      className="relative w-full h-[460px] sm:h-[520px] overflow-hidden touch-none cursor-grab active:cursor-grabbing"
       style={{ perspective: "1400px", perspectiveOrigin: "50% 50%" }}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
     >
       {/* Neon dial ring (decorative background) */}
       <div
@@ -248,24 +250,6 @@ export const HeroCarousel = () => {
       >
         {soundOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
         {soundOn ? "Son" : "Muet"}
-      </button>
-
-      {/* Prev / Next controls */}
-      <button
-        type="button"
-        onClick={() => advance(-1)}
-        aria-label="Précédent"
-        className="btn-magnetic absolute left-2 top-1/2 -translate-y-12 z-[60] w-10 h-10 rounded-full bg-black/60 backdrop-blur text-white ring-1 ring-white/20 hover:ring-fuchsia-400/60 transition flex items-center justify-center"
-      >
-        <ChevronUp className="w-5 h-5" />
-      </button>
-      <button
-        type="button"
-        onClick={() => advance(1)}
-        aria-label="Suivant"
-        className="btn-magnetic absolute left-2 top-1/2 translate-y-2 z-[60] w-10 h-10 rounded-full bg-black/60 backdrop-blur text-white ring-1 ring-white/20 hover:ring-fuchsia-400/60 transition flex items-center justify-center"
-      >
-        <ChevronDown className="w-5 h-5" />
       </button>
 
       {cards.map((c) => {
