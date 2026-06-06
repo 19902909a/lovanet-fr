@@ -67,16 +67,8 @@ const Index = () => {
               @animemomentsAnimeofficiel · Lovanet manga animé
             </a>
             <h1
-              className="font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black leading-[0.95] tracking-tight"
-              style={{
-                background:
-                  "linear-gradient(135deg, #ffffff 0%, #f472b6 35%, #a855f7 65%, #06b6d4 100%)",
-                WebkitBackgroundClip: "text",
-                backgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                color: "transparent",
-                letterSpacing: "-0.02em",
-              }}
+              className="neon-rainbow-text font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black leading-[0.95] tracking-tight"
+              style={{ letterSpacing: "-0.02em" }}
             >
               ANIME<br />MOMENTS
             </h1>
@@ -88,11 +80,11 @@ const Index = () => {
               <Button
                 asChild
                 size="lg"
-                className="btn-magnetic btn-holo rounded-full gap-2 text-white border-0"
+                className="btn-magnetic btn-neon-rainbow rounded-full gap-2 text-white border-0"
               >
                 <Link to="/lecteurs-video"><Play className="w-4 h-4 fill-current" /> Regarder maintenant</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="btn-magnetic rounded-full gap-2">
+              <Button asChild size="lg" variant="outline" className="btn-magnetic btn-neon-rainbow-outline rounded-full gap-2">
                 <Link to="/shop"><ShoppingBag className="w-4 h-4" /> Boutique créateur</Link>
               </Button>
             </div>
