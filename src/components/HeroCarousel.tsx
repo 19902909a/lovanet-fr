@@ -102,8 +102,10 @@ export const HeroCarousel = () => {
   // Horizontal curve amplitude (incurvée vers la droite au milieu)
   const ampX = R * 0.38;
 
-  // Continuous progress in [0,1). Full loop ~ 22s → défilement lent.
-  const LOOP_SEC = 22;
+  // Continuous progress in [0,1). The full catalogue gets a real loop, not
+  // only the few visible cards, so 34 videos all pass through the center.
+  const loopSecRef = useRef(46);
+  loopSecRef.current = Math.max(46, N * 1.35);
   const [prog, setProg] = useState(0);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
@@ -122,7 +124,7 @@ export const HeroCarousel = () => {
       const speed = hv !== 0 ? hv * 3 : (pausedRef.current ? 0 : 1);
       if (speed !== 0) {
         setProg((p) => {
-          let n = (p + (dt / LOOP_SEC) * speed) % 1;
+          let n = (p + (dt / loopSecRef.current) * speed) % 1;
           if (n < 0) n += 1;
           return n;
         });
@@ -134,7 +136,7 @@ export const HeroCarousel = () => {
   }, []);
   const advance = useCallback((dir: 1 | -1) => {
     setProg((p) => (p + dir / N + 1) % 1);
-  }, []);
+  }, [N]);
 
   // Stable cards: one per video; only their angular position changes.
   const cards = allVideos.map((v, i) => ({ key: v.id, v, slotIdx: i }));
@@ -164,30 +166,31 @@ export const HeroCarousel = () => {
     setPaused(false);
   };
 
-  // iOS-style date wheel: a vertical cylinder of cards centered in the dial.
-  // The focused card sits flat in the middle; cards above/below tilt back
-  // along an X-axis rotation, scaled by perspective.
-  // We span ±MAX_ANG degrees so the wheel looks like a half-roulette.
+  // iOS-style date wheel: every catalogue video owns a stable card, while only
+  // the nearest slots are visible. This prevents the first 5 cards from masking
+  // the rest and makes the whole DB catalogue complete the loop.
   const MAX_ANG = 75; // degrees from center → near top/bottom of the wheel
-  const wheelR  = Math.min(R * 0.78, cardH * (N / 3.2)); // cylinder radius
+  const VISIBLE_RADIUS = Math.min(6, Math.max(2, Math.floor((N - 1) / 2)));
+  const wheelR = Math.max(R * 0.9, cardH * 1.18);
   const styleFor = (slotIdx: number): React.CSSProperties => {
-    // Continuous phase per slot; prog rotates the whole wheel.
-    let t = (slotIdx / N - prog) % 1;
-    if (t < 0) t += 1;
-    // Map t∈[0,1) → angle∈[-MAX_ANG, +MAX_ANG] wrapping continuously.
-    // Center the band: shift t so 0.5 is the front.
-    let ang = (t - 0.5) * (MAX_ANG * 2);
-    // Wrap: cards past ±MAX_ANG come back the other side
-    if (ang > MAX_ANG) ang -= MAX_ANG * 2;
-    if (ang < -MAX_ANG) ang += MAX_ANG * 2;
+    const phase = prog * N;
+    const rawOffset = slotIdx - phase;
+    let offset = (rawOffset + N / 2) % N;
+    if (offset < 0) offset += N;
+    offset -= N / 2;
+    const absOffset = Math.abs(offset);
+    const visible = absOffset <= VISIBLE_RADIUS + 0.55;
+    const clampedOffset = Math.max(-VISIBLE_RADIUS, Math.min(VISIBLE_RADIUS, offset));
+    const ang = (clampedOffset / VISIBLE_RADIUS) * MAX_ANG;
     const rad = (ang * Math.PI) / 180;
     // Vertical offset on the cylinder
     const y = Math.sin(rad) * wheelR;
     // Front-facing factor (1 = center, 0 = edge)
     const front = Math.cos(rad);
     // Opacity & z: front card on top, edges fade
-    const opacity = Math.max(0, front * 1.1);
-    const z = 100 + Math.round(front * 100);
+    const edgeFade = Math.max(0, 1 - Math.max(0, absOffset - VISIBLE_RADIUS) / 0.55);
+    const opacity = visible ? Math.max(0, front * 1.08) * edgeFade : 0;
+    const z = visible ? 100 + Math.round((VISIBLE_RADIUS - absOffset) * 10) : 0;
     return {
       left: CENTER_X - cardW / 2,
       top: CENTER_Y - cardH / 2,
@@ -198,6 +201,7 @@ export const HeroCarousel = () => {
       transformOrigin: "center center",
       opacity,
       zIndex: z,
+      pointerEvents: visible ? "auto" : "none",
       filter: `drop-shadow(0 0 18px hsl(var(--neon-magenta) / 0.35)) drop-shadow(0 12px 28px hsl(var(--neon-purple) / 0.35))`,
     };
   };
