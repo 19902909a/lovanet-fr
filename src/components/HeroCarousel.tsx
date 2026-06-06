@@ -4,6 +4,25 @@ import { cn } from "@/lib/utils";
 
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
 const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+const ytThumbHq = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+
+// Deterministic gradient placeholder generated from the video id — never empty
+const placeholderThumb = (id: string, title: string) => {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  const h1 = h % 360;
+  const h2 = (h1 + 60) % 360;
+  const safe = (title || "Anime Moment").replace(/[<&>]/g, " ").slice(0, 40);
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'>
+    <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+      <stop offset='0' stop-color='hsl(${h1},85%,55%)'/>
+      <stop offset='1' stop-color='hsl(${h2},85%,40%)'/>
+    </linearGradient></defs>
+    <rect width='640' height='360' fill='url(#g)'/>
+    <text x='50%' y='50%' fill='white' font-family='system-ui,sans-serif' font-size='28' font-weight='700' text-anchor='middle' dominant-baseline='middle'>${safe}</text>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
 
 export const HeroCarousel = () => {
   const [active, setActive] = useState(2);
@@ -47,9 +66,16 @@ export const HeroCarousel = () => {
               loading="lazy"
               onError={(e) => {
                 const img = e.currentTarget;
-                if (!img.dataset.fallback) {
+                const step = img.dataset.fallback ?? "0";
+                if (step === "0") {
                   img.dataset.fallback = "1";
+                  img.src = ytThumbHq(v.id);
+                } else if (step === "1") {
+                  img.dataset.fallback = "2";
                   img.src = ytThumbFallback(v.id);
+                } else if (step === "2") {
+                  img.dataset.fallback = "3";
+                  img.src = placeholderThumb(v.id, v.title);
                 }
               }}
             />

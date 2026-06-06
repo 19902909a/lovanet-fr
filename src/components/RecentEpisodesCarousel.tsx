@@ -7,6 +7,26 @@ import { videos as fallbackVideos } from "@/data/videos";
 // Both are true 16:9 — no black bars, no cropping in an aspect-video card
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
 const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+const ytThumbHq = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+
+// Deterministic gradient placeholder generated from any id — never empty
+const placeholderThumb = (id: string, title: string) => {
+  const key = id || title || "nlounq";
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  const h1 = h % 360;
+  const h2 = (h1 + 60) % 360;
+  const safe = (title || "Anime Moment").replace(/[<&>]/g, " ").slice(0, 48);
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'>
+    <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+      <stop offset='0' stop-color='hsl(${h1},85%,55%)'/>
+      <stop offset='1' stop-color='hsl(${h2},85%,40%)'/>
+    </linearGradient></defs>
+    <rect width='640' height='360' fill='url(#g)'/>
+    <text x='50%' y='50%' fill='white' font-family='system-ui,sans-serif' font-size='28' font-weight='700' text-anchor='middle' dominant-baseline='middle'>${safe}</text>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
 
 type ImportedVideo = {
   id: string;
@@ -163,7 +183,9 @@ export const RecentEpisodesCarousel = () => {
         {visibleRecents.map((v) => {
           const { to, external } = linkFor(v);
           const { label, Icon } = sourceMeta[v.source];
-          const cover = v.thumbnail_url || (v.external_id ? ytThumb(v.external_id) : "");
+          const cover =
+            v.thumbnail_url ||
+            (v.external_id ? ytThumb(v.external_id) : placeholderThumb(v.id, v.title));
           const fresh = isNew(v.published_at);
           const cardClass =
             "group snap-start shrink-0 w-[340px] sm:w-[400px] rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all hover:-translate-y-1";
@@ -177,9 +199,16 @@ export const RecentEpisodesCarousel = () => {
                 className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
                 onError={(e) => {
                   const img = e.currentTarget;
-                  if (v.external_id && !img.dataset.fallback) {
+                  const step = img.dataset.fallback ?? "0";
+                  if (v.external_id && step === "0") {
                     img.dataset.fallback = "1";
+                    img.src = ytThumbHq(v.external_id);
+                  } else if (v.external_id && step === "1") {
+                    img.dataset.fallback = "2";
                     img.src = ytThumbFallback(v.external_id);
+                  } else {
+                    img.dataset.fallback = "3";
+                    img.src = placeholderThumb(v.external_id || v.id, v.title);
                   }
                 }}
               />
