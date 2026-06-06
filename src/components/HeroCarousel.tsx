@@ -1,4 +1,7 @@
+import { useState } from "react";
+import { Volume2, VolumeX } from "lucide-react";
 import { videos } from "@/data/videos";
+import { HoverPreview } from "@/components/HoverPreview";
 
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
 const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
@@ -24,6 +27,7 @@ const placeholderThumb = (id: string, title: string) => {
 
 export const HeroCarousel = () => {
   const items = videos.slice(0, 6);
+  const [soundOn, setSoundOn] = useState(false);
   // Free-form stacked layout matching the source capture (% positions inside container)
   // No rotation — cards are straight rectangles overlapping at different offsets.
   const layout = [
@@ -37,12 +41,21 @@ export const HeroCarousel = () => {
 
   return (
     <div className="relative w-full h-[460px] sm:h-[520px]">
+      <button
+        type="button"
+        onClick={() => setSoundOn((s) => !s)}
+        className="btn-magnetic absolute top-2 right-2 z-[60] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur text-white text-xs font-semibold ring-1 ring-white/20 hover:ring-fuchsia-400/60 transition"
+        aria-label={soundOn ? "Couper le son" : "Activer le son"}
+      >
+        {soundOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+        {soundOn ? "Son" : "Muet"}
+      </button>
       {items.map((v, i) => {
         const l = layout[i];
         return (
           <div
             key={v.id}
-            className="tilt-card absolute rounded-xl overflow-hidden ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:z-50"
+            className="tilt-card group absolute rounded-xl overflow-hidden ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:z-50"
             style={{
               top: `${l.top}%`,
               left: `${l.left}%`,
@@ -52,14 +65,13 @@ export const HeroCarousel = () => {
               aspectRatio: "16 / 9",
             }}
           >
-            <img
-              src={ytThumb(v.id)}
-              alt={v.title}
-              loading="lazy"
-              className="w-full h-full object-cover"
-              onLoad={(e) => {
+            <HoverPreview
+              videoId={v.id}
+              title={v.title}
+              thumbnail={ytThumb(v.id)}
+              muted={!soundOn}
+              onImgLoad={(e) => {
                 const img = e.currentTarget;
-                // YouTube returns a 120x90 grey placeholder when a size is unavailable
                 if (img.naturalWidth > 0 && img.naturalWidth <= 120) {
                   const step = img.dataset.fallback ?? "0";
                   if (step === "0") { img.dataset.fallback = "1"; img.src = ytThumbHq(v.id); }
@@ -67,23 +79,24 @@ export const HeroCarousel = () => {
                   else if (step === "2") { img.dataset.fallback = "3"; img.src = placeholderThumb(v.id, v.title); }
                 }
               }}
-              onError={(e) => {
+              onImgError={(e) => {
                 const img = e.currentTarget;
                 const step = img.dataset.fallback ?? "0";
                 if (step === "0") { img.dataset.fallback = "1"; img.src = ytThumbHq(v.id); }
                 else if (step === "1") { img.dataset.fallback = "2"; img.src = ytThumbFallback(v.id); }
                 else if (step === "2") { img.dataset.fallback = "3"; img.src = placeholderThumb(v.id, v.title); }
               }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-            <div className="absolute bottom-2 left-3 right-3">
-              <div className="text-[11px] text-fuchsia-200/90 font-medium">
-                Anime Moment
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+              <div className="absolute bottom-2 left-3 right-3 z-10">
+                <div className="text-[11px] text-fuchsia-200/90 font-medium">
+                  Anime Moment
+                </div>
+                <div className="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-2">
+                  {v.title}
+                </div>
               </div>
-              <div className="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-2">
-                {v.title}
-              </div>
-            </div>
+            </HoverPreview>
           </div>
         );
       })}
