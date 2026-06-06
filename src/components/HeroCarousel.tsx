@@ -29,14 +29,10 @@ export const HeroCarousel = () => {
   const [soundOn, setSoundOn] = useState(false);
   const [paused, setPaused] = useState(false);
 
-  // Full roulette wheel CENTERED in the container.
-  // Cards revolve smoothly along a circular curve over the background.
-  const N = 8;
-  const STEP = 360 / N; // 45° between cards
-  const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card"];
-  // Wheel center: middle of the container
-  const CENTER_X = 0.5;
-  const CENTER_Y = 0.5;
+  // Vertical conveyor that CURVES at the top.
+  // Cards rise straight up from the bottom, then swing out along a quarter-arc and loop.
+  const N = 7;
+  const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card", "neon-edge"];
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 520, h: 520 });
@@ -50,13 +46,21 @@ export const HeroCarousel = () => {
     return () => ro.disconnect();
   }, []);
 
-  // Wheel radius — keep cards fully inside the container
-  const cardW = Math.max(130, Math.min(size.w * 0.2, 200));
-  const R = Math.max(120, Math.min(size.w * 0.3, size.h * 0.32));
+  // Card size + path geometry
+  const cardW = Math.max(140, Math.min(size.w * 0.24, 220));
+  const cardH = cardW * (9 / 16);
+  const x0 = size.w * 0.58;                                  // vertical column x
+  const yBottom = size.h - cardH / 2 - 12;                   // first card spawn
+  const yArcStart = size.h * 0.42;                           // arc begins here
+  const arcR = Math.max(120, Math.min(size.w * 0.32, size.h * 0.36));
+  const straightLen = Math.max(0, yBottom - yArcStart);
+  const arcLen = (Math.PI / 2) * arcR;
+  const total = straightLen + arcLen;
+  const ts = total > 0 ? straightLen / total : 0.5;          // cut point in [0,1]
 
-  // Smooth continuous rotation (deg). One full turn ~ 36s.
-  const ROT_SPEED = 10; // deg/sec
-  const [rotDeg, setRotDeg] = useState(0);
+  // Continuous progress in [0,1). Full loop ~ 22s.
+  const LOOP_SEC = 22;
+  const [prog, setProg] = useState(0);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
   useEffect(() => {
@@ -66,7 +70,7 @@ export const HeroCarousel = () => {
       const dt = (t - last) / 1000;
       last = t;
       if (!pausedRef.current) {
-        setRotDeg((d) => (d + dt * ROT_SPEED) % 360);
+        setProg((p) => (p + dt / LOOP_SEC) % 1);
       }
       raf = requestAnimationFrame(tick);
     };
@@ -74,12 +78,11 @@ export const HeroCarousel = () => {
     return () => cancelAnimationFrame(raf);
   }, []);
   const advance = useCallback((dir: 1 | -1) => {
-    setRotDeg((d) => d + dir * STEP);
-  }, [STEP]);
+    setProg((p) => (p + dir / N + 1) % 1);
+  }, []);
 
-  // Each slot owns a card. Rotate the video pool so every video appears.
-  // Use floor(rotDeg/STEP) as base offset → cards cycle through all videos.
-  const baseOffset = Math.floor(rotDeg / STEP);
+  // Cycle the video pool so every video shows up over time.
+  const baseOffset = Math.floor(prog * N);
   const cards = Array.from({ length: N }, (_, i) => ({
     key: i,
     v: videos[((i + baseOffset) % videos.length + videos.length) % videos.length],
@@ -98,27 +101,41 @@ export const HeroCarousel = () => {
     touchStartY.current = null;
   };
 
-  // Polar position on the wheel — full circle, starts at top, CW.
-  const angleFor = (i: number) => i * STEP + rotDeg;
-  const styleFor = (slotIdx: number): React.CSSProperties => {
-    const a = angleFor(slotIdx);
-    const rad = (a * Math.PI) / 180;
-    const dx = R * Math.sin(rad);   // 12 o'clock = (0, -R)
-    const dy = -R * Math.cos(rad);
-    // Card stays upright relative to the viewer — slight tangent tilt for life
-    const tilt = Math.sin(rad) * 6;
-    // Front of the wheel (bottom half) appears bigger; back of the wheel smaller
-    const depth = (1 - Math.cos(rad)) / 2; // 0 at top, 1 at bottom
-    const scale = 0.78 + depth * 0.32;     // 0.78 → 1.10
-    const z = 10 + Math.round(depth * 40);
+  // Position along the path for a normalized t in [0,1]: straight then quarter-arc.
+  const pointAt = (t: number) => {
+    if (t <= ts) {
+      const u = ts > 0 ? t / ts : 0;
+      return { x: x0, y: yBottom - u * straightLen, tilt: 0, depth: u };
+    }
+    const u = (t - ts) / (1 - ts);
+    const theta = u * (Math.PI / 2);
     return {
-      left: `${CENTER_X * 100}%`,
-      top: `${CENTER_Y * 100}%`,
+      x: x0 - arcR + arcR * Math.cos(theta),
+      y: yArcStart - arcR * Math.sin(theta),
+      tilt: -theta * (180 / Math.PI), // card leans into the curve
+      depth: 1 + u * 0.3,
+    };
+  };
+
+  const styleFor = (slotIdx: number): React.CSSProperties => {
+    // Card slotIdx 0 is the most-advanced one, N-1 just spawned at bottom.
+    const t = (prog + slotIdx / N) % 1;
+    const p = pointAt(t);
+    // Fade in at spawn, fade out before loop
+    const fadeIn = Math.min(1, t / 0.05);
+    const fadeOut = Math.min(1, (1 - t) / 0.08);
+    const opacity = Math.max(0, Math.min(fadeIn, fadeOut));
+    // Cards near bottom slightly bigger, smaller as they swing out
+    const scale = 1.05 - p.depth * 0.18;
+    const z = 10 + Math.round((1 - t) * 30);
+    return {
+      left: 0,
+      top: 0,
       width: cardW,
       aspectRatio: "16 / 9",
-      transform: `translate(calc(${dx}px - 50%), calc(${dy}px - 50%)) rotate(${tilt}deg) scale(${scale})`,
+      transform: `translate(${p.x - cardW / 2}px, ${p.y - cardH / 2}px) rotate(${p.tilt}deg) scale(${scale})`,
       transformOrigin: "center center",
-      opacity: 1,
+      opacity,
       zIndex: z,
       filter: `drop-shadow(0 0 18px hsl(var(--neon-magenta) / 0.35)) drop-shadow(0 8px 24px hsl(var(--neon-purple) / 0.25))`,
     };
@@ -133,32 +150,19 @@ export const HeroCarousel = () => {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Decorative dial ring */}
-      <div
-        aria-hidden
-        className="absolute pointer-events-none rounded-full border border-fuchsia-400/25 dial-glow"
-        style={{
-          width: R * 2,
-          height: R * 2,
-          left: `calc(${CENTER_X * 100}% - ${R}px)`,
-          top: `calc(${CENTER_Y * 100}% - ${R}px)`,
-          boxShadow:
-            "inset 0 0 80px hsl(var(--neon-magenta) / 0.12), 0 0 60px hsl(var(--neon-cyan) / 0.18)",
-        }}
-      />
-      {/* Soft rotating halo behind the cards for a luminous wheel effect */}
+      {/* Ambient glow behind the path */}
       <div
         aria-hidden
         className="absolute pointer-events-none rounded-full halo-spin"
         style={{
-          width: R * 1.6,
-          height: R * 1.6,
-          left: `calc(${CENTER_X * 100}% - ${R * 0.8}px)`,
-          top: `calc(${CENTER_Y * 100}% - ${R * 0.8}px)`,
+          width: arcR * 2,
+          height: arcR * 2,
+          left: x0 - arcR,
+          top: yArcStart - arcR,
           background:
-            "conic-gradient(from 0deg, hsl(var(--neon-magenta)/0.0), hsl(var(--neon-magenta)/0.35), hsl(var(--neon-cyan)/0.0))",
-          filter: "blur(40px)",
-          opacity: 0.55,
+            "conic-gradient(from 0deg, hsl(var(--neon-magenta)/0.0), hsl(var(--neon-magenta)/0.3), hsl(var(--neon-cyan)/0.0))",
+          filter: "blur(50px)",
+          opacity: 0.45,
         }}
       />
       <button
