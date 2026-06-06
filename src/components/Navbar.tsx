@@ -25,12 +25,12 @@ export const Navbar = () => {
 
   return (
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border">
-      <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div className="container mx-auto px-4 lg:px-8 h-12 flex items-center justify-between gap-4">
         <Link to="/" className="flex items-center shrink-0 group">
           <img
             src={lovanetLogo.url}
             alt="Lovanet"
-            className="h-9 w-auto object-contain group-hover:scale-[1.03] transition-transform duration-300"
+            className="h-16 w-auto object-contain group-hover:scale-[1.03] transition-transform duration-300"
           />
         </Link>
 
