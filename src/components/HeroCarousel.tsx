@@ -104,35 +104,32 @@ export const HeroCarousel = () => {
     touchStartY.current = null;
   };
 
-  // Position along the path for a normalized t in [0,1].
-  // t = 0 → bottom of dial. t = 1 → top of dial. x follows a sine S-curve.
-  const pointAt = (t: number) => {
-    const y = yBottom - t * (yBottom - yTop);
-    const x = CENTER_X + ampX * Math.sin(t * Math.PI);   // bulge right in the middle
-    // Tilt = tangent of the curve (derivative dx/dy converted to degrees)
-    const tilt = Math.cos(t * Math.PI) * 8;              // ±8° at top/bottom, 0 in middle
-    return { x, y, tilt };
-  };
-
+  // Cards positioned around the dial like markers on a volume knob.
+  // The whole RING rotates mechanically; each card stays UPRIGHT (counter-rotated),
+  // so the orientation is fixed and the assembly rotates automatically.
+  const ringR = R * 0.78; // orbit radius for card centers
   const styleFor = (slotIdx: number): React.CSSProperties => {
-    // slotIdx 0 = closest to top (about to loop), N-1 = just spawned at bottom
-    const t = (prog + slotIdx / N) % 1;
-    const p = pointAt(t);
-    // Fade in near bottom spawn and out near top exit
-    const fadeIn = Math.min(1, t / 0.06);
-    const fadeOut = Math.min(1, (1 - t) / 0.06);
-    const opacity = Math.max(0, Math.min(fadeIn, fadeOut));
-    // Bottom cards slightly bigger (closer), top smaller (farther)
-    const scale = 1.04 - t * 0.22;
-    const z = 10 + Math.round((1 - t) * 30);
+    // Evenly spaced around the circle. prog drives the steady rotation.
+    // angle 0 = top (12 o'clock), increases clockwise.
+    const baseAngle = (slotIdx / N) * 360;
+    const angleDeg = baseAngle + prog * 360;
+    const rad = (angleDeg * Math.PI) / 180;
+    const dx = ringR * Math.sin(rad);     // 12 o'clock = (0, -ringR)
+    const dy = -ringR * Math.cos(rad);
+    // Cards stay perfectly horizontal — orientation FIXE, no per-card tilt
+    const tilt = 0;
+    // Front of the dial (bottom half) bigger, back smaller — depth cue only
+    const depth = (1 - Math.cos(rad)) / 2; // 0 top → 1 bottom
+    const scale = 0.82 + depth * 0.26;
+    const z = 10 + Math.round(depth * 40);
     return {
       left: 0,
       top: 0,
       width: cardW,
       aspectRatio: "16 / 9",
-      transform: `translate(${p.x - cardW / 2}px, ${p.y - cardH / 2}px) rotate(${p.tilt}deg) scale(${scale})`,
+      transform: `translate(${CENTER_X + dx - cardW / 2}px, ${CENTER_Y + dy - cardH / 2}px) rotate(${tilt}deg) scale(${scale})`,
       transformOrigin: "center center",
-      opacity,
+      opacity: 1,
       zIndex: z,
       filter: `drop-shadow(0 0 18px hsl(var(--neon-magenta) / 0.35)) drop-shadow(0 8px 24px hsl(var(--neon-purple) / 0.25))`,
     };
