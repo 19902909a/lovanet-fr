@@ -30,11 +30,10 @@ export const HeroCarousel = () => {
   const [paused, setPaused] = useState(false);
 
   // Full roulette wheel CENTERED in the container.
-  // Cards revolve around the center; background dial/halo stay identical, cards pass over it.
-  // Math angle convention: 0° = right, +90° = up, -90° = down.
-  const N = 6;
-  const STEP = 360 / N; // 60° between cards
-  const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card"];
+  // Cards revolve smoothly along a circular curve over the background.
+  const N = 8;
+  const STEP = 360 / N; // 45° between cards
+  const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card"];
   // Wheel center: middle of the container
   const CENTER_X = 0.5;
   const CENTER_Y = 0.5;
@@ -52,26 +51,40 @@ export const HeroCarousel = () => {
   }, []);
 
   // Wheel radius — keep cards fully inside the container
-  const cardW = Math.max(140, Math.min(size.w * 0.22, 210));
-  const R = Math.max(120, Math.min(size.w * 0.32, size.h * 0.32));
+  const cardW = Math.max(130, Math.min(size.w * 0.2, 200));
+  const R = Math.max(120, Math.min(size.w * 0.3, size.h * 0.32));
 
-  // Rotation index: increments to spin the wheel; cards keep their pool slot.
-  const [rot, setRot] = useState(0);
-  const advance = useCallback((dir: 1 | -1) => {
-    setRot((r) => r + dir);
+  // Smooth continuous rotation (deg). One full turn ~ 36s.
+  const ROT_SPEED = 10; // deg/sec
+  const [rotDeg, setRotDeg] = useState(0);
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    const tick = (t: number) => {
+      const dt = (t - last) / 1000;
+      last = t;
+      if (!pausedRef.current) {
+        setRotDeg((d) => (d + dt * ROT_SPEED) % 360);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, []);
+  const advance = useCallback((dir: 1 | -1) => {
+    setRotDeg((d) => d + dir * STEP);
+  }, [STEP]);
+
+  // Each slot owns a card. Rotate the video pool so every video appears.
+  // Use floor(rotDeg/STEP) as base offset → cards cycle through all videos.
+  const baseOffset = Math.floor(rotDeg / STEP);
   const cards = Array.from({ length: N }, (_, i) => ({
     key: i,
-    v: videos[i % videos.length],
+    v: videos[((i + baseOffset) % videos.length + videos.length) % videos.length],
     slotIdx: i,
   }));
-
-  // Auto-advance every 4s — automatic roulette
-  useEffect(() => {
-    if (paused) return;
-    const id = window.setInterval(() => advance(1), 4000);
-    return () => window.clearInterval(id);
-  }, [paused, advance]);
 
   // Touch swipe (vertical) on mobile
   const touchStartY = useRef<number | null>(null);
@@ -85,9 +98,8 @@ export const HeroCarousel = () => {
     touchStartY.current = null;
   };
 
-  // Polar position on the wheel — full circle, starts at top and goes clockwise.
-  // a = 0 at the top (12 o'clock); positive = CW.
-  const angleFor = (i: number) => (i + rot) * STEP; // degrees from top, CW
+  // Polar position on the wheel — full circle, starts at top, CW.
+  const angleFor = (i: number) => i * STEP + rotDeg;
   const styleFor = (slotIdx: number): React.CSSProperties => {
     const a = angleFor(slotIdx);
     const rad = (a * Math.PI) / 180;
