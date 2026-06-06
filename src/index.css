@@ -568,3 +568,113 @@
     opacity: 1;
   }
 }
+
+/* ============================================================
+   Rainbow neon · 3D relief · progressive color shift
+   ============================================================ */
+@layer utilities {
+  @keyframes neon-rainbow-shift {
+    0%   { background-position:   0% 50%; filter: drop-shadow(0 0 12px hsl(328 86% 60% / 0.55)) drop-shadow(0 0 28px hsl(280 100% 65% / 0.35)); }
+    25%  { background-position:  50% 50%; filter: drop-shadow(0 0 12px hsl(280 100% 65% / 0.55)) drop-shadow(0 0 28px hsl(211 100% 60% / 0.35)); }
+    50%  { background-position: 100% 50%; filter: drop-shadow(0 0 12px hsl(211 100% 60% / 0.55)) drop-shadow(0 0 28px hsl(160 90% 55% / 0.35)); }
+    75%  { background-position:  50% 50%; filter: drop-shadow(0 0 12px hsl(50 100% 60% / 0.55))  drop-shadow(0 0 28px hsl(328 86% 60% / 0.35)); }
+    100% { background-position:   0% 50%; filter: drop-shadow(0 0 12px hsl(328 86% 60% / 0.55)) drop-shadow(0 0 28px hsl(280 100% 65% / 0.35)); }
+  }
+
+  /* Neon rainbow text with engraved 3D relief */
+  .neon-rainbow-text {
+    background: linear-gradient(
+      110deg,
+      #ffffff 0%,
+      #f472b6 14%,
+      #a855f7 28%,
+      #38bdf8 42%,
+      #22d3ee 56%,
+      #34d399 70%,
+      #fde047 84%,
+      #fb7185 100%
+    );
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow:
+      0 1px 0 hsl(0 0% 100% / 0.05),
+      0 2px 0 hsl(0 0% 0% / 0.35),
+      0 6px 18px hsl(280 100% 65% / 0.35);
+    animation: neon-rainbow-shift 9s ease-in-out infinite;
+    will-change: background-position, filter;
+  }
+
+  /* Neon rainbow button — animated gradient surface + 3D lift */
+  @keyframes neon-btn-shift {
+    0%   { background-position:   0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position:   0% 50%; }
+  }
+  .btn-neon-rainbow {
+    position: relative;
+    background-image: linear-gradient(
+      110deg,
+      hsl(328 86% 60%) 0%,
+      hsl(280 100% 65%) 25%,
+      hsl(211 100% 60%) 50%,
+      hsl(160 90% 55%) 75%,
+      hsl(328 86% 60%) 100%
+    );
+    background-size: 300% 300%;
+    color: white;
+    border: 0;
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.4),
+      inset 0 -2px 0 hsl(0 0% 0% / 0.25),
+      0 8px 22px -6px hsl(328 86% 60% / 0.6),
+      0 14px 40px -10px hsl(280 100% 65% / 0.55);
+    animation: neon-btn-shift 7s ease-in-out infinite;
+    transition: transform 0.35s cubic-bezier(.22,1,.36,1), box-shadow 0.35s ease, filter 0.35s ease;
+    transform: translateZ(0);
+    will-change: transform, box-shadow, background-position;
+  }
+  .btn-neon-rainbow:hover {
+    transform: translateY(-2px) scale(1.03);
+    filter: brightness(1.08) saturate(1.1);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.55),
+      inset 0 -2px 0 hsl(0 0% 0% / 0.3),
+      0 14px 30px -6px hsl(328 86% 60% / 0.7),
+      0 22px 55px -10px hsl(211 100% 60% / 0.6);
+  }
+  .btn-neon-rainbow:active {
+    transform: translateY(0) scale(0.99);
+  }
+
+  /* Outline variant — animated rainbow border + readable text */
+  .btn-neon-rainbow-outline {
+    position: relative;
+    background:
+      linear-gradient(hsl(var(--background)), hsl(var(--background))) padding-box,
+      linear-gradient(110deg,
+        hsl(328 86% 60%),
+        hsl(280 100% 65%),
+        hsl(211 100% 60%),
+        hsl(160 90% 55%),
+        hsl(328 86% 60%)
+      ) border-box;
+    background-size: auto, 300% 300%;
+    border: 2px solid transparent;
+    color: hsl(var(--foreground));
+    box-shadow:
+      0 6px 18px -6px hsl(211 100% 60% / 0.45),
+      0 12px 32px -10px hsl(280 100% 65% / 0.4);
+    animation: neon-btn-shift 7s ease-in-out infinite;
+    transition: transform 0.35s cubic-bezier(.22,1,.36,1), box-shadow 0.35s ease, filter 0.35s ease;
+  }
+  .btn-neon-rainbow-outline:hover {
+    transform: translateY(-2px) scale(1.03);
+    filter: brightness(1.1);
+    box-shadow:
+      0 12px 26px -6px hsl(211 100% 60% / 0.6),
+      0 20px 48px -10px hsl(280 100% 65% / 0.55);
+  }
+}
