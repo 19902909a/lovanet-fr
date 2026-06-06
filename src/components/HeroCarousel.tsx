@@ -57,6 +57,16 @@ export const HeroCarousel = () => {
               alt={v.title}
               loading="lazy"
               className="w-full h-full object-cover"
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                // YouTube returns a 120x90 grey placeholder when a size is unavailable
+                if (img.naturalWidth > 0 && img.naturalWidth <= 120) {
+                  const step = img.dataset.fallback ?? "0";
+                  if (step === "0") { img.dataset.fallback = "1"; img.src = ytThumbHq(v.id); }
+                  else if (step === "1") { img.dataset.fallback = "2"; img.src = ytThumbFallback(v.id); }
+                  else if (step === "2") { img.dataset.fallback = "3"; img.src = placeholderThumb(v.id, v.title); }
+                }
+              }}
               onError={(e) => {
                 const img = e.currentTarget;
                 const step = img.dataset.fallback ?? "0";
