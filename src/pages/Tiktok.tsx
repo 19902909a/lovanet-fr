@@ -88,7 +88,7 @@ const Tiktok = () => {
           {/* Player */}
           <div
             className={cn(
-              "relative rounded-3xl overflow-hidden bg-black border border-pink-500/30 shadow-[0_40px_120px_-40px_hsl(var(--neon-magenta)/0.6)]",
+              "tilt-card neon-edge relative rounded-3xl overflow-hidden bg-black border border-pink-500/30 shadow-[0_40px_120px_-40px_hsl(var(--neon-magenta)/0.6)]",
               orientation === "vertical" ? "aspect-[9/16] w-full max-w-sm" : "aspect-video w-full max-w-3xl"
             )}
           >
