@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX, ChevronUp, ChevronDown } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import { videos } from "@/data/videos";
 import { supabase } from "@/integrations/supabase/client";
 
