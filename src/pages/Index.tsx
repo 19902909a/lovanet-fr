@@ -119,7 +119,7 @@ const Index = () => {
           <Link to="/lecteurs-video" className="text-sm text-primary hover:underline whitespace-nowrap">Tout voir →</Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {platforms.map((p, i) => {
             const tints = [
               "from-rose-500 to-red-600",
@@ -141,12 +141,6 @@ const Index = () => {
               </Link>
             );
           })}
-        </div>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {videos.slice(0, 8).map((v) => (
-            <VideoCard key={v.id} video={v} />
-          ))}
         </div>
       </section>
 
