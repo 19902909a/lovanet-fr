@@ -200,8 +200,8 @@ export const HeroCarousel = () => {
             className={`tilt-card group absolute rounded-xl overflow-hidden ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:z-50 ${variant}`}
             style={{
               ...styleFor(c.slotIdx),
-              transition:
-                "transform 1.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s ease, filter 1.4s ease",
+              transition: "opacity 0.6s ease, filter 0.6s ease",
+              willChange: "transform",
             }}
           >
             <HoverPreview
