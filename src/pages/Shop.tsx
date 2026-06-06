@@ -1,7 +1,6 @@
 import { PageShell } from "@/components/PageShell";
 import { products } from "@/data/videos";
 import { Button } from "@/components/ui/button";
-import { ShoppingBag } from "lucide-react";
 
 const Shop = () => (
   <PageShell>
