@@ -197,6 +197,22 @@ export const RecentEpisodesCarousel = () => {
                 alt={v.title}
                 loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
+                onLoad={(e) => {
+                  const img = e.currentTarget;
+                  if (img.naturalWidth > 0 && img.naturalWidth <= 120) {
+                    const step = img.dataset.fallback ?? "0";
+                    if (v.external_id && step === "0") {
+                      img.dataset.fallback = "1";
+                      img.src = ytThumbHq(v.external_id);
+                    } else if (v.external_id && step === "1") {
+                      img.dataset.fallback = "2";
+                      img.src = ytThumbFallback(v.external_id);
+                    } else {
+                      img.dataset.fallback = "3";
+                      img.src = placeholderThumb(v.external_id || v.id, v.title);
+                    }
+                  }
+                }}
                 onError={(e) => {
                   const img = e.currentTarget;
                   const step = img.dataset.fallback ?? "0";
