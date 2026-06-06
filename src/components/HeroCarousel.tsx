@@ -29,15 +29,17 @@ export const HeroCarousel = () => {
   const [soundOn, setSoundOn] = useState(false);
   const [paused, setPaused] = useState(false);
 
-  // Arc path: cards enter at bottom-left → pass through top-center → exit to the right.
-  // Angles use screen convention (θ CW from +x axis). Higher i = closer to entry (bottom-left).
+  // Arc path (CCW): cards enter at bottom-right → pass through the middle → exit at bottom-left.
+  // Math angle convention (CCW from +x axis): 0° = right, 90° = top, 180° = left.
+  // i=0 is the card about to exit (left), i=N-1 is the last entered (right).
   const N = 6;
-  const START_ANGLE = 350;   // exit point (right edge)
-  const STEP = 36;           // CW spacing between cards
+  const ENTRY_ANGLE = 55;    // bottom-right entry
+  const EXIT_ANGLE = 125;    // bottom-left exit
+  const STEP = (EXIT_ANGLE - ENTRY_ANGLE) / (N - 1); // CCW spacing between cards
   const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card"];
-  // Dial center expressed as fractions of the container
+  // Dial center expressed as fractions of the container (below the bottom edge → keeps arc in view)
   const CENTER_X = 0.5;
-  const CENTER_Y = 0.62;
+  const CENTER_Y = 1.05;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 520, h: 520 });
@@ -51,9 +53,9 @@ export const HeroCarousel = () => {
     return () => ro.disconnect();
   }, []);
 
-  // Dial geometry — radius scales with container; card sized to fit comfortably
-  const R = Math.max(160, Math.min(size.w * 0.4, size.h * 0.4));
-  const cardW = Math.max(170, Math.min(R * 0.95, 260));
+  // Dial geometry — radius keeps cards inside the container (no top-edge clipping)
+  const R = Math.max(180, Math.min(size.h * 0.62, size.w * 0.55));
+  const cardW = Math.max(160, Math.min(R * 0.75, 240));
 
   type Card = { key: number; v: Video; slotIdx: number };
   const nextKey = useRef(N);
@@ -119,16 +121,17 @@ export const HeroCarousel = () => {
   };
 
   // Polar position on the arc.
-  // angleFor(0) → exit (right). angleFor(N-1) → entry (bottom-left).
-  // Standard screen convention: x = cos(θ), y = sin(θ) (y grows downward).
-  const angleFor = (i: number) => START_ANGLE - i * STEP;
+  // angleFor(0)  = EXIT_ANGLE  → leftmost (about to exit)
+  // angleFor(N-1)= ENTRY_ANGLE → rightmost (just entered)
+  const angleFor = (i: number) => EXIT_ANGLE - i * STEP;
   const styleFor = (slotIdx: number): React.CSSProperties => {
     const a = angleFor(slotIdx);
     const rad = (a * Math.PI) / 180;
+    // Math y-up → screen y-down: y_offset = -sin(angle)*R
     const dx = R * Math.cos(rad);
-    const dy = R * Math.sin(rad);
+    const dy = -R * Math.sin(rad);
     const visible = slotIdx >= 0 && slotIdx < N;
-    const tangentTilt = (a + 90) * 0.12; // gentle tangent tilt along the path
+    const tangentTilt = -(a - 90) * 0.25; // gentle radial tilt — 0 at top of arc
     const middle = (N - 1) / 2;
     const z = visible ? 10 + Math.round(20 - Math.abs(slotIdx - middle) * 3) : 1;
     return {

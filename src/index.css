@@ -429,11 +429,11 @@
   }
 
   /* Luminous dial halo — slow counter-clockwise spin */
-  @keyframes halo-spin-cw {
+  @keyframes halo-spin-ccw {
     from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
+    to   { transform: rotate(-360deg); }
   }
-  .halo-spin { animation: halo-spin-cw 18s linear infinite; }
+  .halo-spin { animation: halo-spin-ccw 18s linear infinite; }
   .dial-glow { animation: neon-edge-pulse 4s ease-in-out infinite; }
   @media (prefers-reduced-motion: reduce) {
     .halo-spin, .dial-glow { animation: none !important; }
