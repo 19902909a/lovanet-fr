@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Play, Calendar, Youtube, Music2, Tv, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Youtube, Music2, Tv, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { videos as fallbackVideos } from "@/data/videos";
+import { HoverPreview } from "./HoverPreview";
 
 // Both are true 16:9 — no black bars, no cropping in an aspect-video card
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
@@ -191,30 +192,13 @@ export const RecentEpisodesCarousel = () => {
             "tilt-card group snap-start shrink-0 w-[340px] sm:w-[400px] rounded-2xl overflow-hidden bg-card border border-border transition-all";
           const inner = (
             <>
-            <div className="relative aspect-video overflow-hidden bg-muted">
-              <img
-                src={cover}
-                alt={v.title}
-                loading="lazy"
-                className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
-                onLoad={(e) => {
-                  const img = e.currentTarget;
-                  if (img.naturalWidth > 0 && img.naturalWidth <= 120) {
-                    const step = img.dataset.fallback ?? "0";
-                    if (v.external_id && step === "0") {
-                      img.dataset.fallback = "1";
-                      img.src = ytThumbHq(v.external_id);
-                    } else if (v.external_id && step === "1") {
-                      img.dataset.fallback = "2";
-                      img.src = ytThumbFallback(v.external_id);
-                    } else {
-                      img.dataset.fallback = "3";
-                      img.src = placeholderThumb(v.external_id || v.id, v.title);
-                    }
-                  }
-                }}
-                onError={(e) => {
-                  const img = e.currentTarget;
+            <HoverPreview
+              videoId={v.external_id || v.id}
+              title={v.title}
+              thumbnail={cover}
+              onImgLoad={(e) => {
+                const img = e.currentTarget;
+                if (img.naturalWidth > 0 && img.naturalWidth <= 120) {
                   const step = img.dataset.fallback ?? "0";
                   if (v.external_id && step === "0") {
                     img.dataset.fallback = "1";
@@ -226,14 +210,29 @@ export const RecentEpisodesCarousel = () => {
                     img.dataset.fallback = "3";
                     img.src = placeholderThumb(v.external_id || v.id, v.title);
                   }
-                }}
-              />
+                }
+              }}
+              onImgError={(e) => {
+                const img = e.currentTarget;
+                const step = img.dataset.fallback ?? "0";
+                if (v.external_id && step === "0") {
+                  img.dataset.fallback = "1";
+                  img.src = ytThumbHq(v.external_id);
+                } else if (v.external_id && step === "1") {
+                  img.dataset.fallback = "2";
+                  img.src = ytThumbFallback(v.external_id);
+                } else {
+                  img.dataset.fallback = "3";
+                  img.src = placeholderThumb(v.external_id || v.id, v.title);
+                }
+              }}
+            >
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent pointer-events-none" />
-              <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
+              <span className="absolute top-3 left-3 z-10 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider shadow-[0_0_20px_hsl(var(--primary)/0.5)]">
                 <Icon className="w-3 h-3" />
                 {label}
               </span>
-              <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
+              <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1.5">
                 {fresh && (
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[10px] font-bold uppercase tracking-wider shadow-[0_0_18px_hsl(var(--primary)/0.5)] animate-pulse">
                     <Sparkles className="w-3 h-3" />
@@ -246,12 +245,7 @@ export const RecentEpisodesCarousel = () => {
                   </span>
                 )}
               </div>
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center shadow-[0_0_30px_hsl(var(--primary)/0.6)]">
-                  <Play className="w-6 h-6 text-primary-foreground fill-current" />
-                </div>
-              </div>
-            </div>
+            </HoverPreview>
             <div className="p-4">
               <h3
                 title={v.title}

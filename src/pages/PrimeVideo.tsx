@@ -4,6 +4,7 @@ import { PageShell } from "@/components/PageShell";
 import { videos, thumb } from "@/data/videos";
 import { Play, Volume2, VolumeX, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HoverPreview } from "@/components/HoverPreview";
 
 const PrimeVideo = () => {
   const [active, setActive] = useState(videos[0].id);
@@ -112,13 +113,17 @@ const PrimeVideo = () => {
                 }}
                 className="tilt-card group text-left rounded-2xl overflow-hidden bg-card border border-border transition-all"
               >
-                <div className="relative aspect-video overflow-hidden">
-                  <img src={thumb(x.id)} alt={x.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-gradient-to-r from-sky-500 to-blue-600 text-white">
+                <HoverPreview
+                  videoId={x.id}
+                  title={x.title}
+                  thumbnail={thumb(x.id)}
+                  vertical={orientation === "vertical"}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
+                  <span className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold bg-gradient-to-r from-sky-500 to-blue-600 text-white">
                     PRIME
                   </span>
-                </div>
+                </HoverPreview>
                 <div className="p-3">
                   <div className="text-sm font-semibold line-clamp-2 group-hover:text-sky-400 transition-colors">{x.title}</div>
                 </div>

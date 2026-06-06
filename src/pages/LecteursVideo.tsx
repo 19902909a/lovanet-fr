@@ -4,6 +4,7 @@ import { videos as rawVideos, thumb } from "@/data/videos";
 import { useState, useEffect, useMemo } from "react";
 import { Volume2, VolumeX, ExternalLink, ArrowRight, Youtube, Play, Music2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HoverPreview } from "@/components/HoverPreview";
 
 type Service = "youtube" | "prime" | "tiktok";
 
@@ -168,18 +169,17 @@ const LecteursVideo = () => {
                 onClick={() => select(v.id)}
                 className="tilt-card group text-left rounded-2xl overflow-hidden bg-card border border-border transition-all"
               >
-                <div className="relative aspect-video overflow-hidden">
-                  <img
-                    src={thumb(v.id)}
-                    alt={v.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent" />
-                  <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/70 text-white">
+                <HoverPreview
+                  videoId={v.id}
+                  title={v.title}
+                  thumbnail={thumb(v.id)}
+                  vertical={orientation === "vertical"}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent pointer-events-none" />
+                  <span className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold bg-black/70 text-white">
                     YouTube
                   </span>
-                </div>
+                </HoverPreview>
                 <div className="p-3">
                   <div className="text-sm font-semibold line-clamp-2 group-hover:text-primary transition-colors">
                     {v.title}
