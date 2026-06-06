@@ -240,10 +240,7 @@ export const HeroCarousel = () => {
       </button>
 
       {cards.map((c) => {
-        const variant =
-          c.slotIdx >= 0 && c.slotIdx < N
-            ? variants[c.slotIdx]
-            : variants[N - 1];
+        const variant = variantPool[c.slotIdx % variantPool.length];
         return (
           <div
             key={c.key}
