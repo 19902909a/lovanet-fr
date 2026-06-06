@@ -29,21 +29,33 @@ export const HeroCarousel = () => {
   const [soundOn, setSoundOn] = useState(false);
   const [paused, setPaused] = useState(false);
 
-  // Original stacked layout (top → bottom)
-  const slots = [
-    { top: 2,  left: 18, w: 300, z: 6, variant: "neon-edge" },
-    { top: 10, left: 54, w: 200, z: 2, variant: "holo-card" },
-    { top: 28, left: 32, w: 280, z: 5, variant: "depth-card" },
-    { top: 38, left: 2,  w: 300, z: 4, variant: "holo-card" },
-    { top: 52, left: 30, w: 290, z: 3, variant: "neon-edge" },
-    { top: 66, left: 16, w: 270, z: 7, variant: "depth-card" },
-  ];
+  // Half-dial layout (left semicircle, like the 6 → 9 → 12 hours of a watch)
+  const N = 6;
+  const START_ANGLE = 345;   // top-most visible slot (~12 o'clock)
+  const STEP = 30;           // degrees between slots
+  const variants = ["neon-edge", "holo-card", "depth-card", "neon-edge", "holo-card", "depth-card"];
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 520, h: 520 });
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setSize({ w: entry.contentRect.width, h: entry.contentRect.height });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Dial geometry — radius scales with container, card sized to fit comfortably
+  const R = Math.max(180, Math.min(size.w * 0.55, size.h * 0.45));
+  const cardW = Math.max(160, Math.min(R * 0.78, 260));
 
   type Card = { key: number; v: Video; slotIdx: number };
-  const nextKey = useRef(slots.length);
-  const nextPool = useRef(slots.length);
+  const nextKey = useRef(N);
+  const nextPool = useRef(N);
   const [cards, setCards] = useState<Card[]>(() =>
-    slots.map((_, i) => ({ key: i, v: videos[i % videos.length], slotIdx: i })),
+    Array.from({ length: N }, (_, i) => ({ key: i, v: videos[i % videos.length], slotIdx: i })),
   );
 
   // Advance one step: all cards rise (next) or sink (prev) one slot
@@ -52,7 +64,7 @@ export const HeroCarousel = () => {
       const incoming: Card = {
         key: nextKey.current++,
         v: videos[nextPool.current++ % videos.length],
-        slotIdx: slots.length, // enter from bottom
+        slotIdx: N, // enter from below 6 o'clock
       };
       setCards((prev) => [...prev, incoming]);
       requestAnimationFrame(() => {
@@ -78,10 +90,10 @@ export const HeroCarousel = () => {
         });
       });
       window.setTimeout(() => {
-        setCards((prev) => prev.filter((c) => c.slotIdx < slots.length + 1));
+        setCards((prev) => prev.filter((c) => c.slotIdx < N + 1));
       }, 1200);
     }
-  }, [slots.length]);
+  }, []);
 
   // Auto-advance every 5s
   useEffect(() => {
@@ -102,36 +114,51 @@ export const HeroCarousel = () => {
     touchStartY.current = null;
   };
 
+  // Polar position on the left half-dial.
+  // θ = 0° → 12 o'clock (top), 90° → 3, 180° → 6, 270° → 9 (left).
+  const angleFor = (i: number) => START_ANGLE - i * STEP;
   const styleFor = (slotIdx: number): React.CSSProperties => {
-    if (slotIdx >= 0 && slotIdx < slots.length) {
-      const s = slots[slotIdx];
-      return {
-        top: `${s.top}%`, left: `${s.left}%`, width: s.w, zIndex: s.z, opacity: 1,
-        aspectRatio: "16 / 9",
-      };
-    }
-    if (slotIdx < 0) {
-      const s = slots[0];
-      return {
-        top: `-30%`, left: `${s.left}%`, width: s.w, zIndex: s.z, opacity: 0,
-        aspectRatio: "16 / 9",
-      };
-    }
-    const s = slots[slots.length - 1];
+    const a = angleFor(slotIdx);
+    const rad = (a * Math.PI) / 180;
+    const dx = R * Math.sin(rad);   // x offset from the dial center (right edge)
+    const dy = -R * Math.cos(rad);  // y offset (screen y grows downward)
+    const visible = slotIdx >= 0 && slotIdx < N;
+    const tangentTilt = (a - 270) * 0.35; // gentle radial tilt — 0 at 9 o'clock
+    const middle = (N - 1) / 2;
+    const z = visible ? 10 + Math.round(20 - Math.abs(slotIdx - middle) * 3) : 1;
     return {
-      top: `110%`, left: `${s.left}%`, width: s.w, zIndex: s.z, opacity: 0,
+      left: "100%",
+      top: "50%",
+      width: cardW,
       aspectRatio: "16 / 9",
+      transform: `translate(calc(${dx}px - 50%), calc(${dy}px - 50%)) rotate(${tangentTilt}deg)`,
+      transformOrigin: "center center",
+      opacity: visible ? 1 : 0,
+      zIndex: z,
     };
   };
 
   return (
     <div
+      ref={containerRef}
       className="relative w-full h-[460px] sm:h-[520px] overflow-hidden"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
+      {/* Decorative dial ring (anchored to the right edge, like a watch face) */}
+      <div
+        aria-hidden
+        className="absolute pointer-events-none rounded-full border border-fuchsia-400/20"
+        style={{
+          width: R * 2,
+          height: R * 2,
+          left: `calc(100% - ${R}px)`,
+          top: `calc(50% - ${R}px)`,
+          boxShadow: "inset 0 0 60px hsl(var(--neon-magenta) / 0.08)",
+        }}
+      />
       <button
         type="button"
         onClick={() => setSoundOn((s) => !s)}
@@ -162,9 +189,9 @@ export const HeroCarousel = () => {
 
       {cards.map((c) => {
         const variant =
-          c.slotIdx >= 0 && c.slotIdx < slots.length
-            ? slots[c.slotIdx].variant
-            : slots[slots.length - 1].variant;
+          c.slotIdx >= 0 && c.slotIdx < N
+            ? variants[c.slotIdx]
+            : variants[N - 1];
         return (
           <div
             key={c.key}
@@ -172,7 +199,7 @@ export const HeroCarousel = () => {
             style={{
               ...styleFor(c.slotIdx),
               transition:
-                "top 1.1s cubic-bezier(0.22, 1, 0.36, 1), left 1.1s cubic-bezier(0.22, 1, 0.36, 1), width 1.1s ease, opacity 0.9s ease",
+                "transform 1.1s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s ease",
             }}
           >
             <HoverPreview
