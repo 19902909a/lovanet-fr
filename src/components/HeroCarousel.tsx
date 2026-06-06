@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX, ChevronUp, ChevronDown } from "lucide-react";
 import { videos } from "@/data/videos";
+import { supabase } from "@/integrations/supabase/client";
 
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
 const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
 const ytThumbHq = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+
+type WheelVideo = { id: string; title: string; thumb: string };
 
 // Deterministic gradient placeholder generated from the video id — never empty
 const placeholderThumb = (id: string, title: string) => {
@@ -28,22 +31,49 @@ export const HeroCarousel = () => {
   const [soundOn, setSoundOn] = useState(false);
   const [paused, setPaused] = useState(false);
 
+  // Load every imported video (YouTube + TikTok) from the DB.
+  // Falls back to the static list while loading or on error.
+  const [allVideos, setAllVideos] = useState<WheelVideo[]>(() =>
+    videos.map((v) => ({ id: v.id, title: v.title, thumb: ytThumb(v.id) })),
+  );
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("imported_videos")
+        .select("external_id, title, thumbnail_url, source, published_at")
+        .order("published_at", { ascending: false })
+        .limit(60);
+      if (cancelled || error || !data?.length) return;
+      const mapped: WheelVideo[] = data.map((r) => ({
+        id: r.external_id,
+        title: r.title ?? "Anime Moment",
+        thumb:
+          r.thumbnail_url ||
+          (r.source === "youtube" ? ytThumb(r.external_id) : ""),
+      }));
+      setAllVideos(mapped);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   // Preload every thumbnail once so the wheel is instant — no flicker.
   useEffect(() => {
     const cache: HTMLImageElement[] = [];
-    for (const v of videos) {
+    for (const v of allVideos) {
+      if (!v.thumb) continue;
       const img = new Image();
       img.decoding = "async";
       img.loading = "eager";
-      img.src = ytThumb(v.id);
+      img.src = v.thumb;
       cache.push(img);
     }
     return () => { cache.length = 0; };
-  }, []);
+  }, [allVideos]);
 
   // One card PER video — no duplicates, no pop-in. Each card keeps a stable
   // identity and just rotates around the wheel.
-  const N = Math.max(1, videos.length);
+  const N = Math.max(1, allVideos.length);
   const variantPool = ["neon-edge", "holo-card", "depth-card"];
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -107,7 +137,7 @@ export const HeroCarousel = () => {
   }, []);
 
   // Stable cards: one per video; only their angular position changes.
-  const cards = videos.map((v, i) => ({ key: v.id, v, slotIdx: i }));
+  const cards = allVideos.map((v, i) => ({ key: v.id, v, slotIdx: i }));
 
   // Touch swipe (vertical) on mobile
   const touchStartY = useRef<number | null>(null);
