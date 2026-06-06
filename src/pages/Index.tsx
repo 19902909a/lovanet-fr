@@ -184,7 +184,7 @@ const Index = () => {
             <Link
               key={p.id}
               to="/shop"
-              className="group rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all"
+              className="tilt-card group rounded-2xl overflow-hidden bg-card border border-border transition-all"
             >
               <div className="aspect-[4/3] flex items-center justify-center text-7xl bg-gradient-to-br from-primary/15 via-card to-card group-hover:scale-105 transition-transform duration-500">
                 {p.emoji}

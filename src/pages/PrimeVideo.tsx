@@ -110,7 +110,7 @@ const PrimeVideo = () => {
                   setActive(x.id);
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                className="group text-left rounded-2xl overflow-hidden bg-card border border-border hover:border-sky-500/60 transition-all"
+                className="tilt-card group text-left rounded-2xl overflow-hidden bg-card border border-border transition-all"
               >
                 <div className="relative aspect-video overflow-hidden">
                   <img src={thumb(x.id)} alt={x.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
