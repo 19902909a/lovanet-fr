@@ -43,17 +43,6 @@
 
   <body>
     <div id="root"></div>
-    <script>
-      // Redirige le domaine de publication (et ses sous-domaines) vers lavanet.fr
-      (function () {
-        try {
-          var h = window.location.hostname;
-          if (h === 'lovanet-fr.lovable.app' || h.endsWith('.lovanet-fr.lovable.app')) {
-            window.location.replace('https://lavanet.fr' + window.location.pathname + window.location.search + window.location.hash);
-          }
-        } catch (e) {}
-      })();
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
