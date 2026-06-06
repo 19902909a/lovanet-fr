@@ -371,10 +371,20 @@ export const HeroCarousel = () => {
               {/* Glossy highlight for relief */}
               <div
                 aria-hidden
-                className="absolute inset-0 pointer-events-none rounded-xl"
+                className="card-3d-gloss absolute inset-0 pointer-events-none rounded-xl"
                 style={{
                   background:
-                    "linear-gradient(155deg, hsl(0 0% 100% / 0.18) 0%, hsl(0 0% 100% / 0) 35%, hsl(0 0% 100% / 0) 65%, hsl(0 0% 0% / 0.25) 100%)",
+                    "linear-gradient(135deg, hsl(0 0% 100% / 0.32) 0%, hsl(0 0% 100% / 0.06) 28%, hsl(0 0% 100% / 0) 55%, hsl(0 0% 0% / 0.35) 100%)",
+                  mixBlendMode: "screen",
+                }}
+              />
+              {/* Inner rim light */}
+              <div
+                aria-hidden
+                className="absolute inset-0 pointer-events-none rounded-xl"
+                style={{
+                  boxShadow:
+                    "inset 0 1px 0 hsl(0 0% 100% / 0.35), inset 0 -1px 0 hsl(0 0% 0% / 0.5), inset 0 0 24px hsl(var(--neon-magenta) / 0.25)",
                 }}
               />
               <div className="absolute bottom-2 left-3 right-3 z-10">
