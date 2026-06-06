@@ -353,7 +353,7 @@ export const HeroCarousel = () => {
                 title={c.v.title}
                 thumbnail={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
                 muted={!soundOn}
-                delay={200}
+                delay={0}
                 autoPlay
                 className="!aspect-video w-full h-full"
               >
