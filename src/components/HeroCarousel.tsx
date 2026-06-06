@@ -218,7 +218,7 @@ export const HeroCarousel = () => {
             style={{
               ...styleFor(c.slotIdx),
               transition:
-                "transform 1.1s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s ease",
+                "transform 1.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s ease, filter 1.4s ease",
             }}
           >
             <HoverPreview
