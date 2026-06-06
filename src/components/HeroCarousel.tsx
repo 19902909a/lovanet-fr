@@ -198,9 +198,6 @@ export const HeroCarousel = () => {
       ref={containerRef}
       className="relative w-full h-[460px] sm:h-[520px] overflow-hidden"
       style={{ perspective: "1400px", perspectiveOrigin: "50% 50%" }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseMove={onMouseMove}
-      onMouseLeave={onMouseLeaveCarousel}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
