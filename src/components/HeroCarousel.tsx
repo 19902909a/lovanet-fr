@@ -162,33 +162,3 @@ export const HeroCarousel = () => {
     </div>
   );
 };
-
-// (removed: legacy slot/HoverPreview block below)
-const _legacy = () => (
-  <>
-    {([] as any[]).map((v: any, i: number) => (
-      <HoverPreview
-              videoId={v.id}
-              title={v.title}
-              thumbnail={ytThumb(v.id)}
-              muted={true}
-              onImgLoad={(e) => {
-                const img = e.currentTarget;
-                if (img.naturalWidth > 0 && img.naturalWidth <= 120) {
-                  const step = img.dataset.fallback ?? "0";
-                  if (step === "0") { img.dataset.fallback = "1"; img.src = ytThumbHq(v.id); }
-                  else if (step === "1") { img.dataset.fallback = "2"; img.src = ytThumbFallback(v.id); }
-                  else if (step === "2") { img.dataset.fallback = "3"; img.src = placeholderThumb(v.id, v.title); }
-                }
-              }}
-              onImgError={(e) => {
-                const img = e.currentTarget;
-                const step = img.dataset.fallback ?? "0";
-                if (step === "0") { img.dataset.fallback = "1"; img.src = ytThumbHq(v.id); }
-                else if (step === "1") { img.dataset.fallback = "2"; img.src = ytThumbFallback(v.id); }
-                else if (step === "2") { img.dataset.fallback = "3"; img.src = placeholderThumb(v.id, v.title); }
-              }}
-      />
-    ))}
-  </>
-);
