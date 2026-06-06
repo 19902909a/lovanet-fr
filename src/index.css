@@ -410,6 +410,24 @@
     }
   }
 
+  /* Hero auto-slider: cards rise from below with motion blur */
+  @keyframes hero-rise {
+    0%   { transform: translateY(120%) scale(0.82); opacity: 0; filter: blur(10px); }
+    55%  { opacity: 1; filter: blur(0); }
+    100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+  }
+  .animate-hero-rise { animation: hero-rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+  @keyframes hero-float {
+    0%, 100% { transform: translateY(0) rotate(var(--float-rot, 0deg)); }
+    50%      { transform: translateY(-12px) rotate(var(--float-rot, 0deg)); }
+  }
+  .hero-float { animation: hero-float 7s ease-in-out infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-hero-rise, .hero-float { animation: none !important; }
+  }
+
   /* 3D extruded text */
   .text-3d {
     color: hsl(var(--foreground));
