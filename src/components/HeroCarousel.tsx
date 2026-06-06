@@ -29,6 +29,19 @@ export const HeroCarousel = () => {
   const [soundOn, setSoundOn] = useState(false);
   const [paused, setPaused] = useState(false);
 
+  // Preload every thumbnail once so the wheel is instant — no flicker.
+  useEffect(() => {
+    const cache: HTMLImageElement[] = [];
+    for (const v of videos) {
+      const img = new Image();
+      img.decoding = "async";
+      img.loading = "eager";
+      img.src = ytThumb(v.id);
+      cache.push(img);
+    }
+    return () => { cache.length = 0; };
+  }, []);
+
   // Stack of horizontal cards inside the circular dial.
   // Cards rise from the bottom to the top of the dial along a gentle S-curve,
   // each one slightly offset on x with a small tangent tilt.
@@ -157,7 +170,8 @@ export const HeroCarousel = () => {
       top: CENTER_Y - cardH / 2,
       width: cardW,
       aspectRatio: "16 / 9",
-      transform: `translateY(${y}px) perspective(900px) rotateX(${-ang}deg)`,
+      transform: `translate3d(0, ${y}px, 0) rotateX(${-ang}deg)`,
+      transformStyle: "preserve-3d",
       transformOrigin: "center center",
       opacity,
       zIndex: z,
@@ -169,6 +183,7 @@ export const HeroCarousel = () => {
     <div
       ref={containerRef}
       className="relative w-full h-[460px] sm:h-[520px] overflow-hidden"
+      style={{ perspective: "1400px", perspectiveOrigin: "50% 50%" }}
       onMouseEnter={() => setPaused(true)}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeaveCarousel}
@@ -239,18 +254,38 @@ export const HeroCarousel = () => {
         return (
           <div
             key={c.key}
-            className={`tilt-card group absolute rounded-xl overflow-hidden ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:z-50 ${variant}`}
+            className={`tilt-card group absolute rounded-xl ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:z-50 ${variant}`}
             style={{
               ...styleFor(c.slotIdx),
               transition: "opacity 0.6s ease, filter 0.6s ease",
               willChange: "transform",
+              contain: "layout paint",
+              backfaceVisibility: "hidden",
             }}
           >
-            <div className="relative w-full aspect-video overflow-hidden bg-muted">
+            {/* Thick 3D body — slices stacked on Z to simulate card depth */}
+            {[-14, -10, -6, -2].map((zd) => (
+              <div
+                key={zd}
+                aria-hidden
+                className="absolute inset-0 rounded-xl"
+                style={{
+                  transform: `translateZ(${zd}px)`,
+                  background: `linear-gradient(180deg, hsl(var(--neon-purple) / ${0.55 + (zd + 14) * 0.02}), hsl(0 0% 4% / 0.95))`,
+                  boxShadow: zd === -14 ? "0 0 0 1px hsl(var(--neon-magenta) / 0.35)" : undefined,
+                }}
+              />
+            ))}
+            {/* Front face */}
+            <div
+              className="relative w-full aspect-video overflow-hidden rounded-xl bg-muted"
+              style={{ transform: "translateZ(0)" }}
+            >
               <img
                 src={ytThumb(c.v.id)}
                 alt={c.v.title}
-                loading="lazy"
+                loading="eager"
+                decoding="async"
                 draggable={false}
                 className="w-full h-full object-cover select-none pointer-events-none"
                 onLoad={(e) => {
@@ -271,6 +306,15 @@ export const HeroCarousel = () => {
                 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+              {/* Glossy highlight for relief */}
+              <div
+                aria-hidden
+                className="absolute inset-0 pointer-events-none rounded-xl"
+                style={{
+                  background:
+                    "linear-gradient(155deg, hsl(0 0% 100% / 0.18) 0%, hsl(0 0% 100% / 0) 35%, hsl(0 0% 100% / 0) 65%, hsl(0 0% 0% / 0.25) 100%)",
+                }}
+              />
               <div className="absolute bottom-2 left-3 right-3 z-10">
                 <div className="text-[11px] text-fuchsia-200/90 font-medium">
                   Anime Moment
