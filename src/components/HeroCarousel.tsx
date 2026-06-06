@@ -302,7 +302,7 @@ export const HeroCarousel = () => {
               style={{ transform: "translateZ(0)" }}
             >
               <img
-                src={ytThumb(c.v.id)}
+                src={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
                 alt={c.v.title}
                 loading="eager"
                 decoding="async"
