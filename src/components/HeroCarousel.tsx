@@ -23,15 +23,16 @@ const placeholderThumb = (id: string, title: string) => {
 };
 
 export const HeroCarousel = () => {
-  const items = videos.slice(0, 5);
+  const items = videos.slice(0, 6);
   // Free-form stacked layout matching the source capture (% positions inside container)
   // No rotation — cards are straight rectangles overlapping at different offsets.
   const layout = [
-    { top: 4,  left: 18, rot: 0, w: 300, z: 5 }, // Mama's — top large
-    { top: 12, left: 52, rot: 0, w: 220, z: 2 }, // peeking right
-    { top: 28, left: 30, rot: 0, w: 280, z: 4 }, // You're Lucky
-    { top: 38, left: 4,  rot: 0, w: 290, z: 3 }, // I Mean
-    { top: 56, left: 28, rot: 0, w: 290, z: 6 }, // So It's / A Lot Did
+    { top: 2,  left: 18, rot: 0, w: 300, z: 6 }, // Mama's — top
+    { top: 10, left: 54, rot: 0, w: 200, z: 2 }, // peek behind right
+    { top: 28, left: 32, rot: 0, w: 280, z: 5 }, // You're Lucky
+    { top: 38, left: 2,  rot: 0, w: 300, z: 4 }, // I Mean
+    { top: 52, left: 30, rot: 0, w: 290, z: 3 }, // So It's Something Else
+    { top: 66, left: 16, rot: 0, w: 270, z: 7 }, // A Lot Did Happen
   ];
 
   return (
