@@ -25,12 +25,13 @@ const placeholderThumb = (id: string, title: string) => {
 export const HeroCarousel = () => {
   const items = videos.slice(0, 5);
   // Free-form stacked layout matching the source capture (% positions inside container)
+  // No rotation — cards are straight rectangles overlapping at different offsets.
   const layout = [
-    { top: 6,  left: 4,  rot: -4, w: 230, z: 2 },
-    { top: 0,  left: 30, rot: -1, w: 280, z: 5 },
-    { top: 18, left: 12, rot:  2, w: 260, z: 4 },
-    { top: 42, left: 36, rot:  3, w: 250, z: 6 },
-    { top: 50, left: 60, rot: -2, w: 240, z: 3 },
+    { top: 4,  left: 18, rot: 0, w: 300, z: 5 }, // Mama's — top large
+    { top: 12, left: 52, rot: 0, w: 220, z: 2 }, // peeking right
+    { top: 28, left: 30, rot: 0, w: 280, z: 4 }, // You're Lucky
+    { top: 38, left: 4,  rot: 0, w: 290, z: 3 }, // I Mean
+    { top: 56, left: 28, rot: 0, w: 290, z: 6 }, // So It's / A Lot Did
   ];
 
   return (
