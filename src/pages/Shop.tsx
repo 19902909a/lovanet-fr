@@ -16,7 +16,7 @@ const Shop = () => (
 
     <section className="container mx-auto px-4 lg:px-8 pb-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {products.map((p) => (
-        <article key={p.id} className="rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all group">
+        <article key={p.id} className="tilt-card rounded-2xl overflow-hidden bg-card border border-border transition-all group">
           <div className="aspect-[4/3] flex items-center justify-center text-8xl bg-gradient-to-br from-primary/15 via-card to-card group-hover:scale-105 transition-transform duration-500">
             {p.emoji}
           </div>

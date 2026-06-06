@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 export const VideoCard = ({ video }: { video: Video }) => (
   <Link
     to={`/lecteurs-video?video=${video.id}`}
-    className="group block rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all hover:-translate-y-1"
+    className="tilt-card group block rounded-2xl overflow-hidden bg-card border border-border transition-all"
   >
     <div className="relative aspect-video overflow-hidden">
       <img

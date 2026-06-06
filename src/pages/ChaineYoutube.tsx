@@ -92,7 +92,7 @@ const ChaineYoutube = () => {
             <Link
               key={v.id}
               to={to}
-              className="group rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all hover:-translate-y-1"
+              className="tilt-card group rounded-2xl overflow-hidden bg-card border border-border transition-all"
             >
               <div className="relative aspect-video overflow-hidden">
                 <img src={cover} alt={v.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />

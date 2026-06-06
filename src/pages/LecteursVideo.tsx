@@ -166,7 +166,7 @@ const LecteursVideo = () => {
               <button
                 key={v.id}
                 onClick={() => select(v.id)}
-                className="group text-left rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all"
+                className="tilt-card group text-left rounded-2xl overflow-hidden bg-card border border-border transition-all"
               >
                 <div className="relative aspect-video overflow-hidden">
                   <img

@@ -141,7 +141,7 @@ const Index = () => {
               <Link
                 key={p.to}
                 to={p.to}
-                className="group border-beam relative p-5 rounded-2xl bg-card border border-border hover:bg-card/80 transition-all hover:-translate-y-1 duration-300"
+                className="tilt-card group relative p-5 rounded-2xl bg-card border border-border transition-all duration-300"
               >
                 <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-white bg-gradient-to-br group-hover:scale-110 transition-transform shadow-lg", tints[i])}>
                   <p.icon className="w-5 h-5" />
@@ -184,7 +184,7 @@ const Index = () => {
             <Link
               key={p.id}
               to="/shop"
-              className="group rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/60 transition-all"
+              className="tilt-card group rounded-2xl overflow-hidden bg-card border border-border transition-all"
             >
               <div className="aspect-[4/3] flex items-center justify-center text-7xl bg-gradient-to-br from-primary/15 via-card to-card group-hover:scale-105 transition-transform duration-500">
                 {p.emoji}

@@ -42,7 +42,7 @@ export const HeroCarousel = () => {
         return (
           <div
             key={v.id}
-            className="absolute rounded-xl overflow-hidden ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] transition-transform duration-500 hover:scale-[1.04] hover:z-50"
+            className="tilt-card absolute rounded-xl overflow-hidden ring-1 ring-white/10 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6)] hover:z-50"
             style={{
               top: `${l.top}%`,
               left: `${l.left}%`,

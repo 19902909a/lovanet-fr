@@ -240,4 +240,58 @@
   .sparkle {
     animation: float-up 6s ease-in-out infinite;
   }
+
+  /* Interactive tilt card: 3D tilt + neon gradient border on hover */
+  .tilt-card {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease;
+    will-change: transform;
+  }
+  .tilt-card:hover {
+    transform: perspective(900px) rotateX(4deg) rotateY(-6deg) translateY(-6px) scale(1.02);
+    box-shadow:
+      0 20px 50px -20px hsl(var(--neon-magenta) / 0.45),
+      0 10px 30px -15px hsl(var(--neon-cyan) / 0.35);
+  }
+  .tilt-card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg,
+      hsl(var(--neon-magenta)) 0%,
+      hsl(var(--neon-purple)) 50%,
+      hsl(var(--neon-cyan)) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .tilt-card:hover::after { opacity: 1; }
+
+  /* Interactive button: shimmer sweep + lift */
+  .btn-interactive {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+  }
+  .btn-interactive:hover {
+    transform: translateY(-2px) scale(1.03);
+  }
+  .btn-interactive::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.25), transparent);
+    transform: translateX(-100%);
+    pointer-events: none;
+  }
+  .btn-interactive:hover::before {
+    animation: shimmer-sweep 1s ease-in-out;
+  }
 }
