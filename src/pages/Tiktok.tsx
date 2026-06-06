@@ -29,7 +29,7 @@ const Tiktok = () => {
   return (
     <PageShell>
       <section className="container mx-auto px-4 lg:px-8 py-12 text-center">
-        <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-2">Feed officiel</p>
+        <p className="text-xs uppercase tracking-[0.25em] text-cyan-300 mb-2">Feed officiel</p>
         <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold">
           <span className="bg-gradient-to-r from-pink-400 via-fuchsia-500 to-rose-500 bg-clip-text text-transparent">
             TikTok
