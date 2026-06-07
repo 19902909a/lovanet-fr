@@ -35,9 +35,17 @@ const Tiktok = () => {
             TikTok
           </span>
         </h1>
-        <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
-          Feed vertical infini · swipe haut/bas pour naviguer · démarrage automatique.
-        </p>
+        <div className="mt-4">
+          <a
+            href="https://www.tiktok.com/@anime.moments.officiel"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white"
+            style={{ background: "var(--gradient-magenta)" }}
+          >
+            Ouvrir TikTok @anime.moments.officiel <ExternalLink className="w-4 h-4" />
+          </a>
+        </div>
       </section>
 
       <section className="container mx-auto px-4 lg:px-8 pb-6">
