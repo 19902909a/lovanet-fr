@@ -499,6 +499,32 @@
   }
   .btn-magnetic:active { transform: translate(var(--mag-x), var(--mag-y)) scale(0.96); }
 
+  /* Nav link 3D press/hover */
+  .nav-3d {
+    position: relative;
+    transform-style: preserve-3d;
+  }
+  .nav-3d::after {
+    content: '';
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: 4px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg,
+      hsl(var(--neon-magenta)),
+      hsl(var(--neon-purple)),
+      hsl(var(--neon-cyan)));
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 0 12px hsl(var(--neon-magenta) / 0.7);
+  }
+  .nav-3d:hover::after,
+  .nav-3d-active::after { transform: scaleX(1); }
+  .nav-3d:active { transform: translateY(0) scale(0.96); }
+
   /* Holographic button: animated gradient sheen */
   .btn-holo {
     background: linear-gradient(115deg,

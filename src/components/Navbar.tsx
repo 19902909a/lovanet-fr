@@ -26,15 +26,22 @@ export const Navbar = () => {
   return (
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border">
       <div className="container mx-auto px-4 lg:px-8 h-12 flex items-center justify-between gap-4">
-        <Link to="/" className="flex items-center shrink-0 group">
+        <Link
+          to="/"
+          className="tilt-card btn-magnetic flex items-center shrink-0 group rounded-full p-0.5"
+          aria-label="Lovanet"
+        >
           <img
             src={lovanetLogo.url}
             alt="Lovanet"
-            className="h-16 w-auto object-contain transition-all duration-500 group-hover:scale-110 group-hover:rotate-[-3deg] group-hover:drop-shadow-[0_0_18px_hsl(var(--neon-magenta)/0.9)] animate-logo-float"
+            className="h-8 w-8 rounded-full object-cover ring-1 ring-fuchsia-400/40 shadow-[0_0_18px_hsl(var(--neon-magenta)/0.55)] transition-all duration-300 group-hover:ring-fuchsia-300/80 group-hover:shadow-[0_0_28px_hsl(var(--neon-magenta)/0.9),0_0_44px_hsl(var(--neon-cyan)/0.5)] group-active:scale-95"
           />
+          <span className="ml-2 font-display text-sm font-bold tracking-wide gradient-text hidden sm:inline">
+            Lovanet
+          </span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-1 mx-auto">
+        <nav className="hidden lg:flex items-center gap-1 mx-auto perspective-[800px]">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -42,10 +49,10 @@ export const Navbar = () => {
               end={item.to === "/"}
               className={({ isActive }) =>
                 cn(
-                  "px-4 py-2 text-sm rounded-full transition-all",
+                  "nav-3d btn-magnetic px-4 py-2 text-sm rounded-full transition-all duration-300 hover:-translate-y-0.5",
                   isActive
-                    ? "text-primary"
-                    : "text-foreground/70 hover:text-primary"
+                    ? "text-primary nav-3d-active"
+                    : "text-foreground/70 hover:text-primary hover:drop-shadow-[0_0_10px_hsl(var(--neon-cyan)/0.7)]"
                 )
               }
             >
