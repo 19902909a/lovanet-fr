@@ -81,7 +81,7 @@ const ChaineYoutube = () => {
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <Button asChild className="rounded-full gap-2 bg-primary hover:bg-primary/90">
-          <a href="https://www.youtube.com" target="_blank" rel="noreferrer">
+          <a href="https://www.youtube.com/@animemomentsAnimeofficiel" target="_blank" rel="noreferrer">
             Ouvrir YouTube <ExternalLink className="w-4 h-4" />
           </a>
         </Button>
