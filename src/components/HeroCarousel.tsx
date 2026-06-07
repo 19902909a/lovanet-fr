@@ -343,10 +343,11 @@ export const HeroCarousel = () => {
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   const img = e.currentTarget;
-                  if (img.dataset.fb !== "1") {
+                  const step = img.dataset.fb || "0";
+                  if (step === "0") {
                     img.dataset.fb = "1";
                     img.src = ytThumbHq(c.v.id);
-                  } else if (img.dataset.fb !== "2") {
+                  } else if (step === "1") {
                     img.dataset.fb = "2";
                     img.src = ytThumbFallback(c.v.id);
                   } else {
