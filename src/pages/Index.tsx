@@ -125,7 +125,7 @@ const Index = () => {
           <Link to="/lecteurs-video" className="text-sm text-primary hover:underline whitespace-nowrap">Tout voir →</Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 perspective-[1200px]">
           {platforms.map((p, i) => {
             const tints = [
               "from-rose-500 to-red-600",
@@ -138,17 +138,29 @@ const Index = () => {
                 key={p.to}
                 to={p.to}
                 className={cn(
-                  "tilt-card group relative p-5 rounded-2xl bg-card border border-border transition-all duration-300",
+                  "tilt-card btn-magnetic group relative block p-5 rounded-2xl bg-card border border-border transition-all duration-300 cursor-pointer active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60",
                   i === 0 && "neon-edge",
                   i === 1 && "depth-card",
                   i === 2 && "holo-card",
+                  i === 3 && "neon-edge",
                 )}
               >
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-white bg-gradient-to-br group-hover:scale-110 transition-transform shadow-lg", tints[i])}>
-                  <p.icon className="w-5 h-5" />
+                <div
+                  className={cn(
+                    "w-12 h-12 rounded-xl flex items-center justify-center mb-3 text-white bg-gradient-to-br shadow-[0_10px_24px_-8px_hsl(var(--neon-magenta)/0.55)] transition-all duration-500 group-hover:scale-125 group-hover:-translate-y-1 group-hover:rotate-[-8deg] group-hover:shadow-[0_18px_40px_-10px_hsl(var(--neon-cyan)/0.7)]",
+                    tints[i]
+                  )}
+                  style={{ transform: "translateZ(40px)" }}
+                >
+                  <p.icon className="w-6 h-6 drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]" />
                 </div>
-                <div className="font-display font-bold text-lg group-hover:gradient-text transition-colors">{p.title}</div>
-                <p className="text-sm text-muted-foreground mt-1">{p.desc}</p>
+                <div className="font-display font-bold text-lg transition-all duration-300 group-hover:gradient-text group-hover:tracking-wide group-hover:drop-shadow-[0_0_12px_hsl(var(--neon-magenta)/0.7)]">
+                  {p.title}
+                </div>
+                <p className="text-sm text-muted-foreground mt-1 group-hover:text-foreground/90 transition-colors">{p.desc}</p>
+                <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-300">
+                  Ouvrir <span aria-hidden>→</span>
+                </span>
               </Link>
             );
           })}
