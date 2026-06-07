@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
 import { videos } from "@/data/videos";
 import { supabase } from "@/integrations/supabase/client";
-import { HoverPreview } from "@/components/HoverPreview";
 
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
 const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
@@ -29,7 +27,6 @@ const placeholderThumb = (id: string, title: string) => {
 };
 
 export const HeroCarousel = () => {
-  const [soundOn, setSoundOn] = useState(false);
   const [paused, setPaused] = useState(false);
 
   // Load every imported video (YouTube + TikTok) from the DB.
@@ -245,16 +242,6 @@ export const HeroCarousel = () => {
           opacity: 0.45,
         }}
       />
-      <button
-        type="button"
-        onClick={() => setSoundOn((s) => !s)}
-        className="btn-magnetic absolute top-2 right-2 z-[60] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur text-white text-xs font-semibold ring-1 ring-white/20 hover:ring-fuchsia-400/60 transition"
-        aria-label={soundOn ? "Couper le son" : "Activer le son"}
-      >
-        {soundOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-        {soundOn ? "Son" : "Muet"}
-      </button>
-
       {cards.map((c) => {
         const variant = variantPool[c.slotIdx % variantPool.length];
         return (
@@ -348,17 +335,26 @@ export const HeroCarousel = () => {
               className="card-3d-front relative w-full aspect-video overflow-hidden rounded-xl bg-muted"
               style={{ transform: "translateZ(2px)" }}
             >
-              <HoverPreview
-                videoId={c.v.id}
-                title={c.v.title}
-                thumbnail={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
-                muted={!soundOn}
-                delay={0}
-                autoPlay
-                className="!aspect-video w-full h-full"
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-              </HoverPreview>
+              <img
+                src={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
+                alt={c.v.title}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  if (img.dataset.fb !== "1") {
+                    img.dataset.fb = "1";
+                    img.src = ytThumbHq(c.v.id);
+                  } else if (img.dataset.fb !== "2") {
+                    img.dataset.fb = "2";
+                    img.src = ytThumbFallback(c.v.id);
+                  } else {
+                    img.src = placeholderThumb(c.v.id, c.v.title);
+                  }
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
               {/* Glossy highlight for relief */}
               <div
                 aria-hidden
