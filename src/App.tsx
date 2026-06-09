@@ -11,6 +11,7 @@ import Tiktok from "./pages/Tiktok";
 import Shop from "./pages/Shop";
 import Nlounq from "./pages/Nlounq";
 import Contact from "./pages/Contact";
+import Legals from "./pages/Legals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/shop" element={<Shop />} />
           <Route path="/nlounq" element={<Nlounq />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/legals" element={<Legals />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
