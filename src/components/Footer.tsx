@@ -76,6 +76,8 @@ export const Footer = () => {
             <Link to="/tiktok" className="hover:text-primary">TikTok</Link>
             <span>·</span>
             <Link to="/shop" className="hover:text-primary">Shop</Link>
+            <span>·</span>
+            <Link to="/legals" className="hover:text-primary">Mentions légales</Link>
           </span>
         </div>
       </div>
