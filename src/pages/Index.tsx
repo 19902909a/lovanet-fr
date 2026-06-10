@@ -5,7 +5,9 @@ import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { VideoCard } from "@/components/VideoCard";
 import { Button } from "@/components/ui/button";
-import { videos as rawVideos, products } from "@/data/videos";
+import { videos as rawVideos } from "@/data/videos";
+import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
+import { ProductArtwork } from "@/components/ProductArtwork";
 
 const videos = [...rawVideos].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 
@@ -187,24 +189,33 @@ const Index = () => {
         <div className="flex items-baseline justify-between mb-6">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Shop creator</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold">Produits YouTube & TikTok à venir</h2>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold">
+              {SHOP_PRODUCTS.length} produits uniques YouTube & TikTok
+            </h2>
           </div>
           <Link to="/shop" className="text-sm text-primary hover:underline whitespace-nowrap">Boutique →</Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {products.slice(0, 3).map((p) => (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {SHOP_PRODUCTS.slice(0, 8).map((p) => (
             <Link
               key={p.id}
               to="/shop"
               className="tilt-card group rounded-2xl overflow-hidden bg-card border border-border transition-all"
             >
-              <div className="aspect-[4/3] flex items-center justify-center text-7xl bg-gradient-to-br from-primary/15 via-card to-card group-hover:scale-105 transition-transform duration-500">
-                {p.emoji}
+              <div className="aspect-square overflow-hidden">
+                <div className="w-full h-full group-hover:scale-110 transition-transform duration-700">
+                  <ProductArtwork seed={p.id} category={p.category} label={p.name} />
+                </div>
               </div>
-              <div className="p-5">
-                <div className="font-display font-bold group-hover:text-primary transition-colors">{p.name}</div>
-                <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded-full bg-primary/15 text-primary">{p.tag}</span>
+              <div className="p-4">
+                <span className="inline-block text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary mb-2">
+                  {categoryLabel(p.category)}
+                </span>
+                <div className="font-display font-bold text-sm leading-snug group-hover:text-primary transition-colors">
+                  {p.name}
+                </div>
+                <div className="text-xs text-primary font-bold mt-1">{p.price} €</div>
               </div>
             </Link>
           ))}
