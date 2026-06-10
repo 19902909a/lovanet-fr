@@ -6,7 +6,13 @@ const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`
 const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
 const ytThumbHq = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
-type WheelVideo = { id: string; title: string; thumb: string };
+type WheelVideo = {
+  id: string;
+  title: string;
+  thumb: string;
+  source: "youtube" | "tiktok" | "prime";
+  url?: string;
+};
 
 // Deterministic gradient placeholder generated from the video id — never empty
 const placeholderThumb = (id: string, title: string) => {
@@ -32,17 +38,22 @@ export const HeroCarousel = () => {
   // Load every imported video (YouTube + TikTok) from the DB.
   // Falls back to the static list while loading or on error.
   const [allVideos, setAllVideos] = useState<WheelVideo[]>(() =>
-    videos.map((v) => ({ id: v.id, title: v.title, thumb: ytThumb(v.id) })),
+    videos.map((v) => ({
+      id: v.id,
+      title: v.title,
+      thumb: ytThumb(v.id),
+      source: "youtube" as const,
+      url: `https://www.youtube.com/watch?v=${v.id}`,
+    })),
   );
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const { data, error } = await supabase
         .from("imported_videos")
-        .select("external_id, title, thumbnail_url, source, published_at")
-        .eq("source", "youtube")
+        .select("external_id, title, thumbnail_url, source, published_at, video_url")
         .order("published_at", { ascending: false })
-        .limit(200);
+        .limit(300);
       if (cancelled || error || !data?.length) return;
       const mapped: WheelVideo[] = data.map((r) => ({
         id: r.external_id,
@@ -50,6 +61,8 @@ export const HeroCarousel = () => {
         thumb:
           r.thumbnail_url ||
           (r.source === "youtube" ? ytThumb(r.external_id) : ""),
+        source: (r.source as WheelVideo["source"]) ?? "youtube",
+        url: r.video_url ?? undefined,
       }));
       setAllVideos(mapped);
     })();
@@ -344,6 +357,10 @@ export const HeroCarousel = () => {
                 onError={(e) => {
                   const img = e.currentTarget;
                   const step = img.dataset.fb || "0";
+                  if (c.v.source !== "youtube") {
+                    img.src = placeholderThumb(c.v.id, c.v.title);
+                    return;
+                  }
                   if (step === "0") {
                     img.dataset.fb = "1";
                     img.src = ytThumbHq(c.v.id);
@@ -377,7 +394,7 @@ export const HeroCarousel = () => {
               />
               <div className="absolute bottom-2 left-3 right-3 z-10">
                 <div className="text-[11px] text-fuchsia-200/90 font-medium">
-                  Anime Moment
+                  {c.v.source === "tiktok" ? "TikTok" : c.v.source === "prime" ? "Prime Video" : "YouTube"}
                 </div>
                 <div className="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-2">
                   {c.v.title}
