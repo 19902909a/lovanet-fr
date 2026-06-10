@@ -1,9 +1,11 @@
-import poster from "@/assets/shop-poster.jpg";
-import collector from "@/assets/shop-collector.jpg";
-import apparel from "@/assets/shop-apparel.jpg";
-import sneakers from "@/assets/shop-sneakers.jpg";
-
-export type ShopCategory = "poster" | "collector" | "apparel" | "sneakers";
+export type ShopCategory =
+  | "poster"
+  | "collector"
+  | "apparel"
+  | "sneakers"
+  | "music"
+  | "manga"
+  | "daily";
 
 export type ShopProduct = {
   id: string;
@@ -11,16 +13,8 @@ export type ShopProduct = {
   category: ShopCategory;
   tag: string;
   price: number;
-  image: string;
   description: string;
   source: "youtube" | "tiktok" | "both";
-};
-
-const IMG: Record<ShopCategory, string> = {
-  poster,
-  collector,
-  apparel,
-  sneakers,
 };
 
 const CATEGORY_LABEL: Record<ShopCategory, string> = {
@@ -28,6 +22,9 @@ const CATEGORY_LABEL: Record<ShopCategory, string> = {
   collector: "Collector",
   apparel: "Vêtement",
   sneakers: "Chaussure",
+  music: "Musique",
+  manga: "Manga & BD",
+  daily: "Quotidien",
 };
 
 type Seed = {
@@ -97,6 +94,38 @@ const SEEDS: Seed[] = [
   { name: "Chunky Sneakers Anime Beast", category: "sneakers", tag: "Chunky", price: 149, description: "Chunky sole 6 cm, multi-couches mesh et cuir, broderie créature anime talon.", source: "tiktok" },
   { name: "Sneakers Co-Lab NLOUNQQ", category: "sneakers", tag: "Co-lab", price: 199, description: "Collaboration exclusive avec le label NLOUNQQ. Numérotées sur la semelle.", source: "both" },
   { name: "Chaussons Maison Anime Plush", category: "sneakers", tag: "Cozy", price: 35, description: "Chaussons peluche imprimés personnages anime, semelle antidérapante.", source: "youtube" },
+
+  // ===== MUSIQUE / MUSIC (8) =====
+  { name: "Vinyle OST Ruri no Houseki", category: "music", tag: "Vinyle 12\"", price: 32, description: "Bande originale officielle pressée sur vinyle 180g coloré magenta translucide.", source: "youtube" },
+  { name: "Cassette Mixtape TikTok Edits", category: "music", tag: "Cassette", price: 14, description: "Mixtape K7 audio limitée à 300 ex, compilation des edits TikTok viraux.", source: "tiktok" },
+  { name: "EP Digital NLOUNQQ Lo-Fi", category: "music", tag: "Digital", price: 9, description: "EP 6 titres lo-fi anime téléchargeable en FLAC et MP3 320kbps. Artwork HD inclus.", source: "both" },
+  { name: "CD Collector Box Anime Beats", category: "music", tag: "CD digipack", price: 19, description: "Double CD digipack, 24 titres remasterisés, livret 24 pages.", source: "youtube" },
+  { name: "Casque Audio Néon NLNQ", category: "music", tag: "Audio gear", price: 119, description: "Casque circum-aural sans-fil 40h d'autonomie, anneaux LED réactifs au son.", source: "both" },
+  { name: "Platine Vinyle Compact Magenta", category: "music", tag: "Hardware", price: 189, description: "Platine vinyle Bluetooth coloris magenta, capot transparent, pré-ampli intégré.", source: "youtube" },
+  { name: "Single 7\" Opening Cyber", category: "music", tag: "Single", price: 12, description: "Single 7 pouces avec opening + ending, jaquette holographique.", source: "tiktok" },
+  { name: "Synthwave Pack Sample NLNQ", category: "music", tag: "Sample pack", price: 24, description: "150 samples synthwave royalty-free, kicks, snares, leads, presets Serum.", source: "both" },
+
+  // ===== MANGA & BD / COMICS (8) =====
+  { name: "Manga Tome 1 Anime Moments", category: "manga", tag: "Tome 01", price: 11, description: "Premier tome 192 pages, format poche, jaquette réversible et marque-page collector.", source: "youtube" },
+  { name: "BD Hardcover Lovanet Saga", category: "manga", tag: "Hardcover", price: 29, description: "Roman graphique cartonné 120 pages couleur, papier mat 150g.", source: "both" },
+  { name: "Light Novel NLOUNQQ Chronicles", category: "manga", tag: "Light novel", price: 16, description: "Light novel illustré 320 pages, 12 illustrations couleur pleine page.", source: "youtube" },
+  { name: "Doujinshi Édition Fan-Club", category: "manga", tag: "Doujin", price: 18, description: "Doujinshi A5 64 pages, tirage limité 500 ex numérotés à la main.", source: "tiktok" },
+  { name: "Manga Box Set Saison 1", category: "manga", tag: "Coffret 6 tomes", price: 79, description: "Coffret carton rigide 6 premiers tomes + poster exclusif double face.", source: "youtube" },
+  { name: "Webtoon Print Anniversaire", category: "manga", tag: "Webtoon", price: 22, description: "Première impression papier d'un webtoon viral, format vertical 21×40 cm.", source: "tiktok" },
+  { name: "Artbook Storyboard Edition", category: "manga", tag: "Storyboard", price: 39, description: "Artbook 180 pages de storyboards bruts, croquis et planches d'animation.", source: "youtube" },
+  { name: "Comics One-Shot ÑLLÑ Origin", category: "manga", tag: "One-shot", price: 14, description: "Comics one-shot format US 32 pages couleur, couverture variante exclusive.", source: "both" },
+
+  // ===== OBJETS DU QUOTIDIEN / DAILY (10) =====
+  { name: "Mug Thermoréactif Anime", category: "daily", tag: "Thermo", price: 18, description: "Mug céramique 350ml qui révèle son artwork avec une boisson chaude.", source: "youtube" },
+  { name: "Gourde Inox Néon 750ml", category: "daily", tag: "Inox", price: 26, description: "Gourde double paroi inox, garde froid 24h / chaud 12h. Bouchon sport.", source: "tiktok" },
+  { name: "Tote Bag Canvas Manga", category: "daily", tag: "Tote", price: 19, description: "Sac tote 320g coton recyclé, sérigraphie deux couleurs grand format.", source: "both" },
+  { name: "Tapis de Souris XXL RGB", category: "daily", tag: "Gaming", price: 35, description: "Tapis 90×40 cm, contour LED RGB USB, surface micro-tissée pour souris gaming.", source: "youtube" },
+  { name: "Bougie Parfumée Tokyo Rain", category: "daily", tag: "Bougie", price: 24, description: "Bougie cire de soja 200g, senteurs pluie, cèdre et yuzu. Mèche en bois.", source: "tiktok" },
+  { name: "Plaid Sherpa Anime Moments", category: "daily", tag: "Plaid", price: 49, description: "Plaid sherpa 150×200 cm ultra doux, imprimé all-over, doublure peluche.", source: "both" },
+  { name: "Stickers Pack Holographiques", category: "daily", tag: "Stickers x20", price: 12, description: "20 stickers holographiques découpés, vinyle waterproof résistant UV.", source: "tiktok" },
+  { name: "Carnet A5 Pages Pointillées", category: "daily", tag: "Stationery", price: 16, description: "Carnet bullet journal 192 pages, papier 100g, élastique et marque-page.", source: "youtube" },
+  { name: "Lampe LED Akari Cube Anime", category: "daily", tag: "Déco", price: 39, description: "Cube lumineux 15 cm, 16 millions de couleurs, télécommande et appli mobile.", source: "both" },
+  { name: "Coque Smartphone Holo Magenta", category: "daily", tag: "Accessoire", price: 22, description: "Coque silicone renforcée effet holographique, compatible MagSafe.", source: "tiktok" },
 ];
 
 export const SHOP_CATEGORIES: { id: ShopCategory; label: string }[] = (Object.keys(CATEGORY_LABEL) as ShopCategory[]).map((id) => ({
@@ -110,7 +139,6 @@ export const SHOP_PRODUCTS: ShopProduct[] = SEEDS.map((s, i) => ({
   category: s.category,
   tag: s.tag,
   price: s.price,
-  image: IMG[s.category],
   description: s.description,
   source: s.source,
 }));

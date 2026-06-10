@@ -3,6 +3,7 @@ import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Product360Viewer } from "@/components/Product360Viewer";
+import { ProductArtwork } from "@/components/ProductArtwork";
 import { SHOP_CATEGORIES, SHOP_PRODUCTS, type ShopProduct, type ShopCategory, categoryLabel } from "@/data/shopProducts";
 import { Youtube } from "lucide-react";
 
@@ -29,7 +30,8 @@ const Shop = () => {
           <span className="gradient-text">Boutique Anime 360°</span>
         </h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
-          50 produits exclusifs YouTube &amp; TikTok — affiches, objets de collection, vêtements et chaussures.
+          {SHOP_PRODUCTS.length} produits uniques AnimemomentsAnimeofficiel — affiches, collectors, vêtements,
+          chaussures, musique, mangas et objets du quotidien. Chaque visuel est généré individuellement.
           Cliquez un produit pour le faire tourner en 360°.
         </p>
       </section>
@@ -65,14 +67,9 @@ const Shop = () => {
             onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setActive(p)}
           >
             <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-primary/15 via-card to-card">
-              <img
-                src={p.image}
-                alt={p.name}
-                loading="lazy"
-                width={1024}
-                height={1024}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 group-hover:rotate-1 transition-transform duration-700"
-              />
+              <div className="absolute inset-0 group-hover:scale-110 group-hover:rotate-1 transition-transform duration-700">
+                <ProductArtwork seed={p.id} category={p.category} label={p.name} />
+              </div>
               <span className="absolute top-3 left-3 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur text-primary border border-primary/40">
                 360°
               </span>
@@ -113,7 +110,9 @@ const Shop = () => {
               </DialogHeader>
 
               <div className="grid md:grid-cols-2 gap-6">
-                <Product360Viewer src={active.image} alt={active.name} />
+                <Product360Viewer>
+                  <ProductArtwork seed={active.id} category={active.category} label={active.name} />
+                </Product360Viewer>
                 <div className="flex flex-col">
                   <p className="text-sm text-muted-foreground leading-relaxed">{active.description}</p>
                   <div className="mt-6 flex items-center justify-between">
