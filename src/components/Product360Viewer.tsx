@@ -1,18 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { RotateCw } from "lucide-react";
 
 type Props = {
-  src: string;
-  alt: string;
+  children: ReactNode;
   className?: string;
 };
 
 /**
  * Interactive pseudo-3D viewer: drag horizontally (mouse / touch) to spin the
- * product image on its Y axis. Real photo-360 would require a frame sequence,
- * this gives a tactile rotation feel from a single product photo.
+ * product artwork on its Y axis.
  */
-export const Product360Viewer = ({ src, alt, className }: Props) => {
+export const Product360Viewer = ({ children, className }: Props) => {
   const [angle, setAngle] = useState(-12);
   const [autoSpin, setAutoSpin] = useState(true);
   const dragging = useRef(false);
@@ -63,18 +61,14 @@ export const Product360Viewer = ({ src, alt, className }: Props) => {
           transformStyle: "preserve-3d",
         }}
       >
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          width={1024}
-          height={1024}
-          draggable={false}
-          className="max-h-full w-auto object-contain drop-shadow-[0_20px_40px_hsl(var(--neon-magenta)/0.35)]"
+        <div
+          className="w-full h-full overflow-hidden rounded-2xl drop-shadow-[0_20px_40px_hsl(var(--primary)/0.35)]"
           style={{
             filter: `brightness(${0.85 + 0.25 * Math.cos((angle * Math.PI) / 180)})`,
           }}
-        />
+        >
+          {children}
+        </div>
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
