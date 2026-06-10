@@ -3,13 +3,59 @@ import { PageShell } from "@/components/PageShell";
 import { videos as fallbackVideos } from "@/data/videos";
 import { Music2, Heart, MessageCircle, Share2, ArrowUp, ArrowDown, ExternalLink, VolumeX, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+
+type TTItem = {
+  id: string;
+  title: string;
+  series: string;
+  source: "tiktok" | "youtube";
+  videoUrl: string;
+  thumb?: string | null;
+};
+
+const ytFallback: TTItem[] = [...fallbackVideos]
+  .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
+  .map((v) => ({
+    id: v.id,
+    title: v.title,
+    series: v.series ?? "Anime Moment",
+    source: "youtube" as const,
+    videoUrl: `https://www.youtube.com/watch?v=${v.id}`,
+  }));
 
 const Tiktok = () => {
-  const list = [...fallbackVideos].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+  const [list, setList] = useState<TTItem[]>(ytFallback);
   const [idx, setIdx] = useState(0);
   const [muted, setMuted] = useState(true);
   const [orientation, setOrientation] = useState<"vertical" | "horizontal">("vertical");
   const v = list[idx];
+
+  // Load TikTok videos synced from the connector (auto-refresh hourly via cron).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("imported_videos")
+        .select("external_id, title, thumbnail_url, video_url, source, published_at")
+        .eq("source", "tiktok")
+        .order("published_at", { ascending: false })
+        .limit(200);
+      if (cancelled || error || !data?.length) return;
+      setList(
+        data.map((r) => ({
+          id: r.external_id,
+          title: r.title ?? "TikTok",
+          series: "@anime.moments.officiel",
+          source: "tiktok" as const,
+          videoUrl: r.video_url,
+          thumb: r.thumbnail_url,
+        })),
+      );
+      setIdx(0);
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const go = useCallback(
     (dir: 1 | -1) => setIdx((i) => (i + dir + list.length) % list.length),
@@ -100,14 +146,25 @@ const Tiktok = () => {
               orientation === "vertical" ? "aspect-[9/16] w-full max-w-sm" : "aspect-video w-full max-w-3xl"
             )}
           >
-            <iframe
-              key={`${v.id}-${muted}`}
-              src={`https://www.youtube.com/embed/${v.id}?autoplay=1&rel=0&mute=${muted ? 1 : 0}&loop=1&playlist=${v.id}`}
-              title={v.title}
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            {v?.source === "tiktok" ? (
+              <iframe
+                key={`tt-${v.id}-${muted}`}
+                src={`https://www.tiktok.com/player/v1/${v.id}?autoplay=1&music_info=1&description=1&rel=0&loop=1&muted=${muted ? 1 : 0}`}
+                title={v.title}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <iframe
+                key={`yt-${v.id}-${muted}`}
+                src={`https://www.youtube.com/embed/${v.id}?autoplay=1&rel=0&mute=${muted ? 1 : 0}&loop=1&playlist=${v.id}`}
+                title={v.title}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            )}
 
             {/* Right-side actions overlay */}
             <div className="absolute right-3 bottom-24 flex flex-col gap-3">
@@ -118,7 +175,7 @@ const Tiktok = () => {
                 <MessageCircle className="w-5 h-5" />
               </button>
               <a
-                href={`https://www.youtube.com/watch?v=${v.id}`}
+                href={v.videoUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md flex items-center justify-center text-white hover:scale-110 transition-transform"
@@ -166,7 +223,7 @@ const Tiktok = () => {
 
         <div className="text-center mt-4">
           <a
-            href={`https://www.youtube.com/watch?v=${v.id}`}
+            href={v.videoUrl}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white"
