@@ -74,22 +74,33 @@ async function fetchTikTok(): Promise<Row[]> {
 
   const url =
     'https://connector-gateway.lovable.dev/tiktok/video/list/?fields=id,title,video_description,cover_image_url,share_url,create_time';
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      'X-Connection-Api-Key': TIKTOK_API_KEY,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ max_count: 20 }),
-  });
-  const body = await res.json();
-  if (!res.ok) {
-    console.error('TikTok gateway error', res.status, body);
-    return [];
+  const all: any[] = [];
+  let cursor: number | undefined;
+  // Paginate through ALL TikTok videos (max ~20 per page, up to 25 pages = 500)
+  for (let page = 0; page < 25; page++) {
+    const body: Record<string, unknown> = { max_count: 20 };
+    if (cursor) body.cursor = cursor;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        'X-Connection-Api-Key': TIKTOK_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      console.error('TikTok gateway error', res.status, json);
+      break;
+    }
+    const list = json?.data?.videos ?? [];
+    all.push(...list);
+    const hasMore = json?.data?.has_more;
+    cursor = json?.data?.cursor;
+    if (!hasMore || !cursor || list.length === 0) break;
   }
-  const list = body?.data?.videos ?? [];
-  return list.map((v: any): Row => ({
+  return all.map((v: any): Row => ({
     source: 'tiktok',
     external_id: String(v.id),
     title: v.title || v.video_description?.slice(0, 80) || 'TikTok',

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { PageShell } from "@/components/PageShell";
 import { videos as fallbackVideos } from "@/data/videos";
 import { Music2, Heart, MessageCircle, Share2, ArrowUp, ArrowDown, ExternalLink, VolumeX, Volume2 } from "lucide-react";
@@ -72,6 +72,41 @@ const Tiktok = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [go]);
 
+  // Wheel + touch swipe on the player area
+  const playerRef = useRef<HTMLDivElement | null>(null);
+  const wheelLockRef = useRef(0);
+  const touchStartRef = useRef<number | null>(null);
+  useEffect(() => {
+    const el = playerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) < 20) return;
+      const now = Date.now();
+      if (now - wheelLockRef.current < 450) return;
+      wheelLockRef.current = now;
+      go(e.deltaY > 0 ? 1 : -1);
+    };
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartRef.current = e.touches[0]?.clientY ?? null;
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      const start = touchStartRef.current;
+      if (start == null) return;
+      const end = e.changedTouches[0]?.clientY ?? start;
+      const dy = start - end;
+      if (Math.abs(dy) > 50) go(dy > 0 ? 1 : -1);
+      touchStartRef.current = null;
+    };
+    el.addEventListener("wheel", onWheel, { passive: true });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [go]);
+
   return (
     <PageShell>
       <section className="container mx-auto px-4 lg:px-8 py-12 text-center">
@@ -141,6 +176,7 @@ const Tiktok = () => {
 
           {/* Player */}
           <div
+            ref={playerRef}
             className={cn(
               "tilt-card neon-edge relative rounded-3xl overflow-hidden bg-black border border-pink-500/30 shadow-[0_40px_120px_-40px_hsl(var(--neon-magenta)/0.6)]",
               orientation === "vertical" ? "aspect-[9/16] w-full max-w-sm" : "aspect-video w-full max-w-3xl"
@@ -220,6 +256,39 @@ const Tiktok = () => {
         <p className="text-center text-xs text-muted-foreground mt-4">
           Swipe haut/bas · clavier ↑/↓ · M pour son
         </p>
+
+        {/* Thumbnail strip — full library, click to jump */}
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground">
+              Bibliothèque · {list.length} vidéos
+            </h3>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-thin">
+            {list.map((it, i) => (
+              <button
+                key={`${it.source}-${it.id}-${i}`}
+                onClick={() => setIdx(i)}
+                className={cn(
+                  "snap-start shrink-0 w-24 aspect-[9/16] rounded-xl overflow-hidden relative border-2 transition-all",
+                  i === idx ? "border-pink-500 scale-105" : "border-transparent opacity-70 hover:opacity-100"
+                )}
+                aria-label={`Lire ${it.title}`}
+              >
+                {it.thumb ? (
+                  <img src={it.thumb} alt={it.title} className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-pink-500/40 to-fuchsia-700/40 flex items-center justify-center">
+                    <Music2 className="w-6 h-6 text-white/80" />
+                  </div>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1">
+                  <span className="text-[9px] text-white font-semibold">#{i + 1}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="text-center mt-4">
           <a
