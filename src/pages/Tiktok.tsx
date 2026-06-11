@@ -257,6 +257,39 @@ const Tiktok = () => {
           Swipe haut/bas · clavier ↑/↓ · M pour son
         </p>
 
+        {/* Thumbnail strip — full library, click to jump */}
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-muted-foreground">
+              Bibliothèque · {list.length} vidéos
+            </h3>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-thin">
+            {list.map((it, i) => (
+              <button
+                key={`${it.source}-${it.id}-${i}`}
+                onClick={() => setIdx(i)}
+                className={cn(
+                  "snap-start shrink-0 w-24 aspect-[9/16] rounded-xl overflow-hidden relative border-2 transition-all",
+                  i === idx ? "border-pink-500 scale-105" : "border-transparent opacity-70 hover:opacity-100"
+                )}
+                aria-label={`Lire ${it.title}`}
+              >
+                {it.thumb ? (
+                  <img src={it.thumb} alt={it.title} className="w-full h-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-pink-500/40 to-fuchsia-700/40 flex items-center justify-center">
+                    <Music2 className="w-6 h-6 text-white/80" />
+                  </div>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1">
+                  <span className="text-[9px] text-white font-semibold">#{i + 1}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="text-center mt-4">
           <a
             href={v.videoUrl}
