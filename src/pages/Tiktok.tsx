@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { PageShell } from "@/components/PageShell";
 import { videos as fallbackVideos } from "@/data/videos";
 import { Music2, Heart, MessageCircle, Share2, ArrowUp, ArrowDown, ExternalLink, VolumeX, Volume2 } from "lucide-react";
@@ -70,6 +70,41 @@ const Tiktok = () => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, [go]);
+
+  // Wheel + touch swipe on the player area
+  const playerRef = useRef<HTMLDivElement | null>(null);
+  const wheelLockRef = useRef(0);
+  const touchStartRef = useRef<number | null>(null);
+  useEffect(() => {
+    const el = playerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) < 20) return;
+      const now = Date.now();
+      if (now - wheelLockRef.current < 450) return;
+      wheelLockRef.current = now;
+      go(e.deltaY > 0 ? 1 : -1);
+    };
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartRef.current = e.touches[0]?.clientY ?? null;
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      const start = touchStartRef.current;
+      if (start == null) return;
+      const end = e.changedTouches[0]?.clientY ?? start;
+      const dy = start - end;
+      if (Math.abs(dy) > 50) go(dy > 0 ? 1 : -1);
+      touchStartRef.current = null;
+    };
+    el.addEventListener("wheel", onWheel, { passive: true });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
   }, [go]);
 
   return (
