@@ -87,6 +87,7 @@ export const HeroCarousel = () => {
       const img = new Image();
       img.decoding = "async";
       img.loading = "eager";
+      img.referrerPolicy = "no-referrer";
       img.src = v.thumb;
       cache.push(img);
     }
@@ -363,6 +364,7 @@ export const HeroCarousel = () => {
                 alt={c.v.title}
                 loading="lazy"
                 decoding="async"
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   const img = e.currentTarget;
