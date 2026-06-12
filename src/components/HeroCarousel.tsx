@@ -20,7 +20,11 @@ const placeholderThumb = (id: string, title: string) => {
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
   const h1 = h % 360;
   const h2 = (h1 + 60) % 360;
-  const safe = (title || "Anime Moment").replace(/[<&>]/g, " ").slice(0, 40);
+  // Strip lone surrogates / control chars — encodeURIComponent throws on them.
+  const safe = (title || "Anime Moment")
+    .replace(/[\uD800-\uDFFF]/g, "")
+    .replace(/[\u0000-\u001F\u007F<&>]/g, " ")
+    .slice(0, 40);
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'>
     <defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
       <stop offset='0' stop-color='hsl(${h1},85%,55%)'/>
@@ -29,7 +33,13 @@ const placeholderThumb = (id: string, title: string) => {
     <rect width='640' height='360' fill='url(#g)'/>
     <text x='50%' y='50%' fill='white' font-family='system-ui,sans-serif' font-size='28' font-weight='700' text-anchor='middle' dominant-baseline='middle'>${safe}</text>
   </svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  try {
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  } catch {
+    // Fallback: base64 — never throws on string content.
+    const b64 = typeof btoa !== "undefined" ? btoa(unescape(encodeURIComponent(svg))) : "";
+    return `data:image/svg+xml;base64,${b64}`;
+  }
 };
 
 export const HeroCarousel = () => {

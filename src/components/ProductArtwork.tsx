@@ -69,9 +69,10 @@ export const ProductArtwork = ({ seed, category, label, className }: Props) => {
     <svg
       viewBox="0 0 400 400"
       preserveAspectRatio="xMidYMid slice"
-      className={className ?? "w-full h-full"}
+      className={className ?? "w-full h-full block"}
       role="img"
       aria-label={label ?? seed}
+      data-product-seed={seed}
     >
       <defs>
         <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">

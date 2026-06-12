@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -21,6 +21,60 @@ const Shop = () => {
     () => (filter === "all" ? SHOP_PRODUCTS : SHOP_PRODUCTS.filter((p) => p.category === filter)),
     [filter]
   );
+
+  // SEO: emit ItemList + Product JSON-LD so search engines identify each
+  // product (name, description, price, image, brand) on the shop page.
+  useEffect(() => {
+    const origin =
+      typeof window !== "undefined" ? window.location.origin : "https://lovanet.fr";
+    const ld = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Boutique AnimemomentsAnimeofficiel",
+      itemListElement: SHOP_PRODUCTS.map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        item: {
+          "@type": "Product",
+          "@id": `${origin}/shop#${p.id}`,
+          sku: p.id,
+          name: p.name,
+          description: p.description,
+          category: categoryLabel(p.category),
+          brand: { "@type": "Brand", name: "AnimemomentsAnimeofficiel" },
+          image: `${origin}/og-product-${p.id}.svg`,
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "EUR",
+            price: p.price.toFixed(2),
+            availability: "https://schema.org/InStock",
+            url: `${origin}/shop#${p.id}`,
+          },
+        },
+      })),
+    };
+    const tag = document.createElement("script");
+    tag.type = "application/ld+json";
+    tag.id = "shop-itemlist-jsonld";
+    tag.textContent = JSON.stringify(ld);
+    const old = document.getElementById("shop-itemlist-jsonld");
+    if (old) old.remove();
+    document.head.appendChild(tag);
+
+    const prevTitle = document.title;
+    document.title = "Boutique AnimemomentsAnimeofficiel — Affiches, Collectors, Vêtements 360°";
+    const desc = document.querySelector('meta[name="description"]');
+    const prevDesc = desc?.getAttribute("content") ?? "";
+    desc?.setAttribute(
+      "content",
+      `${SHOP_PRODUCTS.length} produits AnimemomentsAnimeofficiel : affiches, collectors, vêtements, chaussures, musique, mangas en rotation 360°.`,
+    );
+    return () => {
+      tag.remove();
+      document.title = prevTitle;
+      if (desc && prevDesc) desc.setAttribute("content", prevDesc);
+    };
+  }, []);
 
   return (
     <PageShell>
@@ -61,29 +115,53 @@ const Shop = () => {
         {filtered.map((p) => (
           <article
             key={p.id}
+            id={p.id}
+            itemScope
+            itemType="https://schema.org/Product"
             className="tilt-card rounded-2xl overflow-hidden bg-card border border-border transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             onClick={() => setActive(p)}
             tabIndex={0}
             onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setActive(p)}
           >
-            <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-primary/15 via-card to-card">
+            <figure className="relative aspect-square overflow-hidden bg-gradient-to-br from-primary/15 via-card to-card m-0">
               <div className="absolute inset-0 group-hover:scale-110 group-hover:rotate-1 transition-transform duration-700">
-                <ProductArtwork seed={p.id} category={p.category} label={p.name} />
+                <ProductArtwork
+                  seed={p.id}
+                  category={p.category}
+                  label={`${p.name} — AnimemomentsAnimeofficiel ${categoryLabel(p.category)}`}
+                />
               </div>
+              <figcaption className="sr-only" itemProp="image">
+                {p.name} — visuel produit AnimemomentsAnimeofficiel
+              </figcaption>
               <span className="absolute top-3 left-3 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur text-primary border border-primary/40">
                 360°
               </span>
               <span className="absolute top-3 right-3 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur text-foreground/80">
                 {categoryLabel(p.category)}
               </span>
-            </div>
+            </figure>
             <div className="p-5">
               <span className="inline-block text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary mb-2">
                 {p.tag}
               </span>
-              <h3 className="font-display font-bold text-base leading-snug min-h-[3rem]">{p.name}</h3>
+              <h3 className="font-display font-bold text-base leading-snug min-h-[3rem]" itemProp="name">
+                {p.name}
+              </h3>
+              <meta itemProp="sku" content={p.id} />
+              <meta itemProp="description" content={p.description} />
               <div className="flex items-center justify-between mt-3">
-                <span className="font-display font-bold text-primary">{p.price} €</span>
+                <span
+                  className="font-display font-bold text-primary"
+                  itemProp="offers"
+                  itemScope
+                  itemType="https://schema.org/Offer"
+                >
+                  <span itemProp="price" content={p.price.toFixed(2)}>
+                    {p.price}
+                  </span>{" "}
+                  <span itemProp="priceCurrency" content="EUR">€</span>
+                </span>
                 <Button size="sm" variant="outline" className="rounded-full">
                   Voir 360°
                 </Button>
