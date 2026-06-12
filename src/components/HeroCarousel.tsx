@@ -363,6 +363,8 @@ export const HeroCarousel = () => {
                 alt={c.v.title}
                 loading="lazy"
                 decoding="async"
+                referrerPolicy="no-referrer"
+                crossOrigin="anonymous"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   const img = e.currentTarget;
