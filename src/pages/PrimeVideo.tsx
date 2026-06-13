@@ -1,18 +1,117 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { PageShell } from "@/components/PageShell";
-import { videos, thumb } from "@/data/videos";
-import { Play, Volume2, VolumeX, ArrowRight } from "lucide-react";
+import { videos as fallbackVideos, thumb as ytThumb } from "@/data/videos";
+import { Play, Volume2, VolumeX, ArrowRight, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HoverPreview } from "@/components/HoverPreview";
+import { supabase } from "@/integrations/supabase/client";
+
+type Item = {
+  id: string;
+  videoId: string;
+  title: string;
+  series?: string;
+  thumbnail: string;
+};
 
 const PrimeVideo = () => {
-  const [active, setActive] = useState(videos[0].id);
+  const [items, setItems] = useState<Item[]>([]);
+  const [active, setActive] = useState<string>("");
   const [muted, setMuted] = useState(true);
+  const [autoplayNext, setAutoplayNext] = useState(true);
   const [orientation, setOrientation] = useState<"cinema" | "vertical">("cinema");
-  const v = videos.find((x) => x.id === active) || videos[0];
-  const idx = videos.findIndex((x) => x.id === v.id);
-  const next = videos[(idx + 1) % videos.length];
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Fallback list from static data (Ruri no Houseki + others)
+  const fallback: Item[] = fallbackVideos.map((v) => ({
+    id: v.id,
+    videoId: v.id,
+    title: v.title,
+    series: v.series,
+    thumbnail: ytThumb(v.id),
+  }));
+
+  // Load ALL YouTube videos referenced by the channel from the imported library
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data } = await supabase
+        .from("imported_videos")
+        .select("id, external_id, title, thumbnail_url, published_at, created_at")
+        .eq("source", "youtube")
+        .order("published_at", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (!alive) return;
+      const rows = (data ?? [])
+        .filter((r: any) => r.external_id)
+        .map((r: any): Item => ({
+          id: r.id,
+          videoId: r.external_id,
+          title: r.title,
+          thumbnail: r.thumbnail_url || ytThumb(r.external_id),
+        }));
+      const list = rows.length > 0 ? rows : fallback;
+      setItems(list);
+      setActive((curr) => curr || list[0]?.videoId || "");
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const v = items.find((x) => x.videoId === active) ?? items[0];
+  const idx = items.findIndex((x) => x.videoId === v?.videoId);
+  const next = items[(idx + 1) % Math.max(items.length, 1)];
+
+  const goNext = () => {
+    if (next) {
+      setActive(next.videoId);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  // YouTube IFrame postMessage: listen for "ended" -> auto-advance
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      if (typeof e.data !== "string") return;
+      try {
+        const data = JSON.parse(e.data);
+        if (data?.event === "onStateChange" && data?.info === 0 && autoplayNext) {
+          goNext();
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+    window.addEventListener("message", onMsg);
+    return () => window.removeEventListener("message", onMsg);
+  }, [autoplayNext, next?.videoId]);
+
+  // Tell the embed to send state events to us
+  useEffect(() => {
+    const t = setTimeout(() => {
+      iframeRef.current?.contentWindow?.postMessage(
+        JSON.stringify({ event: "listening", id: v?.videoId }),
+        "*",
+      );
+      iframeRef.current?.contentWindow?.postMessage(
+        JSON.stringify({ event: "command", func: "addEventListener", args: ["onStateChange"] }),
+        "*",
+      );
+    }, 600);
+    return () => clearTimeout(t);
+  }, [v?.videoId, muted]);
+
+  if (!v) {
+    return (
+      <PageShell>
+        <section className="container mx-auto px-4 py-24 text-center text-muted-foreground">
+          Chargement de la bibliothèque Prime…
+        </section>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell>
@@ -69,8 +168,9 @@ const PrimeVideo = () => {
           )}
         >
           <iframe
-            key={`${v.id}-${muted}`}
-            src={`https://www.youtube.com/embed/${v.id}?autoplay=1&rel=0&mute=${muted ? 1 : 0}`}
+            ref={iframeRef}
+            key={`${v.videoId}-${muted}`}
+            src={`https://www.youtube.com/embed/${v.videoId}?autoplay=1&rel=0&enablejsapi=1&mute=${muted ? 1 : 0}&origin=${typeof window !== "undefined" ? encodeURIComponent(window.location.origin) : ""}`}
             title={v.title}
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -80,43 +180,55 @@ const PrimeVideo = () => {
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <button
-            onClick={() => setActive(next.id)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-secondary border border-border hover:border-sky-500/60 text-sm font-semibold transition-colors"
+            onClick={() => setAutoplayNext((a) => !a)}
+            className={cn(
+              "inline-flex items-center gap-2 px-5 py-2.5 rounded-full border text-sm font-semibold transition-colors",
+              autoplayNext
+                ? "bg-sky-500/15 border-sky-500/60 text-sky-300"
+                : "bg-secondary border-border hover:border-sky-500/60",
+            )}
           >
-            Lecture HD <Play className="w-4 h-4 fill-current" />
+            <Play className="w-4 h-4 fill-current" /> Lecture auto {autoplayNext ? "ON" : "OFF"}
           </button>
+          <div className="text-xs text-muted-foreground">
+            {idx + 1} / {items.length} · AnimemomentsAnimeofficiel
+          </div>
           <button
-            onClick={() => setActive(next.id)}
+            onClick={goNext}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-blue-600"
           >
-            Suivant <ArrowRight className="w-4 h-4" />
+            Suivant <SkipForward className="w-4 h-4" />
           </button>
         </div>
 
         <div className="mt-6 text-center">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{v.series}</p>
+          {v.series && (
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{v.series}</p>
+          )}
           <h2 className="font-display text-2xl font-bold mt-1">{v.title}</h2>
         </div>
       </section>
 
       <section className="container mx-auto px-4 lg:px-8 pb-16">
-        <h3 className="font-display text-xl font-bold mb-4">À découvrir</h3>
+        <h3 className="font-display text-xl font-bold mb-4">
+          Bibliothèque Prime <span className="text-muted-foreground font-normal">· {items.length} vidéos</span>
+        </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {videos
-            .filter((x) => x.id !== v.id)
+          {items
+            .filter((x) => x.videoId !== v.videoId)
             .map((x) => (
               <button
                 key={x.id}
                 onClick={() => {
-                  setActive(x.id);
+                  setActive(x.videoId);
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 className="tilt-card group text-left rounded-2xl overflow-hidden bg-card border border-border transition-all"
               >
                 <HoverPreview
-                  videoId={x.id}
+                  videoId={x.videoId}
                   title={x.title}
-                  thumbnail={thumb(x.id)}
+                  thumbnail={x.thumbnail}
                   vertical={orientation === "vertical"}
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
