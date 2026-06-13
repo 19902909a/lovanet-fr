@@ -118,13 +118,13 @@ const Shop = () => {
             id={p.id}
             itemScope
             itemType="https://schema.org/Product"
-            className="tilt-card rounded-2xl overflow-hidden bg-card border border-border transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+            className="rgb-card tilt-card overflow-hidden transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             onClick={() => setActive(p)}
             tabIndex={0}
             onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setActive(p)}
           >
-            <figure className="relative aspect-square overflow-hidden bg-gradient-to-br from-primary/15 via-card to-card m-0">
-              <div className="absolute inset-0 group-hover:scale-110 group-hover:rotate-1 transition-transform duration-700">
+            <figure className="rgb-frame relative aspect-square overflow-hidden bg-gradient-to-br from-primary/20 via-card to-card m-0 rounded-t-2xl">
+              <div className="rgb-art absolute inset-0 group-hover:scale-110 group-hover:rotate-1 transition-transform duration-700">
                 <ProductArtwork
                   seed={p.id}
                   category={p.category}
@@ -134,10 +134,10 @@ const Shop = () => {
               <figcaption className="sr-only" itemProp="image">
                 {p.name} — visuel produit AnimemomentsAnimeofficiel
               </figcaption>
-              <span className="absolute top-3 left-3 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur text-primary border border-primary/40">
+              <span className="absolute top-3 left-3 z-10 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur text-primary border border-primary/40">
                 360°
               </span>
-              <span className="absolute top-3 right-3 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur text-foreground/80">
+              <span className="absolute top-3 right-3 z-10 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur text-foreground/80">
                 {categoryLabel(p.category)}
               </span>
             </figure>
@@ -152,7 +152,7 @@ const Shop = () => {
               <meta itemProp="description" content={p.description} />
               <div className="flex items-center justify-between mt-3">
                 <span
-                  className="font-display font-bold text-primary"
+                  className="font-display font-bold rgb-price text-lg"
                   itemProp="offers"
                   itemScope
                   itemType="https://schema.org/Offer"
