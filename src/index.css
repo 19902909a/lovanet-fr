@@ -712,3 +712,147 @@
   }
   .animate-logo-float { animation: logo-float 4s ease-in-out infinite; }
 }
+
+@layer utilities {
+  /* ===== Shop RGB animated cards ===== */
+  @property --rgb-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+  }
+  @keyframes rgb-spin {
+    to { --rgb-angle: 360deg; }
+  }
+  @keyframes rgb-hue {
+    0%   { filter: hue-rotate(0deg) saturate(1.15); }
+    100% { filter: hue-rotate(360deg) saturate(1.15); }
+  }
+  @keyframes rgb-shine {
+    0%   { transform: translateX(-120%) skewX(-18deg); }
+    100% { transform: translateX(220%) skewX(-18deg); }
+  }
+  @keyframes rgb-pan {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Outer card: animated rainbow conic border + soft pulsing glow */
+  .rgb-card {
+    position: relative;
+    isolation: isolate;
+    border-radius: 1rem;
+    background:
+      linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
+      conic-gradient(from var(--rgb-angle),
+        hsl(330 95% 60%),
+        hsl(280 95% 65%),
+        hsl(210 100% 60%),
+        hsl(160 90% 55%),
+        hsl(50  100% 60%),
+        hsl(20  100% 60%),
+        hsl(330 95% 60%)) border-box;
+    border: 1.5px solid transparent;
+    animation: rgb-spin 6s linear infinite;
+    transition: transform .5s ease, box-shadow .5s ease;
+  }
+  .rgb-card::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(from var(--rgb-angle),
+      hsl(330 95% 60% / 0.9),
+      hsl(280 95% 65% / 0.9),
+      hsl(210 100% 60% / 0.9),
+      hsl(160 90% 55% / 0.9),
+      hsl(50  100% 60% / 0.9),
+      hsl(20  100% 60% / 0.9),
+      hsl(330 95% 60% / 0.9));
+    filter: blur(14px) saturate(1.3);
+    opacity: .55;
+    animation: rgb-spin 6s linear infinite;
+    pointer-events: none;
+  }
+  .rgb-card:hover {
+    transform: translateY(-4px) scale(1.015);
+    box-shadow:
+      0 0 0 1px hsl(var(--neon-magenta) / 0.4),
+      0 18px 44px -14px hsl(var(--neon-magenta) / 0.55),
+      0 28px 70px -20px hsl(var(--neon-cyan) / 0.45);
+  }
+  .rgb-card:hover::before { opacity: .85; }
+
+  /* Inner frame: holographic moving sheen across product visual */
+  .rgb-frame {
+    position: relative;
+    overflow: hidden;
+  }
+  .rgb-frame::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg,
+      hsl(330 95% 60% / 0.18),
+      hsl(280 95% 65% / 0.12),
+      hsl(210 100% 60% / 0.18),
+      hsl(160 90% 55% / 0.12),
+      hsl(50  100% 60% / 0.18));
+    background-size: 300% 300%;
+    mix-blend-mode: screen;
+    animation: rgb-pan 8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .rgb-frame::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0;
+    width: 35%;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      hsl(0 0% 100% / 0.35) 50%,
+      transparent 100%);
+    transform: translateX(-120%) skewX(-18deg);
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity .3s ease;
+  }
+  .rgb-card:hover .rgb-frame::after {
+    opacity: 1;
+    animation: rgb-shine 1.4s ease-in-out infinite;
+  }
+  .rgb-frame > .rgb-art {
+    animation: rgb-hue 12s linear infinite;
+  }
+
+  /* Animated rainbow price text */
+  .rgb-price {
+    background: linear-gradient(90deg,
+      hsl(330 95% 60%),
+      hsl(280 95% 65%),
+      hsl(210 100% 60%),
+      hsl(160 90% 55%),
+      hsl(50  100% 60%),
+      hsl(330 95% 60%));
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: rgb-pan 5s linear infinite;
+    text-shadow: 0 0 18px hsl(var(--neon-magenta) / 0.25);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rgb-card,
+    .rgb-card::before,
+    .rgb-frame::before,
+    .rgb-frame::after,
+    .rgb-frame > .rgb-art,
+    .rgb-price { animation: none !important; }
+  }
+}
