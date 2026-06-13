@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PageShell } from "@/components/PageShell";
 import { videos as fallbackVideos, thumb as ytThumb } from "@/data/videos";
-import { Play, Volume2, VolumeX, ArrowRight, SkipForward } from "lucide-react";
+import { Play, Volume2, VolumeX, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HoverPreview } from "@/components/HoverPreview";
 import { supabase } from "@/integrations/supabase/client";
