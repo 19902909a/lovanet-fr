@@ -789,17 +789,36 @@
   .rgb-frame {
     position: relative;
     overflow: hidden;
+    border-radius: inherit;
+  }
+  /* Thin rainbow conic border around the frame — bright, brilliant */
+  .rgb-frame {
+    background:
+      conic-gradient(from var(--rgb-angle),
+        hsl(330 100% 65%),
+        hsl(280 100% 70%),
+        hsl(210 100% 65%),
+        hsl(160 100% 60%),
+        hsl(50  100% 65%),
+        hsl(20  100% 65%),
+        hsl(330 100% 65%)) border-box;
+    border: 1px solid transparent;
+    animation: rgb-spin 5s linear infinite;
+    box-shadow:
+      0 0 0 1px hsl(0 0% 100% / 0.08) inset,
+      0 0 18px hsl(330 100% 65% / 0.55),
+      0 0 32px hsl(210 100% 65% / 0.4);
   }
   .rgb-frame::before {
     content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(115deg,
-      hsl(330 95% 60% / 0.18),
-      hsl(280 95% 65% / 0.12),
-      hsl(210 100% 60% / 0.18),
-      hsl(160 90% 55% / 0.12),
-      hsl(50  100% 60% / 0.18));
+      hsl(330 100% 65% / 0.28),
+      hsl(280 100% 70% / 0.18),
+      hsl(210 100% 65% / 0.28),
+      hsl(160 100% 60% / 0.18),
+      hsl(50  100% 65% / 0.28));
     background-size: 300% 300%;
     mix-blend-mode: screen;
     animation: rgb-pan 8s ease-in-out infinite;

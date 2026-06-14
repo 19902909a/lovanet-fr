@@ -254,17 +254,29 @@ export const HeroCarousel = () => {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      {/* Neon dial ring (decorative background) */}
-      <div
-        aria-hidden
-        className="absolute pointer-events-none rounded-full border border-fuchsia-400/40 dial-glow"
+      {/* Interactive neon dial ring — click pulses the halo */}
+      <button
+        type="button"
+        aria-label="Pulser le halo et changer l'intensité"
+        onClick={cycleHalo}
+        className="absolute rounded-full dial-glow"
         style={{
           width: R * 2,
           height: R * 2,
           left: CENTER_X - R,
           top: CENTER_Y - R,
-          boxShadow:
-            "inset 0 0 80px hsl(var(--neon-magenta) / 0.15), 0 0 60px hsl(var(--neon-magenta) / 0.35)",
+          padding: 0,
+          background: "transparent",
+          border: `3px solid hsl(${hue} 100% 70%)`,
+          boxShadow: `
+            inset 0 0 80px hsl(${hue} 100% 65% / 0.55),
+            inset 0 0 30px hsl(${(hue + 120) % 360} 100% 70% / 0.45),
+            0 0 30px hsl(${hue} 100% 70% / 0.9),
+            0 0 70px hsl(${(hue + 60) % 360} 100% 65% / 0.7),
+            0 0 140px hsl(${(hue + 180) % 360} 100% 65% / 0.55)`,
+          cursor: "pointer",
+          zIndex: 2,
+          transition: "box-shadow .5s ease, border-color .5s ease",
         }}
       />
       {/* Interactive RGB halo behind the cards — click to cycle shape & color */}
@@ -274,10 +286,10 @@ export const HeroCarousel = () => {
         onClick={cycleHalo}
         className="absolute halo-spin halo-bubble group/halo"
         style={{
-          width: R * 1.6,
-          height: R * 1.6,
-          left: CENTER_X - R * 0.8,
-          top: CENTER_Y - R * 0.8,
+          width: R * 1.9,
+          height: R * 1.9,
+          left: CENTER_X - R * 0.95,
+          top: CENTER_Y - R * 0.95,
           padding: 0,
           border: 0,
           background: "transparent",
@@ -293,25 +305,27 @@ export const HeroCarousel = () => {
             clipPath: SHAPES[shapeIdx].clip,
             WebkitClipPath: SHAPES[shapeIdx].clip,
             background: `conic-gradient(from 0deg,
-              hsl(${hue} 95% 60% / 0.55),
-              hsl(${(hue + 60) % 360} 95% 60% / 0.55),
-              hsl(${(hue + 120) % 360} 95% 60% / 0.55),
-              hsl(${(hue + 180) % 360} 95% 60% / 0.55),
-              hsl(${(hue + 240) % 360} 95% 60% / 0.55),
-              hsl(${(hue + 300) % 360} 95% 60% / 0.55),
-              hsl(${hue} 95% 60% / 0.55))`,
-            filter: "blur(40px) saturate(1.4)",
-            opacity: 0.85,
+              hsl(${hue} 100% 65% / 0.95),
+              hsl(${(hue + 60) % 360} 100% 65% / 0.95),
+              hsl(${(hue + 120) % 360} 100% 65% / 0.95),
+              hsl(${(hue + 180) % 360} 100% 65% / 0.95),
+              hsl(${(hue + 240) % 360} 100% 65% / 0.95),
+              hsl(${(hue + 300) % 360} 100% 65% / 0.95),
+              hsl(${hue} 100% 65% / 0.95))`,
+            filter: "blur(28px) saturate(2) brightness(1.4)",
+            opacity: 1,
             transition: "background 0.6s ease, filter 0.6s ease",
           }}
         />
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-0 group-hover/halo:opacity-100 transition-opacity duration-300"
+          className="pointer-events-none absolute inset-0 transition-opacity duration-300"
           style={{
             clipPath: SHAPES[shapeIdx].clip,
             WebkitClipPath: SHAPES[shapeIdx].clip,
-            boxShadow: `0 0 60px hsl(${hue} 100% 65% / 0.7) inset, 0 0 80px hsl(${(hue + 180) % 360} 100% 65% / 0.5)`,
+            background: `radial-gradient(circle at 50% 50%, hsl(${hue} 100% 75% / 0.55), transparent 65%)`,
+            filter: "blur(10px) brightness(1.5)",
+            mixBlendMode: "screen",
           }}
         />
       </button>
@@ -405,7 +419,7 @@ export const HeroCarousel = () => {
 
             {/* Front face (image) — pushed forward for clear relief */}
             <div
-              className="card-3d-front relative w-full aspect-video overflow-hidden rounded-xl bg-muted"
+              className="card-3d-front rgb-frame relative w-full aspect-video overflow-hidden rounded-xl bg-muted"
               style={{ transform: "translateZ(2px)" }}
             >
               <img
