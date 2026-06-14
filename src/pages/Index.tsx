@@ -201,21 +201,21 @@ const Index = () => {
             <Link
               key={p.id}
               to="/shop"
-              className="tilt-card group rounded-2xl overflow-hidden bg-card border border-border transition-all"
+              className="rgb-card group rounded-2xl overflow-hidden bg-card border border-border transition-all"
             >
-              <div className="aspect-square overflow-hidden">
-                <div className="w-full h-full group-hover:scale-110 transition-transform duration-700">
+              <div className="rgb-frame aspect-square overflow-hidden">
+                <div className="rgb-art w-full h-full group-hover:scale-110 transition-transform duration-700">
                   <ProductArtwork seed={p.id} category={p.category} label={p.name} />
                 </div>
               </div>
               <div className="p-4">
-                <span className="inline-block text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary mb-2">
+                <span className="inline-block text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary mb-2 relative z-10">
                   {categoryLabel(p.category)}
                 </span>
                 <div className="font-display font-bold text-sm leading-snug group-hover:text-primary transition-colors">
                   {p.name}
                 </div>
-                <div className="text-xs text-primary font-bold mt-1">{p.price} €</div>
+                <div className="rgb-price text-xs font-bold mt-1">{p.price} €</div>
               </div>
             </Link>
           ))}
