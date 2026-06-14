@@ -44,6 +44,22 @@ const placeholderThumb = (id: string, title: string) => {
 
 export const HeroCarousel = () => {
   const [paused, setPaused] = useState(false);
+  // Interactive halo bubble: click to cycle shape & RGB color.
+  const SHAPES = [
+    { name: "circle", clip: "circle(50% at 50% 50%)" },
+    { name: "hex", clip: "polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%)" },
+    { name: "star", clip: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)" },
+    { name: "blob", clip: "polygon(50% 0%, 80% 10%, 100% 35%, 95% 70%, 70% 100%, 35% 95%, 5% 75%, 0% 40%, 20% 10%)" },
+    { name: "diamond", clip: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)" },
+  ];
+  const [shapeIdx, setShapeIdx] = useState(0);
+  const [hue, setHue] = useState(0);
+  const [pulseKey, setPulseKey] = useState(0);
+  const cycleHalo = useCallback(() => {
+    setShapeIdx((i) => (i + 1) % SHAPES.length);
+    setHue((h) => (h + 72) % 360);
+    setPulseKey((k) => k + 1);
+  }, [SHAPES.length]);
 
   // Load every imported video (YouTube + TikTok) from the DB.
   // Falls back to the static list while loading or on error.
@@ -251,21 +267,54 @@ export const HeroCarousel = () => {
             "inset 0 0 80px hsl(var(--neon-magenta) / 0.15), 0 0 60px hsl(var(--neon-magenta) / 0.35)",
         }}
       />
-      {/* Soft rotating halo behind the cards */}
-      <div
-        aria-hidden
-        className="absolute pointer-events-none rounded-full halo-spin"
+      {/* Interactive RGB halo behind the cards — click to cycle shape & color */}
+      <button
+        type="button"
+        aria-label="Changer la forme et la couleur du halo"
+        onClick={cycleHalo}
+        className="absolute halo-spin halo-bubble group/halo"
         style={{
           width: R * 1.6,
           height: R * 1.6,
           left: CENTER_X - R * 0.8,
           top: CENTER_Y - R * 0.8,
-          background:
-            "conic-gradient(from 0deg, hsl(var(--neon-magenta)/0.0), hsl(var(--neon-magenta)/0.3), hsl(var(--neon-cyan)/0.0))",
-          filter: "blur(50px)",
-          opacity: 0.45,
+          padding: 0,
+          border: 0,
+          background: "transparent",
+          cursor: "pointer",
+          zIndex: 1,
         }}
-      />
+      >
+        <span
+          key={pulseKey}
+          aria-hidden
+          className="block w-full h-full transition-[clip-path] duration-700 ease-out animate-scale-in"
+          style={{
+            clipPath: SHAPES[shapeIdx].clip,
+            WebkitClipPath: SHAPES[shapeIdx].clip,
+            background: `conic-gradient(from 0deg,
+              hsl(${hue} 95% 60% / 0.55),
+              hsl(${(hue + 60) % 360} 95% 60% / 0.55),
+              hsl(${(hue + 120) % 360} 95% 60% / 0.55),
+              hsl(${(hue + 180) % 360} 95% 60% / 0.55),
+              hsl(${(hue + 240) % 360} 95% 60% / 0.55),
+              hsl(${(hue + 300) % 360} 95% 60% / 0.55),
+              hsl(${hue} 95% 60% / 0.55))`,
+            filter: "blur(40px) saturate(1.4)",
+            opacity: 0.85,
+            transition: "background 0.6s ease, filter 0.6s ease",
+          }}
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-0 group-hover/halo:opacity-100 transition-opacity duration-300"
+          style={{
+            clipPath: SHAPES[shapeIdx].clip,
+            WebkitClipPath: SHAPES[shapeIdx].clip,
+            boxShadow: `0 0 60px hsl(${hue} 100% 65% / 0.7) inset, 0 0 80px hsl(${(hue + 180) % 360} 100% 65% / 0.5)`,
+          }}
+        />
+      </button>
       {cards.map((c) => {
         const variant = variantPool[c.slotIdx % variantPool.length];
         return (
