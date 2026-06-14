@@ -5,7 +5,7 @@ import { HoverPreview } from "@/components/HoverPreview";
 export const VideoCard = ({ video }: { video: Video }) => (
   <Link
     to={`/lecteurs-video?video=${video.id}`}
-    className="tilt-card group block rounded-2xl overflow-hidden bg-card border border-border transition-all"
+    className="rgb-card group block rounded-2xl overflow-hidden bg-card border border-border transition-all"
   >
     <HoverPreview videoId={video.id} title={video.title} thumbnail={thumb(video.id)}>
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />

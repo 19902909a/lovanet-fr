@@ -167,7 +167,7 @@ const LecteursVideo = () => {
               <button
                 key={v.id}
                 onClick={() => select(v.id)}
-                className="tilt-card group text-left rounded-2xl overflow-hidden bg-card border border-border transition-all"
+                className="rgb-card group text-left rounded-2xl overflow-hidden bg-card border border-border transition-all"
               >
                 <HoverPreview
                   videoId={v.id}

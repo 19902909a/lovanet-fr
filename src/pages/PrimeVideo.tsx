@@ -223,7 +223,7 @@ const PrimeVideo = () => {
                   setActive(x.videoId);
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                className="tilt-card group text-left rounded-2xl overflow-hidden bg-card border border-border transition-all"
+                className="rgb-card group text-left rounded-2xl overflow-hidden bg-card border border-border transition-all"
               >
                 <HoverPreview
                   videoId={x.videoId}

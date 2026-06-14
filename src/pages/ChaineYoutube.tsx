@@ -118,7 +118,7 @@ const ChaineYoutube = () => {
             <Link
               key={v.id}
               to={to}
-              className="tilt-card group rounded-2xl overflow-hidden bg-card border border-border transition-all"
+              className="rgb-card group rounded-2xl overflow-hidden bg-card border border-border transition-all"
             >
               <HoverPreview
                 videoId={previewId}

@@ -189,7 +189,7 @@ export const RecentEpisodesCarousel = () => {
             (v.external_id ? ytThumb(v.external_id) : placeholderThumb(v.id, v.title));
           const fresh = isNew(v.published_at);
           const cardClass =
-            "tilt-card group snap-start shrink-0 w-[340px] sm:w-[400px] rounded-2xl overflow-hidden bg-card border border-border transition-all";
+            "rgb-card group snap-start shrink-0 w-[340px] sm:w-[400px] rounded-2xl overflow-hidden bg-card border border-border transition-all";
           const inner = (
             <>
             <HoverPreview
