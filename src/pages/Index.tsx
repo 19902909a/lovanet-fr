@@ -6,6 +6,12 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
 import { ProductArtwork } from "@/components/ProductArtwork";
+import { MiniPreviewPlayer } from "@/components/MiniPreviewPlayer";
+import { videos as rawVideos } from "@/data/videos";
+
+const ytIds = rawVideos.map((v) => v.id);
+const SHOP_REEL_MP4 =
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
 const tags = ["Lovanet", "Manga animé", "YouTube", "TikTok", "Shop", "3D", "Live", "Selection"];
 const reactions = [
@@ -16,11 +22,25 @@ const reactions = [
   { emoji: "👀", label: "Watch" },
 ];
 
-const platforms = [
-  { to: "/chaine-youtube", title: "YouTube", desc: "Vidéos anime et shorts officiels", icon: Youtube },
-  { to: "/prime-video", title: "Prime Vidéo", desc: "Lecture multi-plateforme immersive", icon: Play },
-  { to: "/tiktok", title: "TikTok", desc: "Posts courts et réactions rapides", icon: Music2 },
-  { to: "/shop", title: "Shop", desc: "Drops manga liés aux contenus", icon: ShoppingBag },
+type Platform = {
+  to: string;
+  title: string;
+  desc: string;
+  icon: typeof Play;
+  preview:
+    | { kind: "youtube"; sources: string[] }
+    | { kind: "tiktok"; sources: string[]; loadTiktokFromDB?: boolean }
+    | { kind: "mp4"; sources: string[] };
+};
+const platforms: Platform[] = [
+  { to: "/chaine-youtube", title: "YouTube", desc: "Vidéos anime et shorts officiels", icon: Youtube,
+    preview: { kind: "youtube", sources: ytIds.slice(0, 6) } },
+  { to: "/prime-video", title: "Prime Vidéo", desc: "Lecture multi-plateforme immersive", icon: Play,
+    preview: { kind: "youtube", sources: ytIds.slice(0, 6) } },
+  { to: "/tiktok", title: "TikTok", desc: "Posts courts et réactions rapides", icon: Music2,
+    preview: { kind: "youtube", sources: ytIds.slice(0, 4) /* fallback */, } },
+  { to: "/shop", title: "Shop", desc: "Drops manga liés aux contenus", icon: ShoppingBag,
+    preview: { kind: "mp4", sources: [SHOP_REEL_MP4] } },
 ];
 
 const Index = () => {
@@ -143,6 +163,18 @@ const Index = () => {
                   i === 3 && "neon-edge",
                 )}
               >
+                {/* Mini auto-playing preview */}
+                <div className="rgb-frame relative mb-4 aspect-video w-full overflow-hidden rounded-xl bg-black ring-1 ring-white/10">
+                  <MiniPreviewPlayer
+                    kind={p.preview.kind}
+                    sources={p.preview.sources}
+                    loadTiktokFromDB={p.title === "TikTok"}
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                  <span className="absolute top-2 left-2 text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-black/60 text-white/90 backdrop-blur">
+                    Live preview
+                  </span>
+                </div>
                 <div
                   className={cn(
                     "w-12 h-12 rounded-xl flex items-center justify-center mb-3 text-white bg-gradient-to-br shadow-[0_10px_24px_-8px_hsl(var(--neon-magenta)/0.55)] transition-all duration-500 group-hover:scale-125 group-hover:-translate-y-1 group-hover:rotate-[-8deg] group-hover:shadow-[0_18px_40px_-10px_hsl(var(--neon-cyan)/0.7)]",
