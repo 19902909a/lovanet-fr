@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Play, ShoppingBag, Youtube, Music2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/PageShell";
@@ -7,9 +8,8 @@ import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
 import { ProductArtwork } from "@/components/ProductArtwork";
 import { MiniPreviewPlayer } from "@/components/MiniPreviewPlayer";
-import { videos as rawVideos } from "@/data/videos";
+import { supabase } from "@/integrations/supabase/client";
 
-const ytIds = rawVideos.map((v) => v.id);
 const SHOP_REEL_MP4 =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
@@ -22,28 +22,39 @@ const reactions = [
   { emoji: "👀", label: "Watch" },
 ];
 
-type Platform = {
-  to: string;
-  title: string;
-  desc: string;
-  icon: typeof Play;
-  preview:
-    | { kind: "youtube"; sources: string[] }
-    | { kind: "tiktok"; sources: string[]; loadTiktokFromDB?: boolean }
-    | { kind: "mp4"; sources: string[] };
-};
-const platforms: Platform[] = [
-  { to: "/chaine-youtube", title: "YouTube", desc: "Vidéos anime et shorts officiels", icon: Youtube,
-    preview: { kind: "youtube", sources: ytIds.slice(0, 6) } },
-  { to: "/prime-video", title: "Prime Vidéo", desc: "Lecture multi-plateforme immersive", icon: Play,
-    preview: { kind: "youtube", sources: ytIds.slice(0, 6) } },
-  { to: "/tiktok", title: "TikTok", desc: "Posts courts et réactions rapides", icon: Music2,
-    preview: { kind: "tiktok", sources: [], loadTiktokFromDB: true } },
-  { to: "/shop", title: "Shop", desc: "Drops manga liés aux contenus", icon: ShoppingBag,
-    preview: { kind: "mp4", sources: [SHOP_REEL_MP4] } },
-];
-
 const Index = () => {
+  const [ytIds, setYtIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("imported_videos")
+        .select("external_id, title, published_at")
+        .eq("source", "youtube")
+        .not("title", "ilike", "%ruri%")
+        .order("published_at", { ascending: false })
+        .limit(24);
+      if (cancelled || !data) return;
+      setYtIds(data.map((r: any) => r.external_id).filter(Boolean));
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const ytForYoutube = ytIds.slice(0, 6);
+  const ytForPrime = ytIds.slice(6, 12).length ? ytIds.slice(6, 12) : ytIds.slice(0, 6);
+
+  const platforms = [
+    { to: "/chaine-youtube", title: "YouTube", desc: "Vidéos anime et shorts officiels", icon: Youtube,
+      preview: { kind: "youtube" as const, sources: ytForYoutube } },
+    { to: "/prime-video", title: "Prime Vidéo", desc: "Lecture multi-plateforme immersive", icon: Play,
+      preview: { kind: "youtube" as const, sources: ytForPrime } },
+    { to: "/tiktok", title: "TikTok", desc: "Posts courts et réactions rapides", icon: Music2,
+      preview: { kind: "tiktok" as const, sources: [], loadTiktokFromDB: true } },
+    { to: "/shop", title: "Shop", desc: "Drops manga liés aux contenus", icon: ShoppingBag,
+      preview: { kind: "mp4" as const, sources: [SHOP_REEL_MP4] } },
+  ];
+
   return (
     <PageShell>
       {/* Hero */}
