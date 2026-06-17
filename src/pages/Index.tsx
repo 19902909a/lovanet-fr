@@ -3,13 +3,9 @@ import { Play, ShoppingBag, Youtube, Music2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
-import { VideoCard } from "@/components/VideoCard";
 import { Button } from "@/components/ui/button";
-import { videos as rawVideos } from "@/data/videos";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
 import { ProductArtwork } from "@/components/ProductArtwork";
-
-const videos = [...rawVideos].sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 
 const tags = ["Lovanet", "Manga animé", "YouTube", "TikTok", "Shop", "3D", "Live", "Selection"];
 const reactions = [
