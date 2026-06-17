@@ -169,21 +169,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Moments forts · 16 */}
-      <section className="container mx-auto px-4 lg:px-8 py-16">
-        <div className="flex items-baseline justify-between mb-6">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold">
-            Moments forts <span className="text-muted-foreground font-normal">· {Math.min(videos.length, 16)}</span>
-          </h2>
-          <Link to="/lecteurs-video" className="text-sm text-primary hover:underline whitespace-nowrap">Lecteur immersif →</Link>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {videos.slice(0, 16).map((v) => (
-            <VideoCard key={v.id} video={v} />
-          ))}
-        </div>
-      </section>
-
       {/* Shop preview */}
       <section className="container mx-auto px-4 lg:px-8 py-16">
         <div className="flex items-baseline justify-between mb-6">
