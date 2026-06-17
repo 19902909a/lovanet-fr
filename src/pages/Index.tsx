@@ -38,7 +38,7 @@ const platforms: Platform[] = [
   { to: "/prime-video", title: "Prime Vidéo", desc: "Lecture multi-plateforme immersive", icon: Play,
     preview: { kind: "youtube", sources: ytIds.slice(0, 6) } },
   { to: "/tiktok", title: "TikTok", desc: "Posts courts et réactions rapides", icon: Music2,
-    preview: { kind: "youtube", sources: ytIds.slice(0, 4) /* fallback */, } },
+    preview: { kind: "tiktok", sources: [], loadTiktokFromDB: true } },
   { to: "/shop", title: "Shop", desc: "Drops manga liés aux contenus", icon: ShoppingBag,
     preview: { kind: "mp4", sources: [SHOP_REEL_MP4] } },
 ];
