@@ -30,6 +30,7 @@ const Tiktok = () => {
   const [muted, setMuted] = useState(true);
   const [orientation, setOrientation] = useState<"vertical" | "horizontal">("vertical");
   const v = list[idx];
+  const safeIdx = list.length ? idx : 0;
 
   // Load TikTok videos synced from the connector (auto-refresh hourly via cron).
   useEffect(() => {
@@ -58,7 +59,10 @@ const Tiktok = () => {
   }, []);
 
   const go = useCallback(
-    (dir: 1 | -1) => setIdx((i) => (i + dir + list.length) % list.length),
+    (dir: 1 | -1) => {
+      if (!list.length) return;
+      setIdx((i) => (i + dir + list.length) % list.length);
+    },
     [list.length]
   );
 
@@ -130,13 +134,19 @@ const Tiktok = () => {
       </section>
 
       <section className="container mx-auto px-4 lg:px-8 pb-6">
+        {!v && (
+          <div className="text-center text-sm text-muted-foreground py-10">
+            Chargement du feed TikTok…
+          </div>
+        )}
+        {v && (<>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
           <div className="flex items-center gap-3">
             <div className="px-3 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-xs font-bold flex items-center gap-1.5">
               <Music2 className="w-3.5 h-3.5" /> TikTok
             </div>
             <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-              Feed vertical · {idx + 1}/{list.length}
+              Feed vertical · {safeIdx + 1}/{list.length}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -301,6 +311,7 @@ const Tiktok = () => {
             Ouvrir l'original <ExternalLink className="w-4 h-4" />
           </a>
         </div>
+        </>)}
       </section>
     </PageShell>
   );
