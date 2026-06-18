@@ -51,6 +51,14 @@ export const HeroCarousel = () => {
     { name: "star", clip: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)" },
     { name: "blob", clip: "polygon(50% 0%, 80% 10%, 100% 35%, 95% 70%, 70% 100%, 35% 95%, 5% 75%, 0% 40%, 20% 10%)" },
     { name: "diamond", clip: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)" },
+    { name: "square", clip: "polygon(5% 5%, 95% 5%, 95% 95%, 5% 95%)" },
+    { name: "rect", clip: "polygon(0% 25%, 100% 25%, 100% 75%, 0% 75%)" },
+    { name: "triangle", clip: "polygon(50% 5%, 95% 92%, 5% 92%)" },
+    { name: "tri-down", clip: "polygon(5% 8%, 95% 8%, 50% 95%)" },
+    { name: "octa", clip: "polygon(30% 5%, 70% 5%, 95% 30%, 95% 70%, 70% 95%, 30% 95%, 5% 70%, 5% 30%)" },
+    { name: "cross", clip: "polygon(35% 5%, 65% 5%, 65% 35%, 95% 35%, 95% 65%, 65% 65%, 65% 95%, 35% 95%, 35% 65%, 5% 65%, 5% 35%, 35% 35%)" },
+    { name: "arrow", clip: "polygon(5% 30%, 60% 30%, 60% 10%, 95% 50%, 60% 90%, 60% 70%, 5% 70%)" },
+    { name: "heart", clip: "polygon(50% 95%, 5% 50%, 5% 25%, 25% 5%, 50% 25%, 75% 5%, 95% 25%, 95% 50%)" },
   ];
   const [shapeIdx, setShapeIdx] = useState(0);
   const [hue, setHue] = useState(0);
@@ -59,6 +67,21 @@ export const HeroCarousel = () => {
     setShapeIdx((i) => (i + 1) % SHAPES.length);
     setHue((h) => (h + 72) % 360);
     setPulseKey((k) => k + 1);
+  }, [SHAPES.length]);
+
+  // Auto-morph the halo: shape every 15s, RGB hue continuously.
+  useEffect(() => {
+    const shapeTimer = setInterval(() => {
+      setShapeIdx((i) => (i + 1) % SHAPES.length);
+      setPulseKey((k) => k + 1);
+    }, 15000);
+    const hueTimer = setInterval(() => {
+      setHue((h) => (h + 6) % 360);
+    }, 120);
+    return () => {
+      clearInterval(shapeTimer);
+      clearInterval(hueTimer);
+    };
   }, [SHAPES.length]);
 
   // Load every imported video (YouTube + TikTok) from the DB.
