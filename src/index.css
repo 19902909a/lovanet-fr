@@ -890,12 +890,20 @@
     will-change: transform;
   }
 
-  @keyframes holo-drift {
-    0%   { transform: translate3d(-25vw, 0, 0) rotateY(-12deg) scale(0.9); opacity: 0; }
-    10%  { opacity: 0.85; }
-    50%  { transform: translate3d(50vw, -20px, 0) rotateY(0deg) scale(1); opacity: 0.95; }
-    90%  { opacity: 0.85; }
-    100% { transform: translate3d(125vw, 0, 0) rotateY(12deg) scale(0.9); opacity: 0; }
+  /* Travel across the screen — direction is set via --holo-dir (1 or -1).  */
+  @keyframes holo-travel {
+    0%   { transform: translate3d(0, 0, 0) scaleX(var(--holo-dir)); opacity: 0; }
+    8%   { opacity: 0.95; }
+    50%  { transform: translate3d(calc(var(--holo-dir) * 65vw), 0, 0) scaleX(var(--holo-dir)); opacity: 1; }
+    92%  { opacity: 0.95; }
+    100% { transform: translate3d(calc(var(--holo-dir) * 130vw), 0, 0) scaleX(var(--holo-dir)); opacity: 0; }
+  }
+  /* Stationary appearance: fade in, perform action, fade out in place. */
+  @keyframes holo-stationary {
+    0%   { opacity: 0; transform: translate3d(calc(var(--holo-dir) * 20vw), 0, 0) scaleX(var(--holo-dir)); }
+    15%  { opacity: 1; transform: translate3d(calc(var(--holo-dir) * 40vw), 0, 0) scaleX(var(--holo-dir)); }
+    85%  { opacity: 1; transform: translate3d(calc(var(--holo-dir) * 40vw), 0, 0) scaleX(var(--holo-dir)); }
+    100% { opacity: 0; transform: translate3d(calc(var(--holo-dir) * 60vw), 0, 0) scaleX(var(--holo-dir)); }
   }
   @keyframes holo-flicker {
     0%, 100% { filter: drop-shadow(0 0 12px currentColor) drop-shadow(0 0 28px currentColor) brightness(1.1); }
@@ -908,10 +916,76 @@
     pointer-events: none;
     z-index: 5;
     mix-blend-mode: screen;
-    animation: holo-drift 22s linear forwards, holo-flicker 1.8s ease-in-out infinite;
     will-change: transform, opacity, filter;
   }
   .holo-figure svg { width: 100%; height: 100%; }
+
+  /* ===== Articulated walk cycle ===== */
+  @keyframes holo-body-bob {
+    0%, 100% { transform: translateY(0); }
+    25%      { transform: translateY(-2px); }
+    75%      { transform: translateY(-2px); }
+  }
+  @keyframes holo-leg-l { 0%,100% { transform: rotate(-30deg); } 50% { transform: rotate(30deg); } }
+  @keyframes holo-leg-r { 0%,100% { transform: rotate(30deg); }  50% { transform: rotate(-30deg); } }
+  @keyframes holo-shin-l { 0%,100% { transform: rotate(20deg); } 50% { transform: rotate(0deg); } }
+  @keyframes holo-shin-r { 0%,100% { transform: rotate(0deg); }  50% { transform: rotate(20deg); } }
+  @keyframes holo-arm-l { 0%,100% { transform: rotate(25deg); }  50% { transform: rotate(-25deg); } }
+  @keyframes holo-arm-r { 0%,100% { transform: rotate(-25deg); } 50% { transform: rotate(25deg); } }
+
+  .holo-action-walk .holo-body,
+  .holo-action-approach .holo-body { animation: holo-body-bob .55s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-walk .holo-leg-l,
+  .holo-action-approach .holo-leg-l { animation: holo-leg-l 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-walk .holo-leg-r,
+  .holo-action-approach .holo-leg-r { animation: holo-leg-r 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-walk .holo-shin-l,
+  .holo-action-approach .holo-shin-l { animation: holo-shin-l 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-walk .holo-shin-r,
+  .holo-action-approach .holo-shin-r { animation: holo-shin-r 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-walk .holo-arm-l,
+  .holo-action-approach .holo-arm-l { animation: holo-arm-l 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-walk .holo-arm-r,
+  .holo-action-approach .holo-arm-r { animation: holo-arm-r 1.1s ease-in-out infinite; transform-box: fill-box; }
+
+  /* "Approach" exaggerates by scaling the whole rig up over time. */
+  @keyframes holo-zoom-in {
+    0% { transform: scale(0.7); } 100% { transform: scale(1.25); }
+  }
+  .holo-action-approach .holo-rig { animation: holo-zoom-in var(--holo-dur, 18s) ease-in-out forwards; transform-origin: 50% 100%; }
+
+  /* ===== Wave (hello / coucou) — right arm raises and swings ===== */
+  @keyframes holo-wave-arm { 0%,100% { transform: rotate(-150deg); } 50% { transform: rotate(-110deg); } }
+  @keyframes holo-wave-forearm { 0%,100% { transform: rotate(-30deg); } 50% { transform: rotate(20deg); } }
+  .holo-action-wave .holo-arm-r { animation: holo-wave-arm 0.7s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-wave .holo-forearm-r { animation: holo-wave-forearm 0.7s ease-in-out infinite; transform-box: fill-box; }
+
+  /* ===== Bow (s'incliner, salut respectueux) ===== */
+  @keyframes holo-bow {
+    0%, 100% { transform: rotate(0deg); }
+    40%, 60% { transform: rotate(45deg); }
+  }
+  .holo-action-bow .holo-body { animation: holo-bow 3.5s ease-in-out infinite; transform-origin: 50px 80px; transform-box: fill-box; }
+
+  /* ===== Laugh (rire — épaules secouées, tête qui hoche) ===== */
+  @keyframes holo-laugh-body {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25%      { transform: translateY(-3px) rotate(-3deg); }
+    75%      { transform: translateY(-3px) rotate(3deg); }
+  }
+  @keyframes holo-laugh-mouth {
+    0%, 100% { d: path("M44 36 Q50 42 56 36"); }
+    50%      { d: path("M44 34 Q50 44 56 34"); }
+  }
+  .holo-action-laugh .holo-body { animation: holo-laugh-body 0.3s ease-in-out infinite; transform-origin: 50px 80px; transform-box: fill-box; }
+  .holo-action-laugh .holo-mouth { animation: holo-laugh-mouth 0.3s ease-in-out infinite; }
+
+  /* ===== Crouch (s'accroupir / se baisser) ===== */
+  @keyframes holo-crouch {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    50%      { transform: translateY(40px) scaleY(0.7); }
+  }
+  .holo-action-crouch .holo-body { animation: holo-crouch 3s ease-in-out infinite; transform-origin: 50px 170px; transform-box: fill-box; }
 
   @media (prefers-reduced-motion: reduce) {
     .halo-3d-tumble { animation: none !important; }
