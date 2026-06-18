@@ -1,143 +1,169 @@
 import { useEffect, useState } from "react";
 
 /**
- * Drifts neon "hologram" silhouettes (anime / manga / elegant figures) across
- * the page from time to time. Pure SVG — no external assets. Each figure
- * spawns at a random vertical band and walks across in ~22s, then disappears.
+ * Holograms with REAL articulated walk cycle (legs/arms swing, body bob)
+ * plus random actions: walk, wave, bow, laugh (shoulders shake), crouch,
+ * approach (scale up), recede (scale down). No sliding — figures move only
+ * because their legs are actually stepping.
  */
+
+type Action = "walk" | "wave" | "bow" | "laugh" | "crouch" | "approach";
+type Gender = "woman" | "man";
+
 type Figure = {
   id: number;
-  kind: "anime-girl" | "anime-boy" | "hero" | "diva" | "cyber-samurai";
-  top: number; // vh
-  height: number; // px
+  gender: Gender;
+  action: Action;
+  topVh: number;
+  heightPx: number;
   color: string;
-  flip: boolean;
-  duration: number; // s
+  direction: 1 | -1; // 1 = walks left→right
+  // Travel: km/h-feel speed, total seconds on screen.
+  durationSec: number;
+  hueShift: number;
 };
 
-const KINDS: Figure["kind"][] = [
-  "anime-girl",
-  "anime-boy",
-  "hero",
-  "diva",
-  "cyber-samurai",
-];
 const COLORS = [
-  "#22d3ee", // cyan
-  "#f472b6", // pink
-  "#a78bfa", // violet
-  "#34d399", // mint
-  "#fbbf24", // gold
-  "#60a5fa", // blue
+  "#22d3ee",
+  "#f472b6",
+  "#a78bfa",
+  "#34d399",
+  "#fbbf24",
+  "#60a5fa",
+  "#fb7185",
 ];
 
-const Silhouette = ({ kind }: { kind: Figure["kind"] }) => {
-  // Stylized neon line-art holograms. Tasteful silhouettes — pose & contour
-  // only, no anatomical detail.
+const pickAction = (): Action => {
+  const r = Math.random();
+  if (r < 0.55) return "walk";
+  if (r < 0.7) return "wave";
+  if (r < 0.8) return "bow";
+  if (r < 0.88) return "laugh";
+  if (r < 0.95) return "crouch";
+  return "approach";
+};
+
+let nextId = 1;
+const spawn = (): Figure => {
+  const dir: 1 | -1 = Math.random() < 0.5 ? 1 : -1;
+  const action = pickAction();
+  const isMoving = action === "walk" || action === "approach";
+  return {
+    id: nextId++,
+    gender: Math.random() < 0.5 ? "woman" : "man",
+    action,
+    topVh: 8 + Math.random() * 55,
+    heightPx: 220 + Math.random() * 220,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    direction: dir,
+    durationSec: isMoving ? 16 + Math.random() * 10 : 10 + Math.random() * 6,
+    hueShift: Math.random() * 360,
+  };
+};
+
+/* ============================================================
+ *  Articulated human silhouette — every limb is its own <g> so
+ *  we can swing it with CSS keyframes for a real walk cycle.
+ * ============================================================ */
+const Human = ({ gender, action }: { gender: Gender; action: Action }) => {
   const stroke = "currentColor";
-  const sw = 1.4;
-  const common = {
-    fill: "none",
+  const sw = 2.2;
+  const line = {
     stroke,
     strokeWidth: sw,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
+    fill: "none",
   };
-  switch (kind) {
-    case "anime-girl":
-      return (
-        <svg viewBox="0 0 100 220" preserveAspectRatio="xMidYMid meet">
-          {/* twin-tail hair */}
-          <path {...common} d="M40 18 C30 10 22 24 28 38 M60 18 C70 10 78 24 72 38" />
-          {/* head */}
-          <ellipse {...common} cx="50" cy="28" rx="12" ry="14" />
-          {/* big anime eyes */}
-          <circle cx="45" cy="28" r="1.6" fill={stroke} />
-          <circle cx="55" cy="28" r="1.6" fill={stroke} />
-          {/* body — dress silhouette */}
-          <path {...common} d="M50 42 L50 70 M38 70 L62 70 L70 120 L30 120 Z" />
-          {/* arms */}
-          <path {...common} d="M40 70 L28 110 M60 70 L72 110" />
-          {/* legs */}
-          <path {...common} d="M44 120 L42 180 M56 120 L58 180" />
-          {/* shoes */}
-          <path {...common} d="M38 182 L48 182 M54 182 L64 182" />
-        </svg>
-      );
-    case "anime-boy":
-      return (
-        <svg viewBox="0 0 100 220" preserveAspectRatio="xMidYMid meet">
-          <path {...common} d="M38 18 L52 14 L62 24 L60 36" />
-          <ellipse {...common} cx="50" cy="30" rx="11" ry="13" />
-          <circle cx="46" cy="30" r="1.4" fill={stroke} />
-          <circle cx="54" cy="30" r="1.4" fill={stroke} />
-          {/* jacket */}
-          <path {...common} d="M50 43 L50 56 M36 56 L64 56 L70 110 L30 110 Z" />
-          <path {...common} d="M50 56 L50 110" />
-          <path {...common} d="M38 56 L26 100 M62 56 L74 100" />
-          {/* pants */}
-          <path {...common} d="M40 110 L40 184 M60 110 L60 184" />
-          <path {...common} d="M34 186 L46 186 M54 186 L66 186" />
-        </svg>
-      );
-    case "hero":
-      return (
-        <svg viewBox="0 0 100 220" preserveAspectRatio="xMidYMid meet">
-          {/* cape */}
-          <path {...common} d="M30 50 C18 90 22 140 36 180 M70 50 C82 90 78 140 64 180" opacity={0.7} />
-          <circle {...common} cx="50" cy="28" r="12" />
-          <path {...common} d="M50 40 L50 60 M34 60 L66 60 L72 110 L28 110 Z" />
-          {/* fists on hips */}
-          <path {...common} d="M34 70 L20 90 L30 102 M66 70 L80 90 L70 102" />
-          <path {...common} d="M42 110 L40 180 M58 110 L60 180" />
-        </svg>
-      );
-    case "diva":
-      return (
-        <svg viewBox="0 0 100 220" preserveAspectRatio="xMidYMid meet">
+  const fill = { fill: stroke, stroke: "none" };
+
+  // Head + hair vary by gender; body remains the same skeleton.
+  const Head = () => (
+    <g className="holo-head">
+      {gender === "woman" ? (
+        <>
           {/* long hair */}
-          <path {...common} d="M36 22 C28 50 30 90 36 120 M64 22 C72 50 70 90 64 120" />
-          <ellipse {...common} cx="50" cy="28" rx="11" ry="13" />
-          {/* elegant gown */}
-          <path {...common} d="M50 42 L50 64 M40 64 L60 64 L66 120 L34 120 Z" />
-          <path {...common} d="M34 120 C28 160 30 188 40 196 L60 196 C70 188 72 160 66 120" />
-          {/* slender arms — hand on hip */}
-          <path {...common} d="M40 66 C24 88 28 108 38 110 M60 66 C76 80 78 96 70 108" />
-        </svg>
-      );
-    case "cyber-samurai":
-      return (
-        <svg viewBox="0 0 100 220" preserveAspectRatio="xMidYMid meet">
-          {/* katana */}
-          <path {...common} d="M84 12 L24 200" opacity={0.8} />
-          <path {...common} d="M22 196 L30 204" />
-          {/* helm */}
-          <path {...common} d="M38 20 L62 20 L66 38 L34 38 Z" />
-          <ellipse {...common} cx="50" cy="34" rx="10" ry="10" />
-          {/* visor slit */}
-          <path {...common} d="M42 34 L58 34" />
-          {/* armor */}
-          <path {...common} d="M50 44 L50 60 M34 60 L66 60 L72 112 L28 112 Z" />
-          <path {...common} d="M38 60 L26 100 M62 60 L74 100" />
-          <path {...common} d="M42 112 L40 184 M58 112 L60 184" />
-        </svg>
-      );
-  }
-};
+          <path {...line} d="M40 24 C32 42 32 70 38 86 M60 24 C68 42 68 70 62 86" />
+          <ellipse {...line} cx="50" cy="30" rx="11" ry="13" />
+          {/* mouth (smile) — toggles via .holo-smile */}
+          <path className="holo-mouth" {...line} d="M45 36 Q50 39 55 36" />
+          <circle cx="46" cy="29" r="1.4" {...fill} />
+          <circle cx="54" cy="29" r="1.4" {...fill} />
+        </>
+      ) : (
+        <>
+          {/* short hair / cap */}
+          <path {...line} d="M38 22 L62 22 L64 18 L36 18 Z" />
+          <ellipse {...line} cx="50" cy="30" rx="11" ry="13" />
+          <path className="holo-mouth" {...line} d="M45 36 Q50 39 55 36" />
+          <circle cx="46" cy="29" r="1.4" {...fill} />
+          <circle cx="54" cy="29" r="1.4" {...fill} />
+        </>
+      )}
+    </g>
+  );
 
-let nextId = 1;
+  return (
+    <svg
+      viewBox="0 0 100 200"
+      preserveAspectRatio="xMidYMax meet"
+      className={`holo-rig holo-action-${action}`}
+    >
+      <g className="holo-body">
+        <Head />
 
-const spawn = (): Figure => {
-  const kind = KINDS[Math.floor(Math.random() * KINDS.length)];
-  return {
-    id: nextId++,
-    kind,
-    top: 10 + Math.random() * 55, // vh — stay roughly mid-page
-    height: 180 + Math.random() * 200, // px
-    color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    flip: Math.random() < 0.5,
-    duration: 18 + Math.random() * 12,
-  };
+        {/* Torso */}
+        <g className="holo-torso">
+          <path {...line} d="M50 44 L50 78" />
+          {/* shoulders */}
+          <path {...line} d="M40 52 L60 52" />
+          {/* hips */}
+          <path {...line} d="M42 78 L58 78" />
+          {gender === "woman" ? (
+            <path {...line} d="M40 52 L36 78 L64 78 L60 52 Z" opacity={0.55} />
+          ) : (
+            <path {...line} d="M40 52 L38 78 L62 78 L60 52 Z" opacity={0.55} />
+          )}
+        </g>
+
+        {/* Left arm (upper + forearm pivots) */}
+        <g className="holo-arm holo-arm-l" style={{ transformOrigin: "40px 52px" }}>
+          <path {...line} d="M40 52 L36 78" />
+          <g style={{ transformOrigin: "36px 78px" }} className="holo-forearm holo-forearm-l">
+            <path {...line} d="M36 78 L34 104" />
+            <circle cx="34" cy="104" r="2" {...fill} />
+          </g>
+        </g>
+
+        {/* Right arm */}
+        <g className="holo-arm holo-arm-r" style={{ transformOrigin: "60px 52px" }}>
+          <path {...line} d="M60 52 L64 78" />
+          <g style={{ transformOrigin: "64px 78px" }} className="holo-forearm holo-forearm-r">
+            <path {...line} d="M64 78 L66 104" />
+            <circle cx="66" cy="104" r="2" {...fill} />
+          </g>
+        </g>
+
+        {/* Left leg */}
+        <g className="holo-leg holo-leg-l" style={{ transformOrigin: "44px 80px" }}>
+          <path {...line} d="M44 80 L42 122" />
+          <g style={{ transformOrigin: "42px 122px" }} className="holo-shin holo-shin-l">
+            <path {...line} d="M42 122 L40 168" />
+            <path {...line} d="M34 170 L46 170" />
+          </g>
+        </g>
+
+        {/* Right leg */}
+        <g className="holo-leg holo-leg-r" style={{ transformOrigin: "56px 80px" }}>
+          <path {...line} d="M56 80 L58 122" />
+          <g style={{ transformOrigin: "58px 122px" }} className="holo-shin holo-shin-r">
+            <path {...line} d="M58 122 L60 168" />
+            <path {...line} d="M54 170 L66 170" />
+          </g>
+        </g>
+      </g>
+    </svg>
+  );
 };
 
 export const HologramOverlay = () => {
@@ -145,23 +171,18 @@ export const HologramOverlay = () => {
 
   useEffect(() => {
     let cancelled = false;
-
     const tick = () => {
       if (cancelled) return;
       const f = spawn();
-      setFigures((arr) => [...arr, f]);
-      // Auto-remove after the animation completes
+      setFigures((arr) => [...arr.slice(-2), f]); // max ~3 on screen
       window.setTimeout(() => {
         if (cancelled) return;
         setFigures((arr) => arr.filter((x) => x.id !== f.id));
-      }, f.duration * 1000 + 500);
-      // Random gap before next hologram — 10s..28s
-      const next = 10000 + Math.random() * 18000;
+      }, f.durationSec * 1000 + 600);
+      const next = 8000 + Math.random() * 16000;
       window.setTimeout(tick, next);
     };
-
-    // First hologram appears after a short delay so the page can settle.
-    const first = window.setTimeout(tick, 4000);
+    const first = window.setTimeout(tick, 3500);
     return () => {
       cancelled = true;
       window.clearTimeout(first);
@@ -170,24 +191,32 @@ export const HologramOverlay = () => {
 
   return (
     <>
-      {figures.map((f) => (
-        <div
-          key={f.id}
-          className="holo-figure"
-          style={{
-            top: `${f.top}vh`,
-            left: 0,
-            width: `${f.height * 0.5}px`,
-            height: `${f.height}px`,
-            color: f.color,
-            transform: `scaleX(${f.flip ? -1 : 1})`,
-            animationDuration: `${f.duration}s, 1.8s`,
-          }}
-          aria-hidden
-        >
-          <Silhouette kind={f.kind} />
-        </div>
-      ))}
+      {figures.map((f) => {
+        const isMoving = f.action === "walk" || f.action === "approach";
+        return (
+          <div
+            key={f.id}
+            className={`holo-figure holo-move-${f.action}`}
+            style={{
+              top: `${f.topVh}vh`,
+              left: f.direction === 1 ? "-15vw" : "115vw",
+              width: `${f.heightPx * 0.55}px`,
+              height: `${f.heightPx}px`,
+              color: f.color,
+              filter: `drop-shadow(0 0 14px ${f.color}) drop-shadow(0 0 28px ${f.color})`,
+              ["--holo-dir" as never]: f.direction,
+              ["--holo-dur" as never]: `${f.durationSec}s`,
+              animation: isMoving
+                ? `holo-travel var(--holo-dur) linear forwards, holo-flicker 2.2s ease-in-out infinite`
+                : `holo-stationary var(--holo-dur) ease-out forwards, holo-flicker 2.2s ease-in-out infinite`,
+              transform: `scaleX(${f.direction === 1 ? 1 : -1})`,
+            }}
+            aria-hidden
+          >
+            <Human gender={f.gender} action={f.action} />
+          </div>
+        );
+      })}
     </>
   );
 };
