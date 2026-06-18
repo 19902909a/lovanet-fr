@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
 import { ProductArtwork } from "@/components/ProductArtwork";
 import { MiniPreviewPlayer } from "@/components/MiniPreviewPlayer";
+import { HologramOverlay } from "@/components/HologramOverlay";
 import { supabase } from "@/integrations/supabase/client";
 
 const SHOP_REEL_MP4 =
@@ -57,6 +58,8 @@ const Index = () => {
 
   return (
     <PageShell>
+      {/* Holograms drifting across the homepage from time to time */}
+      <HologramOverlay />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />
