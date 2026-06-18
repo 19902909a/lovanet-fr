@@ -323,7 +323,7 @@ export const HeroCarousel = () => {
         <span
           key={pulseKey}
           aria-hidden
-          className="block w-full h-full transition-[clip-path] duration-700 ease-out animate-scale-in"
+          className="block w-full h-full transition-[clip-path] duration-700 ease-out animate-scale-in halo-3d-tumble"
           style={{
             clipPath: SHAPES[shapeIdx].clip,
             WebkitClipPath: SHAPES[shapeIdx].clip,
