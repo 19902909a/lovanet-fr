@@ -6,7 +6,7 @@ const Legals = () => {
   useEffect(() => {
     document.title = "Mentions légales — Lovanet";
     const desc =
-      "Mentions légales de Lovanet (NLOUNQ & NLOUNQQ) : éditeur, hébergement, propriété intellectuelle, données personnelles et contact.";
+      "Mentions légales de Lovanet : éditeur, hébergement, propriété intellectuelle, données personnelles et contact.";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");
@@ -41,9 +41,9 @@ const Legals = () => {
           <div>
             <h2 className="text-xl font-semibold mb-2 text-primary">Éditeur du site</h2>
             <p>
-              Le site <strong>Lovanet</strong> (https://lovanet.fr) est édité par le projet
-              <strong> NLOUNQ / NLOUNQQ</strong>, label indépendant de musique et de contenus
-              audiovisuels. Pour toute question, utilisez la page{" "}
+              Le site <strong>Lovanet</strong> (https://lovanet.fr) est édité par
+              l'équipe <strong>AnimemomentsAnimeofficiel</strong>, créateur indépendant de
+              contenus audiovisuels anime. Pour toute question, utilisez la page{" "}
               <Link to="/contact" className="text-primary underline underline-offset-2 hover:opacity-80">
                 contact
               </Link>.
@@ -62,8 +62,8 @@ const Legals = () => {
           <div>
             <h2 className="text-xl font-semibold mb-2 text-primary">Propriété intellectuelle</h2>
             <p>
-              L'ensemble des éléments du site (textes, visuels, sons, logos, marques
-              NLOUNQ / NLOUNQQ / Lovanet) est protégé par le droit d'auteur. Toute
+              L'ensemble des éléments du site (textes, visuels, sons, logos, marque
+              Lovanet) est protégé par le droit d'auteur. Toute
               reproduction, représentation ou diffusion sans autorisation écrite
               préalable est interdite. Les contenus tiers restent la propriété de
               leurs ayants droit respectifs.
