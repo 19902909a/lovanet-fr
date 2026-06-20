@@ -934,19 +934,19 @@
   @keyframes holo-arm-r { 0%,100% { transform: rotate(-25deg); } 50% { transform: rotate(25deg); } }
 
   .holo-action-walk .holo-body,
-  .holo-action-approach .holo-body { animation: holo-body-bob .55s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-approach .holo-body { animation: holo-body-bob .55s ease-in-out infinite; transform-box: view-box; }
   .holo-action-walk .holo-leg-l,
-  .holo-action-approach .holo-leg-l { animation: holo-leg-l 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-approach .holo-leg-l { animation: holo-leg-l 1.1s ease-in-out infinite; transform-box: view-box; }
   .holo-action-walk .holo-leg-r,
-  .holo-action-approach .holo-leg-r { animation: holo-leg-r 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-approach .holo-leg-r { animation: holo-leg-r 1.1s ease-in-out infinite; transform-box: view-box; }
   .holo-action-walk .holo-shin-l,
-  .holo-action-approach .holo-shin-l { animation: holo-shin-l 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-approach .holo-shin-l { animation: holo-shin-l 1.1s ease-in-out infinite; transform-box: view-box; }
   .holo-action-walk .holo-shin-r,
-  .holo-action-approach .holo-shin-r { animation: holo-shin-r 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-approach .holo-shin-r { animation: holo-shin-r 1.1s ease-in-out infinite; transform-box: view-box; }
   .holo-action-walk .holo-arm-l,
-  .holo-action-approach .holo-arm-l { animation: holo-arm-l 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-approach .holo-arm-l { animation: holo-arm-l 1.1s ease-in-out infinite; transform-box: view-box; }
   .holo-action-walk .holo-arm-r,
-  .holo-action-approach .holo-arm-r { animation: holo-arm-r 1.1s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-approach .holo-arm-r { animation: holo-arm-r 1.1s ease-in-out infinite; transform-box: view-box; }
 
   /* "Approach" exaggerates by scaling the whole rig up over time. */
   @keyframes holo-zoom-in {
@@ -957,15 +957,15 @@
   /* ===== Wave (hello / coucou) — right arm raises and swings ===== */
   @keyframes holo-wave-arm { 0%,100% { transform: rotate(-150deg); } 50% { transform: rotate(-110deg); } }
   @keyframes holo-wave-forearm { 0%,100% { transform: rotate(-30deg); } 50% { transform: rotate(20deg); } }
-  .holo-action-wave .holo-arm-r { animation: holo-wave-arm 0.7s ease-in-out infinite; transform-box: fill-box; }
-  .holo-action-wave .holo-forearm-r { animation: holo-wave-forearm 0.7s ease-in-out infinite; transform-box: fill-box; }
+  .holo-action-wave .holo-arm-r { animation: holo-wave-arm 0.7s ease-in-out infinite; transform-box: view-box; }
+  .holo-action-wave .holo-forearm-r { animation: holo-wave-forearm 0.7s ease-in-out infinite; transform-box: view-box; }
 
   /* ===== Bow (s'incliner, salut respectueux) ===== */
   @keyframes holo-bow {
     0%, 100% { transform: rotate(0deg); }
     40%, 60% { transform: rotate(45deg); }
   }
-  .holo-action-bow .holo-body { animation: holo-bow 3.5s ease-in-out infinite; transform-origin: 50px 80px; transform-box: fill-box; }
+  .holo-action-bow .holo-body { animation: holo-bow 3.5s ease-in-out infinite; transform-origin: 50px 80px; transform-box: view-box; }
 
   /* ===== Laugh (rire — épaules secouées, tête qui hoche) ===== */
   @keyframes holo-laugh-body {
@@ -977,7 +977,7 @@
     0%, 100% { d: path("M44 36 Q50 42 56 36"); }
     50%      { d: path("M44 34 Q50 44 56 34"); }
   }
-  .holo-action-laugh .holo-body { animation: holo-laugh-body 0.3s ease-in-out infinite; transform-origin: 50px 80px; transform-box: fill-box; }
+  .holo-action-laugh .holo-body { animation: holo-laugh-body 0.3s ease-in-out infinite; transform-origin: 50px 80px; transform-box: view-box; }
   .holo-action-laugh .holo-mouth { animation: holo-laugh-mouth 0.3s ease-in-out infinite; }
 
   /* ===== Crouch (s'accroupir / se baisser) ===== */
@@ -985,7 +985,7 @@
     0%, 100% { transform: translateY(0) scaleY(1); }
     50%      { transform: translateY(40px) scaleY(0.7); }
   }
-  .holo-action-crouch .holo-body { animation: holo-crouch 3s ease-in-out infinite; transform-origin: 50px 170px; transform-box: fill-box; }
+  .holo-action-crouch .holo-body { animation: holo-crouch 3s ease-in-out infinite; transform-origin: 50px 170px; transform-box: view-box; }
 
   @media (prefers-reduced-motion: reduce) {
     .halo-3d-tumble { animation: none !important; }
