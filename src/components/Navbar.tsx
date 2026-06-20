@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Menu, X, LayoutGrid, ShoppingBag, Youtube, Play, Music2, Film, Mail, Sparkles } from "lucide-react";
+import { Menu, X, LayoutGrid, ShoppingBag, Youtube, Play, Music2, Film, Mail } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import lovanetLogo from "@/assets/lovanet-logo.jpg.asset.json";
@@ -14,7 +14,6 @@ const navItems = [
 ];
 
 const extraItems = [
-  { to: "/nlounq", label: "NLOUNQ" },
   { to: "/contact", label: "Contact" },
 ];
 
@@ -24,7 +23,6 @@ const megaSections = [
   { to: "/chaine-youtube", label: "YouTube", desc: "Vidéos & shorts officiels", icon: Youtube, tint: "from-red-500 to-orange-600" },
   { to: "/prime-video", label: "Prime Vidéo", desc: "Lecture immersive multi-plateforme", icon: Play, tint: "from-sky-500 to-blue-600" },
   { to: "/lecteurs-video", label: "Lecteur vidéo", desc: "Player immersif anime", icon: Film, tint: "from-purple-500 to-violet-600" },
-  { to: "/nlounq", label: "NLOUNQ", desc: "Boutique futuriste", icon: Sparkles, tint: "from-amber-400 to-orange-500" },
   { to: "/contact", label: "Contact", desc: "Écrire à l'équipe", icon: Mail, tint: "from-emerald-500 to-teal-600" },
 ];
 
