@@ -14,7 +14,15 @@ const MODELS = [
   "https://threejs.org/examples/models/gltf/Soldier.glb",
   "https://threejs.org/examples/models/gltf/Xbot.glb",
 ];
-MODELS.forEach((u) => useGLTF.preload(u));
+// Preload only on capable devices (skip on mobile / low-memory to avoid jank).
+if (typeof window !== "undefined") {
+  const dm = (navigator as any).deviceMemory ?? 8;
+  const coarse = window.matchMedia?.("(pointer: coarse)").matches;
+  const small = window.innerWidth < 1024;
+  if (!coarse && !small && dm >= 4) {
+    MODELS.forEach((u) => useGLTF.preload(u));
+  }
+}
 
 const TINTS = [
   "#22d3ee",
@@ -143,15 +151,27 @@ const Stage = ({ figures, removeFigure }: { figures: Spawn[]; removeFigure: (id:
 
 export const HologramOverlay = () => {
   const [figures, setFigures] = useState<Spawn[]>([]);
+  const [visible, setVisible] = useState<boolean>(typeof document === "undefined" ? true : !document.hidden);
 
-  // Respect prefers-reduced-motion
-  const reduce = useMemo(
-    () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
-    []
-  );
+  // Skip on mobile / coarse pointer / low-memory / reduced-motion to keep rendering smooth.
+  const skip = useMemo(() => {
+    if (typeof window === "undefined") return true;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const coarse = window.matchMedia?.("(pointer: coarse)").matches;
+    const small = window.innerWidth < 1024;
+    const dm = (navigator as any).deviceMemory ?? 8;
+    const cores = (navigator as any).hardwareConcurrency ?? 8;
+    return reduce || coarse || small || dm < 4 || cores < 4;
+  }, []);
 
   useEffect(() => {
-    if (reduce) return;
+    const onVis = () => setVisible(!document.hidden);
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
+
+  useEffect(() => {
+    if (skip) return;
     let cancelled = false;
     const tick = () => {
       if (cancelled) return;
@@ -164,12 +184,12 @@ export const HologramOverlay = () => {
       cancelled = true;
       window.clearTimeout(first);
     };
-  }, [reduce]);
+  }, [skip]);
 
   const removeFigure = (id: number) =>
     setFigures((arr) => arr.filter((f) => f.id !== id));
 
-  if (reduce) return null;
+  if (skip) return null;
 
   return (
     <div
@@ -178,8 +198,9 @@ export const HologramOverlay = () => {
       style={{ mixBlendMode: "screen" }}
     >
       <Canvas
-        dpr={[1, 1.5]}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        dpr={[1, 1.25]}
+        frameloop={visible ? "always" : "never"}
+        gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
         camera={{ position: [0, 0.4, 6], fov: 45 }}
         style={{ background: "transparent" }}
       >
