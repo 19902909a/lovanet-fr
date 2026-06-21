@@ -23,6 +23,7 @@ export const MiniPreviewPlayer = ({
 }: Props) => {
   const [list, setList] = useState<string[]>(sources);
   const [i, setI] = useState(0);
+  const [errored, setErrored] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [inView, setInView] = useState(false);
@@ -79,36 +80,62 @@ export const MiniPreviewPlayer = ({
     return () => { cancelled = true; };
   }, [loadTiktokFromDB]);
 
-  // Auto-rotate for tiktok & mp4 (YouTube uses native playlist param)
+  // Auto-rotate for every kind so we cycle reliably even on a single embed.
   useEffect(() => {
-    if (kind === "youtube" || list.length <= 1 || !inView || !tabVisible) return;
+    if (list.length <= 1 || !inView || !tabVisible) return;
     const t = setInterval(() => setI((x) => (x + 1) % list.length), rotateMs);
     return () => clearInterval(t);
   }, [kind, list.length, rotateMs, inView, tabVisible]);
 
-  if (!list.length) return null;
+  useEffect(() => {
+    setList(sources);
+    setI(0);
+    setErrored(false);
+  }, [sources]);
 
   const active = inView && tabVisible;
+
+  // Animated branded poster — shown while loading, off-screen, on error, or when list is empty.
   const poster = (
-    <div className="w-full h-full bg-gradient-to-br from-black via-zinc-900 to-zinc-800 flex items-center justify-center text-white/40 text-xs">
-      ◉
+    <div className="relative w-full h-full overflow-hidden">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at 30% 30%, hsl(var(--neon-magenta) / 0.45), transparent 60%), radial-gradient(circle at 70% 70%, hsl(var(--neon-cyan) / 0.45), transparent 60%), linear-gradient(135deg, #0b0b14, #1a1027)",
+        }}
+      />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-white/80 text-[10px] tracking-[0.3em] uppercase animate-pulse">
+          ● Lecture
+        </span>
+      </div>
     </div>
   );
 
+  if (!list.length || errored) {
+    return (
+      <div ref={wrapRef} className={"w-full h-full " + className}>
+        {poster}
+      </div>
+    );
+  }
+
   if (kind === "youtube") {
-    const playlist = list.join(",");
-    const first = list[0];
-    const src = `https://www.youtube-nocookie.com/embed/${first}?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&playsinline=1&rel=0&playlist=${playlist}`;
+    const current = list[i];
+    // Single-video loop requires playlist=ID for the YouTube IFrame API.
+    const src = `https://www.youtube-nocookie.com/embed/${current}?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&playsinline=1&rel=0&playlist=${current}`;
     return (
       <div ref={wrapRef} className={"w-full h-full " + className}>
         {active ? (
           <iframe
-            key={playlist}
+            key={current}
             src={src}
             title="Mini preview"
             className="w-full h-full pointer-events-none"
             allow="autoplay; encrypted-media; picture-in-picture"
             loading="lazy"
+            onError={() => setErrored(true)}
           />
         ) : poster}
       </div>
@@ -127,6 +154,7 @@ export const MiniPreviewPlayer = ({
             className="w-full h-full pointer-events-none"
             allow="autoplay; encrypted-media"
             loading="lazy"
+            onError={() => setErrored(true)}
           />
         ) : poster}
       </div>
@@ -148,6 +176,7 @@ export const MiniPreviewPlayer = ({
           playsInline
           preload={constrained ? "metadata" : "auto"}
           onEnded={() => setI((x) => (x + 1) % list.length)}
+          onError={() => setErrored(true)}
           className="w-full h-full object-cover pointer-events-none"
         />
       ) : poster}

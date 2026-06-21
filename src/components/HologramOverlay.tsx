@@ -13,13 +13,12 @@ import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 const MODELS = [
   "https://threejs.org/examples/models/gltf/Soldier.glb",
   "https://threejs.org/examples/models/gltf/Xbot.glb",
+  "https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
 ];
-// Preload only on capable devices (skip on mobile / low-memory to avoid jank).
+// Preload on any non-reduced-motion device — we want max GPU usage when allowed.
 if (typeof window !== "undefined") {
-  const dm = (navigator as any).deviceMemory ?? 8;
-  const coarse = window.matchMedia?.("(pointer: coarse)").matches;
-  const small = window.innerWidth < 1024;
-  if (!coarse && !small && dm >= 4) {
+  const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  if (!reduce) {
     MODELS.forEach((u) => useGLTF.preload(u));
   }
 }
@@ -35,20 +34,30 @@ const TINTS = [
   "#ffffff",
 ];
 
+// Rich palette of actions — we'll try them on every model and fall back gracefully.
+const ACTIONS = [
+  "Dance", "Wave", "Jump", "ThumbsUp", "Yes", "Punch",
+  "Walk", "Run", "Idle",
+] as const;
+type ActionName = typeof ACTIONS[number];
+
 type Spawn = {
   id: number;
   url: string;
   dir: 1 | -1;
   z: number;
   tint: string;
-  action: "Walk" | "Run" | "Idle";
+  action: ActionName;
   speed: number;
   startAt: number;
+  scale: number;
+  spin: number;
 };
 
 let uid = 1;
 const spawnOne = (): Spawn => {
-  const action = Math.random() < 0.7 ? "Walk" : Math.random() < 0.6 ? "Run" : "Idle";
+  const action = ACTIONS[Math.floor(Math.random() * ACTIONS.length)];
+  const stationary = action !== "Walk" && action !== "Run";
   return {
     id: uid++,
     url: MODELS[Math.floor(Math.random() * MODELS.length)],
@@ -56,7 +65,9 @@ const spawnOne = (): Spawn => {
     z: -2 + Math.random() * 4,
     tint: TINTS[Math.floor(Math.random() * TINTS.length)],
     action,
-    speed: action === "Run" ? 2.4 : action === "Walk" ? 1.2 : 0,
+    speed: action === "Run" ? 2.6 : action === "Walk" ? 1.3 : 0,
+    scale: 0.9 + Math.random() * 0.6,
+    spin: stationary ? (Math.random() - 0.5) * 0.6 : 0,
     startAt: performance.now(),
   };
 };
@@ -103,27 +114,34 @@ const HoloFigure = ({ spawn, onDone }: { spawn: Spawn; onDone: (id: number) => v
   }, [actions, animations, spawn.action]);
 
   // Travel across the scene; remove when off-screen.
-  const startX = useRef(spawn.dir === 1 ? -8 : 8);
+  const stationary = spawn.speed === 0;
+  const startX = useRef(
+    stationary ? (Math.random() - 0.5) * 8 : spawn.dir === 1 ? -8 : 8
+  );
   useFrame((_, dt) => {
     mixer?.update(dt);
     const g = group.current;
     if (!g) return;
     g.position.x += spawn.dir * spawn.speed * dt;
     g.position.z = spawn.z;
-    g.rotation.y = spawn.dir === 1 ? Math.PI / 2 : -Math.PI / 2;
+    if (stationary) {
+      g.rotation.y += spawn.spin * dt;
+    } else {
+      g.rotation.y = spawn.dir === 1 ? Math.PI / 2 : -Math.PI / 2;
+    }
     // flicker opacity slightly for hologram feel
     const t = performance.now() / 1000;
-    const flick = 0.45 + 0.2 * Math.sin(t * 8 + spawn.id);
+    const flick = 0.5 + 0.22 * Math.sin(t * 8 + spawn.id);
     g.traverse((o: any) => {
       if (o.isMesh && o.material) o.material.opacity = flick;
     });
-    if (Math.abs(g.position.x) > 9 || (spawn.speed === 0 && performance.now() - spawn.startAt > 6000)) {
+    if (Math.abs(g.position.x) > 9 || (stationary && performance.now() - spawn.startAt > 12000)) {
       onDone(spawn.id);
     }
   });
 
   return (
-    <group ref={group} position={[startX.current, -1.4, spawn.z]} scale={1}>
+    <group ref={group} position={[startX.current, -1.4, spawn.z]} scale={spawn.scale}>
       <primitive object={cloned} />
     </group>
   );
@@ -137,9 +155,10 @@ const Stage = ({ figures, removeFigure }: { figures: Spawn[]; removeFigure: (id:
   }, [camera]);
   return (
     <>
-      <ambientLight intensity={0.6} />
-      <pointLight position={[5, 5, 5]} intensity={0.8} color="#ff66ff" />
-      <pointLight position={[-5, 3, 5]} intensity={0.8} color="#66ffff" />
+      <ambientLight intensity={0.7} />
+      <pointLight position={[5, 5, 5]} intensity={1.2} color="#ff66ff" />
+      <pointLight position={[-5, 3, 5]} intensity={1.2} color="#66ffff" />
+      <pointLight position={[0, 6, -3]} intensity={0.9} color="#a78bfa" />
       <Suspense fallback={null}>
         {figures.map((f) => (
           <HoloFigure key={f.id} spawn={f} onDone={removeFigure} />
@@ -153,15 +172,16 @@ export const HologramOverlay = () => {
   const [figures, setFigures] = useState<Spawn[]>([]);
   const [visible, setVisible] = useState<boolean>(typeof document === "undefined" ? true : !document.hidden);
 
-  // Skip on mobile / coarse pointer / low-memory / reduced-motion to keep rendering smooth.
+  // Only opt out for explicit reduced-motion preference — otherwise we go all in.
   const skip = useMemo(() => {
     if (typeof window === "undefined") return true;
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const coarse = window.matchMedia?.("(pointer: coarse)").matches;
-    const small = window.innerWidth < 1024;
-    const dm = (navigator as any).deviceMemory ?? 8;
-    const cores = (navigator as any).hardwareConcurrency ?? 8;
-    return reduce || coarse || small || dm < 4 || cores < 4;
+    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  }, []);
+
+  // Limit concurrent figures on small viewports to keep things smooth.
+  const maxFigures = useMemo(() => {
+    if (typeof window === "undefined") return 3;
+    return window.innerWidth < 768 ? 2 : window.innerWidth < 1280 ? 3 : 4;
   }, []);
 
   useEffect(() => {
@@ -175,16 +195,16 @@ export const HologramOverlay = () => {
     let cancelled = false;
     const tick = () => {
       if (cancelled) return;
-      setFigures((arr) => [...arr.slice(-2), spawnOne()]);
-      const next = 9000 + Math.random() * 14000;
+      setFigures((arr) => [...arr.slice(-(maxFigures - 1)), spawnOne()]);
+      const next = 4500 + Math.random() * 9000;
       window.setTimeout(tick, next);
     };
-    const first = window.setTimeout(tick, 3000);
+    const first = window.setTimeout(tick, 1500);
     return () => {
       cancelled = true;
       window.clearTimeout(first);
     };
-  }, [skip]);
+  }, [skip, maxFigures]);
 
   const removeFigure = (id: number) =>
     setFigures((arr) => arr.filter((f) => f.id !== id));
@@ -198,9 +218,14 @@ export const HologramOverlay = () => {
       style={{ mixBlendMode: "screen" }}
     >
       <Canvas
-        dpr={[1, 1.25]}
+        dpr={[1, 2]}
         frameloop={visible ? "always" : "never"}
-        gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
+        gl={{
+          alpha: true,
+          antialias: true,
+          powerPreference: "high-performance",
+          preserveDrawingBuffer: false,
+        }}
         camera={{ position: [0, 0.4, 6], fov: 45 }}
         style={{ background: "transparent" }}
       >
