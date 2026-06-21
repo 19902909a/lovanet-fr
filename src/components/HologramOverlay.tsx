@@ -14,7 +14,15 @@ const MODELS = [
   "https://threejs.org/examples/models/gltf/Soldier.glb",
   "https://threejs.org/examples/models/gltf/Xbot.glb",
 ];
-MODELS.forEach((u) => useGLTF.preload(u));
+// Preload only on capable devices (skip on mobile / low-memory to avoid jank).
+if (typeof window !== "undefined") {
+  const dm = (navigator as any).deviceMemory ?? 8;
+  const coarse = window.matchMedia?.("(pointer: coarse)").matches;
+  const small = window.innerWidth < 1024;
+  if (!coarse && !small && dm >= 4) {
+    MODELS.forEach((u) => useGLTF.preload(u));
+  }
+}
 
 const TINTS = [
   "#22d3ee",
