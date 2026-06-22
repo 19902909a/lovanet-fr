@@ -5,6 +5,7 @@ import { Play, Volume2, VolumeX, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HoverPreview } from "@/components/HoverPreview";
 import { supabase } from "@/integrations/supabase/client";
+import { AdminRemoveVideo } from "@/components/AdminRemoveVideo";
 
 type Item = {
   id: string;
@@ -206,6 +207,18 @@ const PrimeVideo = () => {
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{v.series}</p>
           )}
           <h2 className="font-display text-2xl font-bold mt-1">{v.title}</h2>
+          <div className="mt-3 flex justify-center">
+            <AdminRemoveVideo
+              rowId={v.id}
+              source="youtube"
+              externalId={v.videoId}
+              onRemoved={() => {
+                setItems((arr) => arr.filter((x) => x.id !== v.id));
+                if (next) setActive(next.videoId);
+              }}
+              label="Retirer cette vidéo"
+            />
+          </div>
         </div>
       </section>
 
@@ -232,6 +245,14 @@ const PrimeVideo = () => {
                   vertical={orientation === "vertical"}
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
+                  <span className="absolute top-2 left-2 z-20">
+                    <AdminRemoveVideo
+                      rowId={x.id}
+                      source="youtube"
+                      externalId={x.videoId}
+                      onRemoved={() => setItems((arr) => arr.filter((it) => it.id !== x.id))}
+                    />
+                  </span>
                   <span className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold bg-gradient-to-r from-sky-500 to-blue-600 text-white">
                     PRIME
                   </span>

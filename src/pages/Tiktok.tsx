@@ -4,6 +4,7 @@ import { videos as fallbackVideos } from "@/data/videos";
 import { Music2, Heart, MessageCircle, Share2, ArrowUp, ArrowDown, ExternalLink, VolumeX, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { AdminRemoveVideo } from "@/components/AdminRemoveVideo";
 
 type TTItem = {
   id: string;
@@ -234,6 +235,16 @@ const Tiktok = () => {
             <div className="absolute left-3 right-16 bottom-3 text-white">
               <p className="text-[10px] uppercase tracking-wider text-white/70">{v.series}</p>
               <h3 className="text-sm font-bold leading-snug line-clamp-3 mt-0.5">{v.title}</h3>
+            </div>
+            <div className="absolute top-3 left-3 z-30">
+              <AdminRemoveVideo
+                source={v.source}
+                externalId={v.id}
+                onRemoved={() => {
+                  setList((arr) => arr.filter((it, i) => i !== idx));
+                  setIdx((i) => Math.max(0, i - 1));
+                }}
+              />
             </div>
           </div>
 

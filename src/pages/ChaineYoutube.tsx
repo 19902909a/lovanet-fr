@@ -7,6 +7,7 @@ import { Youtube, ExternalLink, Calendar, Sparkles, Volume2, VolumeX, ArrowRight
 import { supabase } from "@/integrations/supabase/client";
 import { HoverPreview } from "@/components/HoverPreview";
 import { cn } from "@/lib/utils";
+import { AdminRemoveVideo } from "@/components/AdminRemoveVideo";
 
 type ImportedVideo = {
   id: string;
@@ -202,6 +203,14 @@ const ChaineYoutube = () => {
                 vertical={orientation === "vertical"}
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+                <span className="absolute top-3 left-3 z-20">
+                  <AdminRemoveVideo
+                    rowId={v.id}
+                    source="youtube"
+                    externalId={v.external_id}
+                    onRemoved={() => setItems((arr) => arr.filter((x) => x.id !== v.id))}
+                  />
+                </span>
                 <span className="absolute inset-0 z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                   <span className="w-12 h-12 rounded-full bg-white/90 text-black flex items-center justify-center shadow-lg">
                     <Play className="w-5 h-5 ml-0.5" />
