@@ -24,6 +24,7 @@ export const MiniPreviewPlayer = ({
   const [list, setList] = useState<string[]>(sources);
   const [i, setI] = useState(0);
   const [errored, setErrored] = useState(false);
+  const errCountRef = useRef(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [inView, setInView] = useState(false);
@@ -113,6 +114,17 @@ export const MiniPreviewPlayer = ({
     </div>
   );
 
+  // Auto-skip to the next item if the current embed errors (blocked / copyright).
+  // Only show the poster after we've cycled through everything once.
+  const onEmbedError = () => {
+    errCountRef.current += 1;
+    if (errCountRef.current >= Math.max(1, list.length)) {
+      setErrored(true);
+      return;
+    }
+    setI((x) => (x + 1) % Math.max(1, list.length));
+  };
+
   if (!list.length || errored) {
     return (
       <div ref={wrapRef} className={"w-full h-full " + className}>
@@ -135,7 +147,7 @@ export const MiniPreviewPlayer = ({
             className="w-full h-full pointer-events-none"
             allow="autoplay; encrypted-media; picture-in-picture"
             loading="lazy"
-            onError={() => setErrored(true)}
+            onError={onEmbedError}
           />
         ) : poster}
       </div>
@@ -154,7 +166,7 @@ export const MiniPreviewPlayer = ({
             className="w-full h-full pointer-events-none"
             allow="autoplay; encrypted-media"
             loading="lazy"
-            onError={() => setErrored(true)}
+            onError={onEmbedError}
           />
         ) : poster}
       </div>
@@ -176,7 +188,7 @@ export const MiniPreviewPlayer = ({
           playsInline
           preload={constrained ? "metadata" : "auto"}
           onEnded={() => setI((x) => (x + 1) % list.length)}
-          onError={() => setErrored(true)}
+          onError={onEmbedError}
           className="w-full h-full object-cover pointer-events-none"
         />
       ) : poster}

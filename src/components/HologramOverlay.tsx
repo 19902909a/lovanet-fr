@@ -11,15 +11,17 @@ import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
  */
 
 const MODELS = [
-  "https://threejs.org/examples/models/gltf/Soldier.glb",
-  "https://threejs.org/examples/models/gltf/Xbot.glb",
-  "https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
-];
+  // Per-model base scale & y-offset so every figure stays fully inside the
+  // viewport (no giant robots clipping out of the page).
+  { url: "https://threejs.org/examples/models/gltf/Soldier.glb",     baseScale: 1.0, baseY: -1.4 },
+  { url: "https://threejs.org/examples/models/gltf/Xbot.glb",        baseScale: 1.0, baseY: -1.4 },
+  { url: "https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb", baseScale: 0.45, baseY: -1.2 },
+] as const;
 // Preload on any non-reduced-motion device — we want max GPU usage when allowed.
 if (typeof window !== "undefined") {
   const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   if (!reduce) {
-    MODELS.forEach((u) => useGLTF.preload(u));
+    MODELS.forEach((m) => useGLTF.preload(m.url));
   }
 }
 
@@ -34,16 +36,19 @@ const TINTS = [
   "#ffffff",
 ];
 
-// Rich palette of actions — we'll try them on every model and fall back gracefully.
+// Rich palette of actions — sport, humor, dance, daily life. We try them on
+// every model and fall back gracefully when the clip is missing.
 const ACTIONS = [
-  "Dance", "Wave", "Jump", "ThumbsUp", "Yes", "Punch",
-  "Walk", "Run", "Idle",
+  "Dance", "Wave", "Jump", "ThumbsUp", "Yes", "No", "Punch",
+  "Walk", "Run", "Idle", "Sitting", "Standing", "Death",
 ] as const;
 type ActionName = typeof ACTIONS[number];
 
 type Spawn = {
   id: number;
   url: string;
+  baseScale: number;
+  baseY: number;
   dir: 1 | -1;
   z: number;
   tint: string;
@@ -58,15 +63,19 @@ let uid = 1;
 const spawnOne = (): Spawn => {
   const action = ACTIONS[Math.floor(Math.random() * ACTIONS.length)];
   const stationary = action !== "Walk" && action !== "Run";
+  const m = MODELS[Math.floor(Math.random() * MODELS.length)];
   return {
     id: uid++,
-    url: MODELS[Math.floor(Math.random() * MODELS.length)],
+    url: m.url,
+    baseScale: m.baseScale,
+    baseY: m.baseY,
     dir: Math.random() < 0.5 ? 1 : -1,
-    z: -2 + Math.random() * 4,
+    z: -1.5 + Math.random() * 2.5,
     tint: TINTS[Math.floor(Math.random() * TINTS.length)],
     action,
     speed: action === "Run" ? 2.6 : action === "Walk" ? 1.3 : 0,
-    scale: 0.9 + Math.random() * 0.6,
+    // Smaller, well-contained figures so they fit inside the page.
+    scale: m.baseScale * (0.7 + Math.random() * 0.35),
     spin: stationary ? (Math.random() - 0.5) * 0.6 : 0,
     startAt: performance.now(),
   };
@@ -141,7 +150,7 @@ const HoloFigure = ({ spawn, onDone }: { spawn: Spawn; onDone: (id: number) => v
   });
 
   return (
-    <group ref={group} position={[startX.current, -1.4, spawn.z]} scale={spawn.scale}>
+    <group ref={group} position={[startX.current, spawn.baseY, spawn.z]} scale={spawn.scale}>
       <primitive object={cloned} />
     </group>
   );

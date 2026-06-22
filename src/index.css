@@ -814,16 +814,16 @@
     position: absolute;
     inset: 0;
     background: linear-gradient(115deg,
-      hsl(330 100% 65% / 0.28),
-      hsl(280 100% 70% / 0.18),
-      hsl(210 100% 65% / 0.28),
-      hsl(160 100% 60% / 0.18),
-      hsl(50  100% 65% / 0.28));
+      hsl(330 100% 65% / 0.08),
+      hsl(280 100% 70% / 0.05),
+      hsl(210 100% 65% / 0.08),
+      hsl(160 100% 60% / 0.05),
+      hsl(50  100% 65% / 0.08));
     background-size: 300% 300%;
-    mix-blend-mode: screen;
+    mix-blend-mode: overlay;
     animation: rgb-pan 8s ease-in-out infinite;
     pointer-events: none;
-    z-index: 1;
+    z-index: 0;
   }
   .rgb-frame::after {
     content: "";
