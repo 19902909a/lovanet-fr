@@ -63,6 +63,16 @@ export const HeroCarousel = () => {
   const [shapeIdx, setShapeIdx] = useState(0);
   const [hue, setHue] = useState(0);
   const [pulseKey, setPulseKey] = useState(0);
+  // Alternative rolling modes for the 3D wheel — cycled every 12 s.
+  const ROLL_MODES = ["wheel", "wave", "oscillate", "spiral", "pendulum"] as const;
+  const [rollIdx, setRollIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => {
+      setRollIdx((i) => (i + 1) % ROLL_MODES.length);
+    }, 12000);
+    return () => clearInterval(t);
+  }, []);
+  const rollMode = ROLL_MODES[rollIdx];
   const cycleHalo = useCallback(() => {
     setShapeIdx((i) => (i + 1) % SHAPES.length);
     setHue((h) => (h + 72) % 360);
@@ -245,7 +255,28 @@ export const HeroCarousel = () => {
     const ang = (clampedOffset / VISIBLE_RADIUS) * MAX_ANG;
     const rad = (ang * Math.PI) / 180;
     // Vertical offset on the cylinder
-    const y = Math.sin(rad) * wheelR;
+    let y = Math.sin(rad) * wheelR;
+    let xMod = 0;
+    let extraRotY = 0;
+    let extraRotZ = 0;
+    const tNow = prog * Math.PI * 2;
+    if (rollMode === "wave") {
+      // Sinusoidal vertical wave across slot positions.
+      y += Math.sin(offset * 0.9 + tNow) * cardH * 0.35;
+      xMod = Math.cos(offset * 0.6 + tNow) * cardW * 0.25;
+    } else if (rollMode === "oscillate") {
+      // The whole wheel sways left/right like a pendulum.
+      xMod = Math.sin(tNow) * cardW * 0.45;
+      extraRotZ = Math.sin(tNow) * 6;
+    } else if (rollMode === "spiral") {
+      // Cards twist around their own vertical axis as they pass.
+      extraRotY = Math.sin(offset * 0.5 + tNow * 2) * 25;
+      y += Math.sin(offset + tNow) * cardH * 0.15;
+    } else if (rollMode === "pendulum") {
+      // Slow rocking with strong z-axis tilt.
+      extraRotZ = Math.sin(tNow * 0.8) * 12;
+      y += Math.sin(tNow * 0.8) * cardH * 0.2;
+    }
     // Front-facing factor (1 = center, 0 = edge)
     const front = Math.cos(rad);
     // Opacity & z: front card on top, edges fade smoothly without popping
@@ -257,7 +288,7 @@ export const HeroCarousel = () => {
       top: CENTER_Y - cardH / 2,
       width: cardW,
       aspectRatio: "16 / 9",
-      transform: `translate3d(0, ${y}px, 0) rotateX(${-ang}deg)`,
+      transform: `translate3d(${xMod}px, ${y}px, 0) rotateX(${-ang}deg) rotateY(${extraRotY}deg) rotateZ(${extraRotZ}deg)`,
       transformStyle: "preserve-3d",
       transformOrigin: "center center",
       opacity,
