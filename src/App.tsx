@@ -12,6 +12,8 @@ import Shop from "./pages/Shop";
 import Contact from "./pages/Contact";
 import Legals from "./pages/Legals";
 import NotFound from "./pages/NotFound";
+import AnimeCountdown from "./pages/AnimeCountdown";
+import AnimeCatalog from "./pages/AnimeCatalog";
 import { ThemeBubble } from "./components/ThemeBubble";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,8 @@ const App = () => (
           <Route path="/shop" element={<Shop />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/legals" element={<Legals />} />
+          <Route path="/anime-countdown" element={<AnimeCountdown />} />
+          <Route path="/anime-catalog" element={<AnimeCatalog />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

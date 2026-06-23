@@ -1,0 +1,260 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import NeonFooterBar from "@/components/NeonFooterBar";
+
+type Media = {
+  id: number;
+  title: { romaji?: string; english?: string; native?: string };
+  coverImage: { extraLarge?: string; large?: string; color?: string };
+  bannerImage?: string;
+  averageScore?: number;
+  episodes?: number;
+  genres?: string[];
+  format?: string;
+  seasonYear?: number;
+  description?: string;
+};
+
+const QUERY_TRENDING = `
+query ($page: Int) {
+  Page(page: $page, perPage: 30) {
+    media(type: ANIME, sort: TRENDING_DESC, isAdult: false) {
+      id
+      title { romaji english native }
+      coverImage { extraLarge large color }
+      bannerImage
+      averageScore
+      episodes
+      genres
+      format
+      seasonYear
+      description(asHtml: false)
+    }
+  }
+}`;
+
+/**
+ * 3D rotating card carousel — original implementation.
+ * Auto-syncs trending anime from AniList GraphQL (public, no key).
+ */
+export default function AnimeCatalog() {
+  const [items, setItems] = useState<Media[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [angle, setAngle] = useState(0);
+  const [active, setActive] = useState<Media | null>(null);
+  const rafRef = useRef<number>();
+  const draggingRef = useRef<{ x: number; a: number } | null>(null);
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch("https://graphql.anilist.co", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ query: QUERY_TRENDING, variables: { page: 1 } }),
+      });
+      const json = await res.json();
+      setItems(json?.data?.Page?.media ?? []);
+    } catch (e) {
+      console.error("AniList fetch error", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    const id = setInterval(fetchData, 1000 * 60 * 15); // auto-sync every 15 min
+    return () => clearInterval(id);
+  }, []);
+
+  // auto-rotation
+  useEffect(() => {
+    let last = performance.now();
+    const tick = (t: number) => {
+      const dt = (t - last) / 1000;
+      last = t;
+      if (!draggingRef.current) {
+        setAngle((a) => a + dt * 8);
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  const radius = useMemo(() => {
+    if (items.length < 8) return 380;
+    return Math.max(420, items.length * 32);
+  }, [items.length]);
+
+  return (
+    <main className="min-h-screen bg-[#05040b] text-white overflow-hidden relative">
+      {/* Top carousel */}
+      <section
+        className="relative h-[70vh] min-h-[520px] w-full select-none"
+        style={{ perspective: "1400px" }}
+        onPointerDown={(e) => {
+          draggingRef.current = { x: e.clientX, a: angle };
+          (e.target as HTMLElement).setPointerCapture(e.pointerId);
+        }}
+        onPointerMove={(e) => {
+          if (!draggingRef.current) return;
+          const dx = e.clientX - draggingRef.current.x;
+          setAngle(draggingRef.current.a + dx * 0.3);
+        }}
+        onPointerUp={() => {
+          draggingRef.current = null;
+        }}
+      >
+        {/* background aura */}
+        <div
+          className="absolute inset-0 opacity-60"
+          style={{
+            background:
+              "radial-gradient(60% 60% at 50% 40%, rgba(168,85,247,0.25), transparent 70%), radial-gradient(40% 40% at 70% 60%, rgba(43,214,255,0.18), transparent 70%)",
+          }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            className="relative"
+            style={{
+              width: 1,
+              height: 1,
+              transformStyle: "preserve-3d",
+              transform: `rotateX(-8deg) rotateY(${angle}deg)`,
+              transition: "transform 0.05s linear",
+            }}
+          >
+            {items.map((m, i) => {
+              const theta = (360 / Math.max(items.length, 1)) * i;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setActive(m)}
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group"
+                  style={{
+                    width: 200,
+                    height: 300,
+                    transform: `rotateY(${theta}deg) translateZ(${radius}px)`,
+                  }}
+                >
+                  <div
+                    className="w-full h-full rounded-2xl overflow-hidden border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)] transition-transform group-hover:scale-105"
+                    style={{
+                      background: m.coverImage.color || "#111",
+                      boxShadow: `0 0 30px ${m.coverImage.color ?? "#a855f7"}55`,
+                    }}
+                  >
+                    {m.coverImage.extraLarge && (
+                      <img
+                        src={m.coverImage.extraLarge}
+                        alt={m.title.romaji || m.title.english || ""}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                        draggable={false}
+                      />
+                    )}
+                  </div>
+                  <div className="mt-2 text-xs text-center text-white/80 line-clamp-2">
+                    {m.title.english || m.title.romaji}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="absolute top-6 left-0 right-0 text-center pointer-events-none">
+          <h1 className="text-3xl md:text-5xl font-bold tracking-wide">
+            <span className="bg-gradient-to-r from-fuchsia-400 via-cyan-300 to-violet-400 bg-clip-text text-transparent">
+              Catalogue Animés — Tendances
+            </span>
+          </h1>
+          <p className="text-white/60 mt-2 text-sm">
+            Synchronisation automatique · Glissez pour faire tourner · Cliquez une carte
+          </p>
+        </div>
+      </section>
+
+      {/* Grid below */}
+      <section className="px-4 md:px-10 py-10">
+        {loading && <p className="text-center text-white/60">Chargement…</p>}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {items.map((m) => (
+            <button
+              key={`g-${m.id}`}
+              onClick={() => setActive(m)}
+              className="group text-left"
+            >
+              <div className="aspect-[2/3] rounded-xl overflow-hidden border border-white/10 relative">
+                {m.coverImage.large && (
+                  <img
+                    src={m.coverImage.large}
+                    alt={m.title.romaji || ""}
+                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                )}
+                {typeof m.averageScore === "number" && (
+                  <span className="absolute top-2 right-2 text-[10px] px-1.5 py-0.5 rounded bg-black/70 text-cyan-300">
+                    {m.averageScore}
+                  </span>
+                )}
+              </div>
+              <div className="mt-2 text-xs text-white/80 line-clamp-2">
+                {m.title.english || m.title.romaji}
+              </div>
+              <div className="text-[10px] text-white/40">
+                {m.format} · {m.seasonYear ?? "—"}
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Detail modal */}
+      {active && (
+        <div
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={() => setActive(null)}
+        >
+          <div
+            className="max-w-2xl w-full bg-[#0c0a16] border border-white/10 rounded-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {active.bannerImage && (
+              <img src={active.bannerImage} alt="" className="w-full h-40 object-cover" />
+            )}
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-2">
+                {active.title.english || active.title.romaji}
+              </h2>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {active.genres?.map((g) => (
+                  <span
+                    key={g}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/80"
+                  >
+                    {g}
+                  </span>
+                ))}
+              </div>
+              <p className="text-sm text-white/70 max-h-60 overflow-auto">
+                {active.description?.replace(/<[^>]+>/g, "") ?? "Aucune description."}
+              </p>
+              <button
+                onClick={() => setActive(null)}
+                className="mt-4 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-sm"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <NeonFooterBar />
+    </main>
+  );
+}
