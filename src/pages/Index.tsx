@@ -147,6 +147,58 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Anime Moments — quick access to countdown & catalog */}
+      <section className="container mx-auto px-4 lg:px-8 pt-4 pb-2">
+        <div className="flex items-baseline justify-between mb-6">
+          <div>
+            <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Anime moments</p>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold">Suivez la vague animée</h2>
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Link
+            to="/anime-countdown"
+            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-magenta)/0.6)]"
+          >
+            <div
+              className="absolute inset-0 opacity-30 pointer-events-none"
+              style={{
+                background:
+                  "radial-gradient(60% 60% at 30% 30%, hsl(var(--neon-magenta) / 0.4), transparent 70%)",
+              }}
+            />
+            <p className="relative text-xs uppercase tracking-widest text-primary mb-2">Auto-sync AniList</p>
+            <h3 className="relative font-display text-2xl font-bold mb-2">Animés à venir</h3>
+            <p className="relative text-sm text-muted-foreground">
+              Compte à rebours live des prochains épisodes, mis à jour automatiquement.
+            </p>
+            <span className="relative inline-flex mt-4 text-sm font-semibold text-primary">
+              Ouvrir le countdown →
+            </span>
+          </Link>
+          <Link
+            to="/anime-catalog"
+            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-cyan)/0.6)]"
+          >
+            <div
+              className="absolute inset-0 opacity-30 pointer-events-none"
+              style={{
+                background:
+                  "radial-gradient(60% 60% at 70% 40%, hsl(var(--neon-cyan) / 0.4), transparent 70%)",
+              }}
+            />
+            <p className="relative text-xs uppercase tracking-widest text-primary mb-2">Carrousel 3D</p>
+            <h3 className="relative font-display text-2xl font-bold mb-2">Catalogue Animés</h3>
+            <p className="relative text-sm text-muted-foreground">
+              Tendances actuelles avec carrousel rotatif 3D et fiches détaillées.
+            </p>
+            <span className="relative inline-flex mt-4 text-sm font-semibold text-primary">
+              Explorer le catalogue →
+            </span>
+          </Link>
+        </div>
+      </section>
+
       {/* Platforms */}
       <section className="container mx-auto px-4 lg:px-8 py-16">
         <div className="flex items-baseline justify-between mb-6">

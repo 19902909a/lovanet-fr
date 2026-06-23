@@ -10,6 +10,8 @@ const navItems = [
   { to: "/chaine-youtube", label: "YouTube" },
   { to: "/prime-video", label: "Prime Vidéo" },
   { to: "/tiktok", label: "TikTok" },
+  { to: "/anime-countdown", label: "À venir" },
+  { to: "/anime-catalog", label: "Catalogue" },
   { to: "/shop", label: "Shop" },
 ];
 
@@ -23,6 +25,8 @@ const megaSections = [
   { to: "/chaine-youtube", label: "YouTube", desc: "Vidéos & shorts officiels", icon: Youtube, tint: "from-red-500 to-orange-600" },
   { to: "/prime-video", label: "Prime Vidéo", desc: "Lecture immersive multi-plateforme", icon: Play, tint: "from-sky-500 to-blue-600" },
   { to: "/lecteurs-video", label: "Lecteur vidéo", desc: "Player immersif anime", icon: Film, tint: "from-purple-500 to-violet-600" },
+  { to: "/anime-countdown", label: "Animés à venir", desc: "Countdown live des prochains épisodes", icon: Play, tint: "from-fuchsia-500 to-cyan-500" },
+  { to: "/anime-catalog", label: "Catalogue Animés", desc: "Carrousel 3D tendances", icon: Film, tint: "from-cyan-500 to-violet-600" },
   { to: "/contact", label: "Contact", desc: "Écrire à l'équipe", icon: Mail, tint: "from-emerald-500 to-teal-600" },
 ];
 
