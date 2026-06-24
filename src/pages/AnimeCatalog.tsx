@@ -39,6 +39,8 @@ query ($page: Int, $perPage: Int) {
  */
 export default function AnimeCatalog() {
   const [items, setItems] = useState<Media[]>([]);
+  const [gridItems, setGridItems] = useState<Media[]>([]);
+  const [gridLoading, setGridLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [angle, setAngle] = useState(0);
   const [active, setActive] = useState<Media | null>(null);
@@ -61,10 +63,50 @@ export default function AnimeCatalog() {
     }
   };
 
+  // Heavy grid below — fetches 600+ trending anime across 12 pages.
+  const fetchGrid = async () => {
+    setGridLoading(true);
+    try {
+      const dedup = new Map<number, Media>();
+      // Batch by 3 to stay polite with AniList rate limits.
+      const pages = Array.from({ length: 12 }, (_, i) => i + 1);
+      for (let i = 0; i < pages.length; i += 3) {
+        const batch = pages.slice(i, i + 3);
+        const results = await Promise.all(
+          batch.map((p) =>
+            fetch("https://graphql.anilist.co", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Accept: "application/json" },
+              body: JSON.stringify({ query: QUERY_TRENDING, variables: { page: p, perPage: 50 } }),
+            })
+              .then((r) => r.json())
+              .catch(() => null)
+          )
+        );
+        for (const j of results) {
+          for (const m of j?.data?.Page?.media ?? []) {
+            if (!dedup.has(m.id)) dedup.set(m.id, m);
+          }
+        }
+        // Progressive render so the user sees cards as they arrive.
+        setGridItems(Array.from(dedup.values()));
+      }
+    } catch (e) {
+      console.error("AniList grid fetch error", e);
+    } finally {
+      setGridLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    fetchGrid();
     const id = setInterval(fetchData, 1000 * 60 * 15); // auto-sync every 15 min
-    return () => clearInterval(id);
+    const gid = setInterval(fetchGrid, 1000 * 60 * 30);
+    return () => {
+      clearInterval(id);
+      clearInterval(gid);
+    };
   }, []);
 
   // auto-rotation
@@ -182,9 +224,16 @@ export default function AnimeCatalog() {
 
       {/* Grid below */}
       <section className="px-4 md:px-10 py-10">
-        {loading && <p className="text-center text-white/60">Chargement…</p>}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg md:text-xl font-semibold text-white/80">
+            Tout le catalogue · {gridItems.length} titres
+          </h2>
+          {gridLoading && (
+            <span className="text-xs text-white/50">Chargement en cours…</span>
+          )}
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {items.map((m) => (
+          {gridItems.map((m) => (
             <button
               key={`g-${m.id}`}
               onClick={() => setActive(m)}
