@@ -25,6 +25,11 @@ const reactions = [
 
 const Index = () => {
   const [ytIds, setYtIds] = useState<string[]>([]);
+  const [animeTrailers, setAnimeTrailers] = useState<{ countdown?: string; catalog?: string }>({});
+  const [animePosters, setAnimePosters] = useState<{ countdown: string[]; catalog: string[] }>({
+    countdown: [],
+    catalog: [],
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -38,6 +43,51 @@ const Index = () => {
         .limit(24);
       if (cancelled || !data) return;
       setYtIds(data.map((r: any) => r.external_id).filter(Boolean));
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Fetch AniList trailers + posters to feed live video preview on the two anime cards
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const q = `query {
+          trending: Page(page: 1, perPage: 20) {
+            media(type: ANIME, sort: TRENDING_DESC, isAdult: false) {
+              coverImage { large }
+              trailer { id site }
+            }
+          }
+          upcoming: Page(page: 1, perPage: 20) {
+            media(type: ANIME, status: RELEASING, sort: POPULARITY_DESC, isAdult: false) {
+              coverImage { large }
+              trailer { id site }
+            }
+          }
+        }`;
+        const res = await fetch("https://graphql.anilist.co", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: q }),
+        });
+        const j = await res.json();
+        if (cancelled) return;
+        const trending = j?.data?.trending?.media ?? [];
+        const upcoming = j?.data?.upcoming?.media ?? [];
+        const pickTrailer = (arr: any[]) =>
+          arr.find((m) => m?.trailer?.site === "youtube" && m?.trailer?.id)?.trailer?.id;
+        setAnimeTrailers({
+          catalog: pickTrailer(trending),
+          countdown: pickTrailer(upcoming),
+        });
+        setAnimePosters({
+          catalog: trending.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 8),
+          countdown: upcoming.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 8),
+        });
+      } catch (e) {
+        console.error("AniList trailer fetch", e);
+      }
     })();
     return () => { cancelled = true; };
   }, []);
@@ -158,7 +208,7 @@ const Index = () => {
         <div className="grid sm:grid-cols-2 gap-4">
           <Link
             to="/anime-countdown"
-            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-magenta)/0.6)]"
+            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-magenta)/0.6)] touch-manipulation"
           >
             <div
               className="absolute inset-0 opacity-30 pointer-events-none"
@@ -167,7 +217,12 @@ const Index = () => {
                   "radial-gradient(60% 60% at 30% 30%, hsl(var(--neon-magenta) / 0.4), transparent 70%)",
               }}
             />
-            <p className="relative text-xs uppercase tracking-widest text-primary mb-2">Auto-sync AniList</p>
+            <AnimePreview
+              trailerId={animeTrailers.countdown}
+              posters={animePosters.countdown}
+              accent="magenta"
+            />
+            <p className="relative text-xs uppercase tracking-widest text-primary mb-2 mt-4">Auto-sync AniList</p>
             <h3 className="relative font-display text-2xl font-bold mb-2">Animés à venir</h3>
             <p className="relative text-sm text-muted-foreground">
               Compte à rebours live des prochains épisodes, mis à jour automatiquement.
@@ -178,7 +233,7 @@ const Index = () => {
           </Link>
           <Link
             to="/anime-catalog"
-            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-cyan)/0.6)]"
+            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-cyan)/0.6)] touch-manipulation"
           >
             <div
               className="absolute inset-0 opacity-30 pointer-events-none"
@@ -187,7 +242,12 @@ const Index = () => {
                   "radial-gradient(60% 60% at 70% 40%, hsl(var(--neon-cyan) / 0.4), transparent 70%)",
               }}
             />
-            <p className="relative text-xs uppercase tracking-widest text-primary mb-2">Carrousel 3D</p>
+            <AnimePreview
+              trailerId={animeTrailers.catalog}
+              posters={animePosters.catalog}
+              accent="cyan"
+            />
+            <p className="relative text-xs uppercase tracking-widest text-primary mb-2 mt-4">Carrousel 3D</p>
             <h3 className="relative font-display text-2xl font-bold mb-2">Catalogue Animés</h3>
             <p className="relative text-sm text-muted-foreground">
               Tendances actuelles avec carrousel rotatif 3D et fiches détaillées.
