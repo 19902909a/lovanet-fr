@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import NeonFooterBar from "@/components/NeonFooterBar";
+import { Navbar } from "@/components/Navbar";
 
 type Media = {
   id: number;
@@ -15,8 +16,8 @@ type Media = {
 };
 
 const QUERY_TRENDING = `
-query ($page: Int) {
-  Page(page: $page, perPage: 30) {
+query ($page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
     media(type: ANIME, sort: TRENDING_DESC, isAdult: false) {
       id
       title { romaji english native }
@@ -46,13 +47,19 @@ export default function AnimeCatalog() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch("https://graphql.anilist.co", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ query: QUERY_TRENDING, variables: { page: 1 } }),
-      });
-      const json = await res.json();
-      setItems(json?.data?.Page?.media ?? []);
+      const pages = await Promise.all(
+        [1, 2, 3, 4].map((p) =>
+          fetch("https://graphql.anilist.co", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ query: QUERY_TRENDING, variables: { page: p, perPage: 50 } }),
+          }).then((r) => r.json())
+        )
+      );
+      const all: Media[] = pages.flatMap((j) => j?.data?.Page?.media ?? []);
+      const dedup = new Map<number, Media>();
+      for (const m of all) dedup.set(m.id, m);
+      setItems(Array.from(dedup.values()));
     } catch (e) {
       console.error("AniList fetch error", e);
     } finally {
@@ -90,6 +97,8 @@ export default function AnimeCatalog() {
 
   return (
     <main className="min-h-screen bg-[#05040b] text-white overflow-hidden relative">
+      <Navbar />
+      <div className="h-12" />
       {/* Top carousel */}
       <section
         className="relative h-[70vh] min-h-[520px] w-full select-none"
