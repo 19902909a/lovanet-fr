@@ -47,19 +47,13 @@ export default function AnimeCatalog() {
 
   const fetchData = async () => {
     try {
-      const pages = await Promise.all(
-        [1, 2, 3, 4].map((p) =>
-          fetch("https://graphql.anilist.co", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Accept: "application/json" },
-            body: JSON.stringify({ query: QUERY_TRENDING, variables: { page: p, perPage: 50 } }),
-          }).then((r) => r.json())
-        )
-      );
-      const all: Media[] = pages.flatMap((j) => j?.data?.Page?.media ?? []);
-      const dedup = new Map<number, Media>();
-      for (const m of all) dedup.set(m.id, m);
-      setItems(Array.from(dedup.values()));
+      const res = await fetch("https://graphql.anilist.co", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ query: QUERY_TRENDING, variables: { page: 1, perPage: 30 } }),
+      });
+      const json = await res.json();
+      setItems(json?.data?.Page?.media ?? []);
     } catch (e) {
       console.error("AniList fetch error", e);
     } finally {
