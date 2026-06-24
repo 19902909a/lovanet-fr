@@ -14,6 +14,56 @@ import { supabase } from "@/integrations/supabase/client";
 const SHOP_REEL_MP4 =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
+/** Live video/poster preview shown inside the two anime home cards. */
+const AnimePreview = ({
+  trailerId,
+  posters,
+  accent,
+}: {
+  trailerId?: string;
+  posters: string[];
+  accent: "magenta" | "cyan";
+}) => {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (trailerId || posters.length === 0) return;
+    const id = setInterval(() => setIdx((i) => (i + 1) % posters.length), 1800);
+    return () => clearInterval(id);
+  }, [trailerId, posters.length]);
+  const glow =
+    accent === "magenta"
+      ? "shadow-[0_0_30px_-5px_hsl(var(--neon-magenta)/0.7)]"
+      : "shadow-[0_0_30px_-5px_hsl(var(--neon-cyan)/0.7)]";
+  return (
+    <div
+      className={`relative aspect-video w-full overflow-hidden rounded-xl ring-1 ring-white/10 bg-black ${glow} pointer-events-none`}
+    >
+      {trailerId ? (
+        <iframe
+          className="absolute inset-0 w-full h-full"
+          src={`https://www.youtube-nocookie.com/embed/${trailerId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&playsinline=1&rel=0`}
+          title="Aperçu animé"
+          loading="lazy"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+      ) : posters.length > 0 ? (
+        <img
+          src={posters[idx]}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+        />
+      ) : (
+        <div className="absolute inset-0 animate-pulse bg-white/5" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+      <span className="absolute top-2 left-2 text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-black/60 text-white/90 backdrop-blur">
+        Live preview
+      </span>
+    </div>
+  );
+};
+
 const tags = ["Lovanet", "Manga animé", "YouTube", "TikTok", "Shop", "3D", "Live", "Selection"];
 const reactions = [
   { emoji: "🔥", label: "Hot" },
@@ -25,6 +75,11 @@ const reactions = [
 
 const Index = () => {
   const [ytIds, setYtIds] = useState<string[]>([]);
+  const [animeTrailers, setAnimeTrailers] = useState<{ countdown?: string; catalog?: string }>({});
+  const [animePosters, setAnimePosters] = useState<{ countdown: string[]; catalog: string[] }>({
+    countdown: [],
+    catalog: [],
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -38,6 +93,51 @@ const Index = () => {
         .limit(24);
       if (cancelled || !data) return;
       setYtIds(data.map((r: any) => r.external_id).filter(Boolean));
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Fetch AniList trailers + posters to feed live video preview on the two anime cards
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const q = `query {
+          trending: Page(page: 1, perPage: 20) {
+            media(type: ANIME, sort: TRENDING_DESC, isAdult: false) {
+              coverImage { large }
+              trailer { id site }
+            }
+          }
+          upcoming: Page(page: 1, perPage: 20) {
+            media(type: ANIME, status: RELEASING, sort: POPULARITY_DESC, isAdult: false) {
+              coverImage { large }
+              trailer { id site }
+            }
+          }
+        }`;
+        const res = await fetch("https://graphql.anilist.co", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: q }),
+        });
+        const j = await res.json();
+        if (cancelled) return;
+        const trending = j?.data?.trending?.media ?? [];
+        const upcoming = j?.data?.upcoming?.media ?? [];
+        const pickTrailer = (arr: any[]) =>
+          arr.find((m) => m?.trailer?.site === "youtube" && m?.trailer?.id)?.trailer?.id;
+        setAnimeTrailers({
+          catalog: pickTrailer(trending),
+          countdown: pickTrailer(upcoming),
+        });
+        setAnimePosters({
+          catalog: trending.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 8),
+          countdown: upcoming.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 8),
+        });
+      } catch (e) {
+        console.error("AniList trailer fetch", e);
+      }
     })();
     return () => { cancelled = true; };
   }, []);
@@ -158,7 +258,7 @@ const Index = () => {
         <div className="grid sm:grid-cols-2 gap-4">
           <Link
             to="/anime-countdown"
-            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-magenta)/0.6)]"
+            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-magenta)/0.6)] touch-manipulation"
           >
             <div
               className="absolute inset-0 opacity-30 pointer-events-none"
@@ -167,7 +267,12 @@ const Index = () => {
                   "radial-gradient(60% 60% at 30% 30%, hsl(var(--neon-magenta) / 0.4), transparent 70%)",
               }}
             />
-            <p className="relative text-xs uppercase tracking-widest text-primary mb-2">Auto-sync AniList</p>
+            <AnimePreview
+              trailerId={animeTrailers.countdown}
+              posters={animePosters.countdown}
+              accent="magenta"
+            />
+            <p className="relative text-xs uppercase tracking-widest text-primary mb-2 mt-4">Auto-sync AniList</p>
             <h3 className="relative font-display text-2xl font-bold mb-2">Animés à venir</h3>
             <p className="relative text-sm text-muted-foreground">
               Compte à rebours live des prochains épisodes, mis à jour automatiquement.
@@ -178,7 +283,7 @@ const Index = () => {
           </Link>
           <Link
             to="/anime-catalog"
-            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-cyan)/0.6)]"
+            className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-cyan)/0.6)] touch-manipulation"
           >
             <div
               className="absolute inset-0 opacity-30 pointer-events-none"
@@ -187,7 +292,12 @@ const Index = () => {
                   "radial-gradient(60% 60% at 70% 40%, hsl(var(--neon-cyan) / 0.4), transparent 70%)",
               }}
             />
-            <p className="relative text-xs uppercase tracking-widest text-primary mb-2">Carrousel 3D</p>
+            <AnimePreview
+              trailerId={animeTrailers.catalog}
+              posters={animePosters.catalog}
+              accent="cyan"
+            />
+            <p className="relative text-xs uppercase tracking-widest text-primary mb-2 mt-4">Carrousel 3D</p>
             <h3 className="relative font-display text-2xl font-bold mb-2">Catalogue Animés</h3>
             <p className="relative text-sm text-muted-foreground">
               Tendances actuelles avec carrousel rotatif 3D et fiches détaillées.

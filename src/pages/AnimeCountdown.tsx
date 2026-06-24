@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import NeonFooterBar from "@/components/NeonFooterBar";
+import { Navbar } from "@/components/Navbar";
 
 type Media = {
   id: number;
@@ -13,8 +14,8 @@ type Media = {
 };
 
 const QUERY = `
-query ($page: Int) {
-  Page(page: $page, perPage: 50) {
+query ($page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
     media(type: ANIME, status: RELEASING, sort: POPULARITY_DESC, isAdult: false) {
       id
       title { romaji english }
@@ -48,15 +49,19 @@ export default function AnimeCountdown() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch("https://graphql.anilist.co", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ query: QUERY, variables: { page: 1 } }),
-      });
-      const json = await res.json();
-      const list: Media[] = (json?.data?.Page?.media ?? []).filter(
-        (m: Media) => m.nextAiringEpisode?.airingAt
+      const pages = await Promise.all(
+        [1, 2, 3, 4].map((p) =>
+          fetch("https://graphql.anilist.co", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ query: QUERY, variables: { page: p, perPage: 50 } }),
+          }).then((r) => r.json())
+        )
       );
+      const all: Media[] = pages.flatMap((j) => j?.data?.Page?.media ?? []);
+      const dedup = new Map<number, Media>();
+      for (const m of all) if (m.nextAiringEpisode?.airingAt) dedup.set(m.id, m);
+      const list = Array.from(dedup.values());
       list.sort(
         (a, b) =>
           (a.nextAiringEpisode?.airingAt ?? 0) - (b.nextAiringEpisode?.airingAt ?? 0)
@@ -81,6 +86,8 @@ export default function AnimeCountdown() {
 
   return (
     <main className="min-h-screen bg-[#05040b] text-white pb-20 relative overflow-hidden">
+      <Navbar />
+      <div className="h-12" />
       <div
         className="absolute inset-0 opacity-50 pointer-events-none"
         style={{
