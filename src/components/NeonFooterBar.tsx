@@ -37,8 +37,9 @@ export const NeonFooterBar = () => {
       const offset = (elapsed * 0.15) % 1;
       const grad = ctx.createLinearGradient(0, 0, w, 0);
       stops.forEach((s) => {
-        const o = (s.o + offset) % 1;
-        grad.addColorStop(o, s.c);
+        let o = (s.o + offset) % 1;
+        if (o < 0) o += 1;
+        grad.addColorStop(Math.min(1, Math.max(0, o)), s.c);
       });
 
       // Soft glow
