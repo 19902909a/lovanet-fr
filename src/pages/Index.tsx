@@ -14,6 +14,56 @@ import { supabase } from "@/integrations/supabase/client";
 const SHOP_REEL_MP4 =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
+/** Live video/poster preview shown inside the two anime home cards. */
+const AnimePreview = ({
+  trailerId,
+  posters,
+  accent,
+}: {
+  trailerId?: string;
+  posters: string[];
+  accent: "magenta" | "cyan";
+}) => {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (trailerId || posters.length === 0) return;
+    const id = setInterval(() => setIdx((i) => (i + 1) % posters.length), 1800);
+    return () => clearInterval(id);
+  }, [trailerId, posters.length]);
+  const glow =
+    accent === "magenta"
+      ? "shadow-[0_0_30px_-5px_hsl(var(--neon-magenta)/0.7)]"
+      : "shadow-[0_0_30px_-5px_hsl(var(--neon-cyan)/0.7)]";
+  return (
+    <div
+      className={`relative aspect-video w-full overflow-hidden rounded-xl ring-1 ring-white/10 bg-black ${glow} pointer-events-none`}
+    >
+      {trailerId ? (
+        <iframe
+          className="absolute inset-0 w-full h-full"
+          src={`https://www.youtube-nocookie.com/embed/${trailerId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&playsinline=1&rel=0`}
+          title="Aperçu animé"
+          loading="lazy"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+      ) : posters.length > 0 ? (
+        <img
+          src={posters[idx]}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+        />
+      ) : (
+        <div className="absolute inset-0 animate-pulse bg-white/5" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+      <span className="absolute top-2 left-2 text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-black/60 text-white/90 backdrop-blur">
+        Live preview
+      </span>
+    </div>
+  );
+};
+
 const tags = ["Lovanet", "Manga animé", "YouTube", "TikTok", "Shop", "3D", "Live", "Selection"];
 const reactions = [
   { emoji: "🔥", label: "Hot" },
