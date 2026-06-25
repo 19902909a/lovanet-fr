@@ -16,20 +16,28 @@ const SHOP_REEL_MP4 =
 
 /** Live video/poster preview shown inside the two anime home cards. */
 const AnimePreview = ({
-  trailerId,
+  trailerIds,
   posters,
   accent,
 }: {
-  trailerId?: string;
+  trailerIds: string[];
   posters: string[];
   accent: "magenta" | "cyan";
 }) => {
   const [idx, setIdx] = useState(0);
+  const [tIdx, setTIdx] = useState(0);
   useEffect(() => {
-    if (trailerId || posters.length === 0) return;
+    if (trailerIds.length > 0 || posters.length === 0) return;
     const id = setInterval(() => setIdx((i) => (i + 1) % posters.length), 1800);
     return () => clearInterval(id);
-  }, [trailerId, posters.length]);
+  }, [trailerIds.length, posters.length]);
+  // Rotate through the available trailers so each card never loops the same clip.
+  useEffect(() => {
+    if (trailerIds.length < 2) return;
+    const id = setInterval(() => setTIdx((i) => (i + 1) % trailerIds.length), 14000);
+    return () => clearInterval(id);
+  }, [trailerIds.length]);
+  const trailerId = trailerIds[tIdx];
   const glow =
     accent === "magenta"
       ? "shadow-[0_0_30px_-5px_hsl(var(--neon-magenta)/0.7)]"
@@ -37,13 +45,16 @@ const AnimePreview = ({
   return (
     <div
       className={`relative aspect-video w-full overflow-hidden rounded-xl ring-1 ring-white/10 bg-black ${glow} pointer-events-none`}
+      aria-hidden
     >
       {trailerId ? (
         <iframe
-          className="absolute inset-0 w-full h-full"
+          key={trailerId}
+          className="absolute inset-0 w-full h-full pointer-events-none"
           src={`https://www.youtube-nocookie.com/embed/${trailerId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerId}&modestbranding=1&playsinline=1&rel=0`}
           title="Aperçu animé"
           loading="lazy"
+          tabIndex={-1}
           allow="autoplay; encrypted-media; picture-in-picture"
           referrerPolicy="strict-origin-when-cross-origin"
         />
@@ -75,7 +86,10 @@ const reactions = [
 
 const Index = () => {
   const [ytIds, setYtIds] = useState<string[]>([]);
-  const [animeTrailers, setAnimeTrailers] = useState<{ countdown?: string; catalog?: string }>({});
+  const [animeTrailers, setAnimeTrailers] = useState<{ countdown: string[]; catalog: string[] }>({
+    countdown: [],
+    catalog: [],
+  });
   const [animePosters, setAnimePosters] = useState<{ countdown: string[]; catalog: string[] }>({
     countdown: [],
     catalog: [],
@@ -125,11 +139,17 @@ const Index = () => {
         if (cancelled) return;
         const trending = j?.data?.trending?.media ?? [];
         const upcoming = j?.data?.upcoming?.media ?? [];
-        const pickTrailer = (arr: any[]) =>
-          arr.find((m) => m?.trailer?.site === "youtube" && m?.trailer?.id)?.trailer?.id;
+        const pickTrailers = (arr: any[]) =>
+          Array.from(
+            new Set(
+              arr
+                .filter((m) => m?.trailer?.site === "youtube" && m?.trailer?.id)
+                .map((m) => m.trailer.id as string),
+            ),
+          ).slice(0, 8);
         setAnimeTrailers({
-          catalog: pickTrailer(trending),
-          countdown: pickTrailer(upcoming),
+          catalog: pickTrailers(trending),
+          countdown: pickTrailers(upcoming),
         });
         setAnimePosters({
           catalog: trending.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 8),
@@ -268,7 +288,7 @@ const Index = () => {
               }}
             />
             <AnimePreview
-              trailerId={animeTrailers.countdown}
+              trailerIds={animeTrailers.countdown}
               posters={animePosters.countdown}
               accent="magenta"
             />
@@ -293,7 +313,7 @@ const Index = () => {
               }}
             />
             <AnimePreview
-              trailerId={animeTrailers.catalog}
+              trailerIds={animeTrailers.catalog}
               posters={animePosters.catalog}
               accent="cyan"
             />
