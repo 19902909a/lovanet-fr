@@ -4,7 +4,15 @@ import { useEffect, useRef } from "react";
  * Animated neon light bar — original implementation.
  * Uses canvas to render a flowing chromatic glow at the bottom of the page.
  */
-export const NeonFooterBar = () => {
+type NeonFooterBarProps = {
+  /** When true, renders inline in the flow instead of a fixed bottom bar. */
+  inline?: boolean;
+  /** Bar height in px (default 28). */
+  height?: number;
+  className?: string;
+};
+
+export const NeonFooterBar = ({ inline = false, height = 28, className = "" }: NeonFooterBarProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -66,9 +74,17 @@ export const NeonFooterBar = () => {
     };
   }, []);
 
+  const wrapperClass = inline
+    ? `relative w-full pointer-events-none ${className}`
+    : `fixed bottom-0 left-0 right-0 z-50 pointer-events-none ${className}`;
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
-      <canvas ref={canvasRef} className="w-full h-[28px] block" aria-hidden />
+    <div className={wrapperClass}>
+      <canvas
+        ref={canvasRef}
+        className="w-full block"
+        style={{ height: `${height}px` }}
+        aria-hidden
+      />
     </div>
   );
 };
