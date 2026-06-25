@@ -4,6 +4,7 @@ import { Play, ShoppingBag, Youtube, Music2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
+import NeonFooterBar from "@/components/NeonFooterBar";
 import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
 import { ProductArtwork } from "@/components/ProductArtwork";
@@ -262,7 +263,38 @@ const Index = () => {
           </div>
 
           <div className="relative">
-            <HeroCarousel />
+            {/* Roulette de cartes vidéo */}
+            <div className="relative rounded-3xl overflow-hidden">
+              <HeroCarousel />
+              {/* Baie vitrée — verre transparent en façade */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-3xl"
+                style={{
+                  background:
+                    "linear-gradient(135deg, hsl(0 0% 100% / 0.10) 0%, hsl(0 0% 100% / 0.02) 35%, hsl(0 0% 100% / 0) 55%, hsl(0 0% 100% / 0.06) 100%)",
+                  backdropFilter: "blur(1.5px) saturate(1.1)",
+                  WebkitBackdropFilter: "blur(1.5px) saturate(1.1)",
+                  boxShadow:
+                    "inset 0 1px 0 hsl(0 0% 100% / 0.35), inset 0 -1px 0 hsl(0 0% 0% / 0.35), inset 0 0 60px hsl(0 0% 100% / 0.06)",
+                  border: "1px solid hsl(0 0% 100% / 0.12)",
+                }}
+              />
+              {/* Reflet diagonal de baie vitrée */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-3xl"
+                style={{
+                  background:
+                    "linear-gradient(115deg, transparent 0%, transparent 38%, hsl(0 0% 100% / 0.10) 46%, hsl(0 0% 100% / 0.18) 50%, hsl(0 0% 100% / 0.08) 54%, transparent 62%, transparent 100%)",
+                  mixBlendMode: "screen",
+                }}
+              />
+            </div>
+            {/* Barre RGB fluo sous le carrousel */}
+            <div className="mt-3">
+              <NeonFooterBar inline height={22} className="rounded-full overflow-hidden" />
+            </div>
           </div>
         </div>
       </section>

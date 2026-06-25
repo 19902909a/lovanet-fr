@@ -435,18 +435,33 @@ export const HeroCarousel = () => {
       </button>
       {cards.map((c) => {
         const variant = variantPool[c.slotIdx % variantPool.length];
+        const href =
+          c.v.url ||
+          (c.v.source === "youtube"
+            ? `https://www.youtube.com/watch?v=${c.v.id}`
+            : undefined);
         return (
-          <div
+          <a
             key={c.key}
+            href={href || "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Ouvrir la vidéo : ${c.v.title}`}
             className={`card-3d group absolute rounded-xl ring-1 ring-white/10 hover:z-50 ${variant}`}
             style={{
               ...styleFor(c.slotIdx),
               transition: "opacity 0.18s linear, filter 0.3s ease, transform 0.4s cubic-bezier(.22,1,.36,1)",
               willChange: "transform",
               backfaceVisibility: "hidden",
+              textDecoration: "none",
+              cursor: "pointer",
             }}
             onPointerEnter={() => setPaused(true)}
             onPointerLeave={() => setPaused(false)}
+            onClick={(e) => {
+              // Prevent the wheel drag/pan handler from swallowing the click.
+              e.stopPropagation();
+            }}
           >
             {/* Deep back body — stacked slices give visible thickness */}
             {[-32, -26, -20, -14, -8, -3].map((zd, idx, arr) => {
@@ -580,7 +595,7 @@ export const HeroCarousel = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </a>
         );
       })}
     </div>
