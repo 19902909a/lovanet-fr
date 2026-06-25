@@ -59,12 +59,18 @@ export const HeroCarousel = () => {
     { name: "cross", clip: "polygon(35% 5%, 65% 5%, 65% 35%, 95% 35%, 95% 65%, 65% 65%, 65% 95%, 35% 95%, 35% 65%, 5% 65%, 5% 35%, 35% 35%)" },
     { name: "arrow", clip: "polygon(5% 30%, 60% 30%, 60% 10%, 95% 50%, 60% 90%, 60% 70%, 5% 70%)" },
     { name: "heart", clip: "polygon(50% 95%, 5% 50%, 5% 25%, 25% 5%, 50% 25%, 75% 5%, 95% 25%, 95% 50%)" },
+    { name: "pentagon", clip: "polygon(50% 3%, 98% 38%, 80% 95%, 20% 95%, 2% 38%)" },
+    { name: "lightning", clip: "polygon(45% 2%, 70% 2%, 50% 40%, 80% 40%, 30% 98%, 50% 55%, 22% 55%)" },
+    { name: "shield", clip: "polygon(50% 2%, 95% 18%, 90% 65%, 50% 98%, 10% 65%, 5% 18%)" },
+    { name: "gear", clip: "polygon(48% 0%, 52% 0%, 58% 12%, 72% 8%, 75% 22%, 88% 25%, 84% 38%, 96% 48%, 96% 52%, 84% 62%, 88% 75%, 75% 78%, 72% 92%, 58% 88%, 52% 100%, 48% 100%, 42% 88%, 28% 92%, 25% 78%, 12% 75%, 16% 62%, 4% 52%, 4% 48%, 16% 38%, 12% 25%, 25% 22%, 28% 8%, 42% 12%)" },
+    { name: "burst",  clip: "polygon(50% 0%, 58% 18%, 80% 8%, 72% 30%, 100% 30%, 78% 45%, 95% 65%, 70% 60%, 75% 90%, 55% 70%, 45% 100%, 38% 72%, 18% 92%, 22% 65%, 0% 60%, 22% 45%, 0% 28%, 28% 30%, 22% 8%, 42% 18%)" },
+    { name: "ribbon", clip: "polygon(0% 35%, 100% 35%, 90% 50%, 100% 65%, 0% 65%, 10% 50%)" },
   ];
   const [shapeIdx, setShapeIdx] = useState(0);
   const [hue, setHue] = useState(0);
   const [pulseKey, setPulseKey] = useState(0);
   // Alternative rolling modes for the 3D wheel — cycled every 12 s.
-  const ROLL_MODES = ["wheel", "wave", "oscillate", "spiral", "pendulum"] as const;
+  const ROLL_MODES = ["wheel", "wave", "oscillate", "spiral", "pendulum", "helix", "tide", "fan"] as const;
   const [rollIdx, setRollIdx] = useState(0);
   useEffect(() => {
     const t = setInterval(() => {
@@ -276,6 +282,18 @@ export const HeroCarousel = () => {
       // Slow rocking with strong z-axis tilt.
       extraRotZ = Math.sin(tNow * 0.8) * 12;
       y += Math.sin(tNow * 0.8) * cardH * 0.2;
+    } else if (rollMode === "helix") {
+      // Double-helix: cards spiral around the column with X offset.
+      xMod = Math.cos(offset * 0.7 + tNow * 1.4) * cardW * 0.55;
+      extraRotY = Math.sin(offset * 0.7 + tNow * 1.4) * 35;
+    } else if (rollMode === "tide") {
+      // Slow tidal sweep: gentle Y push + soft Z roll.
+      y += Math.sin(offset * 0.4 + tNow * 0.6) * cardH * 0.5;
+      extraRotZ = Math.cos(offset * 0.4 + tNow * 0.6) * 8;
+    } else if (rollMode === "fan") {
+      // Cards fan out from a center pivot like a hand of cards.
+      extraRotZ = offset * 4 + Math.sin(tNow) * 4;
+      xMod = offset * cardW * 0.08;
     }
     // Front-facing factor (1 = center, 0 = edge)
     const front = Math.cos(rad);
@@ -320,14 +338,16 @@ export const HeroCarousel = () => {
           left: CENTER_X - R,
           top: CENTER_Y - R,
           padding: 0,
-          background: "transparent",
+          background: `radial-gradient(circle at 50% 35%, hsl(0 0% 100% / 0.18), transparent 55%)`,
           border: `3px solid hsl(${hue} 100% 70%)`,
           boxShadow: `
+            inset 0 2px 0 hsl(0 0% 100% / 0.7),
+            inset 0 -2px 0 hsl(0 0% 0% / 0.55),
             inset 0 0 80px hsl(${hue} 100% 65% / 0.55),
             inset 0 0 30px hsl(${(hue + 120) % 360} 100% 70% / 0.45),
-            0 0 30px hsl(${hue} 100% 70% / 0.9),
-            0 0 70px hsl(${(hue + 60) % 360} 100% 65% / 0.7),
-            0 0 140px hsl(${(hue + 180) % 360} 100% 65% / 0.55)`,
+            0 0 22px hsl(${hue} 100% 70% / 1),
+            0 0 60px hsl(${(hue + 60) % 360} 100% 65% / 0.85),
+            0 0 140px hsl(${(hue + 180) % 360} 100% 65% / 0.6)`,
           cursor: "pointer",
           zIndex: 2,
           transition: "box-shadow .5s ease, border-color .5s ease",
@@ -359,16 +379,46 @@ export const HeroCarousel = () => {
             clipPath: SHAPES[shapeIdx].clip,
             WebkitClipPath: SHAPES[shapeIdx].clip,
             background: `conic-gradient(from 0deg,
-              hsl(${hue} 100% 65% / 0.95),
-              hsl(${(hue + 60) % 360} 100% 65% / 0.95),
-              hsl(${(hue + 120) % 360} 100% 65% / 0.95),
-              hsl(${(hue + 180) % 360} 100% 65% / 0.95),
-              hsl(${(hue + 240) % 360} 100% 65% / 0.95),
-              hsl(${(hue + 300) % 360} 100% 65% / 0.95),
-              hsl(${hue} 100% 65% / 0.95))`,
-            filter: "blur(28px) saturate(2) brightness(1.4)",
+              hsl(${hue} 100% 60%) 0deg,
+              hsl(${(hue + 60) % 360} 100% 62%) 60deg,
+              hsl(${(hue + 120) % 360} 100% 60%) 120deg,
+              hsl(${(hue + 180) % 360} 100% 62%) 180deg,
+              hsl(${(hue + 240) % 360} 100% 60%) 240deg,
+              hsl(${(hue + 300) % 360} 100% 62%) 300deg,
+              hsl(${hue} 100% 60%) 360deg)`,
+            filter: "blur(18px) saturate(2.6) brightness(1.55) contrast(1.15)",
             opacity: 1,
             transition: "background 0.6s ease, filter 0.6s ease",
+          }}
+        />
+        {/* Satin specular sweep — gives the halo a polished metallic sheen */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            clipPath: SHAPES[shapeIdx].clip,
+            WebkitClipPath: SHAPES[shapeIdx].clip,
+            background: `linear-gradient(135deg,
+              hsl(0 0% 100% / 0.55) 0%,
+              hsl(0 0% 100% / 0.12) 22%,
+              hsl(0 0% 100% / 0) 42%,
+              hsl(0 0% 100% / 0.18) 68%,
+              hsl(0 0% 0% / 0.45) 100%)`,
+            mixBlendMode: "overlay",
+            opacity: 0.9,
+          }}
+        />
+        {/* Glossy top-left highlight — the "polished" hot-spot */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            clipPath: SHAPES[shapeIdx].clip,
+            WebkitClipPath: SHAPES[shapeIdx].clip,
+            background:
+              "radial-gradient(ellipse 55% 35% at 32% 22%, hsl(0 0% 100% / 0.85), hsl(0 0% 100% / 0) 70%)",
+            mixBlendMode: "screen",
+            filter: "blur(2px)",
           }}
         />
         <span
