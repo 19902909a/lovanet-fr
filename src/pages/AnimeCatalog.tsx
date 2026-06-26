@@ -13,6 +13,7 @@ type Media = {
   format?: string;
   seasonYear?: number;
   description?: string;
+  trailer?: { id?: string; site?: string } | null;
 };
 
 const QUERY_TRENDING = `
@@ -29,6 +30,7 @@ query ($page: Int, $perPage: Int) {
       format
       seasonYear
       description(asHtml: false)
+      trailer { id site }
     }
   }
 }`;
@@ -43,6 +45,7 @@ export default function AnimeCatalog() {
   const [gridLoading, setGridLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [angle, setAngle] = useState(0);
+  const [tilt, setTilt] = useState(-8); // -45..+45 — raise/lower the wheel
   const [active, setActive] = useState<Media | null>(null);
   const rafRef = useRef<number>();
   const draggingRef = useRef<{ x: number; a: number } | null>(null);
@@ -63,15 +66,15 @@ export default function AnimeCatalog() {
     }
   };
 
-  // Heavy grid below — fetches 600+ trending anime across 12 pages.
+  // Heavy grid below — fetches up to 5000 trending anime across 100 pages.
   const fetchGrid = async () => {
     setGridLoading(true);
     try {
       const dedup = new Map<number, Media>();
-      // Batch by 3 to stay polite with AniList rate limits.
-      const pages = Array.from({ length: 12 }, (_, i) => i + 1);
-      for (let i = 0; i < pages.length; i += 3) {
-        const batch = pages.slice(i, i + 3);
+      // Batch by 2 to stay polite with AniList rate limits. 100 pages × 50 = 5000 titles.
+      const pages = Array.from({ length: 100 }, (_, i) => i + 1);
+      for (let i = 0; i < pages.length; i += 2) {
+        const batch = pages.slice(i, i + 2);
         const results = await Promise.all(
           batch.map((p) =>
             fetch("https://graphql.anilist.co", {
@@ -83,13 +86,19 @@ export default function AnimeCatalog() {
               .catch(() => null)
           )
         );
+        let stop = false;
         for (const j of results) {
-          for (const m of j?.data?.Page?.media ?? []) {
+          const list = j?.data?.Page?.media ?? [];
+          if (!list.length) stop = true;
+          for (const m of list) {
             if (!dedup.has(m.id)) dedup.set(m.id, m);
           }
         }
         // Progressive render so the user sees cards as they arrive.
         setGridItems(Array.from(dedup.values()));
+        if (stop) break;
+        // small pause between batches
+        await new Promise((r) => setTimeout(r, 120));
       }
     } catch (e) {
       console.error("AniList grid fetch error", e);
@@ -167,7 +176,7 @@ export default function AnimeCatalog() {
               width: 1,
               height: 1,
               transformStyle: "preserve-3d",
-              transform: `rotateX(-8deg) rotateY(${angle}deg)`,
+              transform: `rotateX(${tilt}deg) rotateY(${angle}deg)`,
               transition: "transform 0.05s linear",
             }}
           >
@@ -220,6 +229,27 @@ export default function AnimeCatalog() {
             Synchronisation automatique · Glissez pour faire tourner · Cliquez une carte
           </p>
         </div>
+        {/* Tilt slider — lever/baisser les cartes du carrousel */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2 bg-black/40 backdrop-blur px-2 py-3 rounded-full border border-white/10 pointer-events-auto">
+          <span className="text-[10px] uppercase tracking-widest text-white/60">Incliner</span>
+          <input
+            type="range"
+            min={-45}
+            max={45}
+            value={tilt}
+            onChange={(e) => setTilt(Number(e.target.value))}
+            className="h-32 w-6 accent-fuchsia-400"
+            style={{ writingMode: "vertical-lr" as any, WebkitAppearance: "slider-vertical" as any }}
+            aria-label="Lever ou baisser les cartes du carrousel"
+          />
+          <button
+            type="button"
+            onClick={() => setTilt(-8)}
+            className="text-[10px] text-white/70 hover:text-white"
+          >
+            Reset
+          </button>
+        </div>
       </section>
 
       {/* Barre RGB fluo sous le carrousel cercle */}
@@ -237,32 +267,45 @@ export default function AnimeCatalog() {
             <span className="text-xs text-white/50">Chargement en cours…</span>
           )}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
           {gridItems.map((m) => (
             <button
               key={`g-${m.id}`}
               onClick={() => setActive(m)}
               className="group text-left"
             >
-              <div className="aspect-[2/3] rounded-xl overflow-hidden border border-white/10 relative">
+              <div className="aspect-[2/3] rounded-lg overflow-hidden border border-white/10 relative">
                 {m.coverImage.large && (
                   <img
                     src={m.coverImage.large}
                     alt={m.title.romaji || ""}
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      if (m.coverImage.extraLarge && img.src !== m.coverImage.extraLarge) {
+                        img.src = m.coverImage.extraLarge;
+                      } else {
+                        img.style.display = "none";
+                      }
+                    }}
                   />
                 )}
                 {typeof m.averageScore === "number" && (
-                  <span className="absolute top-2 right-2 text-[10px] px-1.5 py-0.5 rounded bg-black/70 text-cyan-300">
+                  <span className="absolute top-1 right-1 text-[9px] px-1 py-0.5 rounded bg-black/70 text-cyan-300">
                     {m.averageScore}
                   </span>
                 )}
+                {m.trailer?.id && m.trailer?.site === "youtube" && (
+                  <span className="absolute bottom-1 left-1 text-[8px] uppercase tracking-widest px-1 py-0.5 rounded bg-fuchsia-500/80 text-white">
+                    ▶ Trailer
+                  </span>
+                )}
               </div>
-              <div className="mt-2 text-xs text-white/80 line-clamp-2">
+              <div className="mt-1 text-[10px] text-white/80 line-clamp-2 leading-tight">
                 {m.title.english || m.title.romaji}
               </div>
-              <div className="text-[10px] text-white/40">
+              <div className="text-[9px] text-white/40">
                 {m.format} · {m.seasonYear ?? "—"}
               </div>
             </button>
@@ -277,12 +320,24 @@ export default function AnimeCatalog() {
           onClick={() => setActive(null)}
         >
           <div
-            className="max-w-2xl w-full bg-[#0c0a16] border border-white/10 rounded-2xl overflow-hidden"
+            className="max-w-3xl w-full bg-[#0c0a16] border border-white/10 rounded-2xl overflow-hidden max-h-[92vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {active.bannerImage && (
+            {/* In-modal video player — trailers first, banner fallback */}
+            {active.trailer?.id && active.trailer?.site === "youtube" ? (
+              <div className="relative w-full aspect-video bg-black">
+                <iframe
+                  key={active.trailer.id}
+                  src={`https://www.youtube-nocookie.com/embed/${active.trailer.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+                  title={active.title.english || active.title.romaji || "Trailer"}
+                  className="absolute inset-0 w-full h-full"
+                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                  allowFullScreen
+                />
+              </div>
+            ) : active.bannerImage ? (
               <img src={active.bannerImage} alt="" className="w-full h-40 object-cover" />
-            )}
+            ) : null}
             <div className="p-6">
               <h2 className="text-2xl font-bold mb-2">
                 {active.title.english || active.title.romaji}

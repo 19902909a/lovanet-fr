@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { videos } from "@/data/videos";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -437,17 +438,17 @@ export const HeroCarousel = () => {
       </button>
       {cards.map((c) => {
         const variant = variantPool[c.slotIdx % variantPool.length];
-        const href =
-          c.v.url ||
-          (c.v.source === "youtube"
-            ? `https://www.youtube.com/watch?v=${c.v.id}`
-            : undefined);
+        // Always redirect inside the site to our own players.
+        const internalHref =
+          c.v.source === "tiktok"
+            ? `/tiktok?video=${encodeURIComponent(c.v.id)}`
+            : c.v.source === "prime"
+              ? `/prime-video?video=${encodeURIComponent(c.v.id)}`
+              : `/lecteurs-video?video=${encodeURIComponent(c.v.id)}&service=youtube`;
         return (
-          <a
+          <Link
             key={c.key}
-            href={href || "#"}
-            target="_blank"
-            rel="noopener noreferrer"
+            to={internalHref}
             aria-label={`Ouvrir la vidéo : ${c.v.title}`}
             className={`card-3d group absolute rounded-xl ring-1 ring-white/10 hover:z-50 ${variant}`}
             style={{
@@ -597,7 +598,7 @@ export const HeroCarousel = () => {
                 </div>
               </div>
             </div>
-          </a>
+          </Link>
         );
       })}
     </div>

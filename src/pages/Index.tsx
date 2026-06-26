@@ -118,13 +118,13 @@ const Index = () => {
     (async () => {
       try {
         const q = `query {
-          trending: Page(page: 1, perPage: 20) {
+          trending: Page(page: 1, perPage: 50) {
             media(type: ANIME, sort: TRENDING_DESC, isAdult: false) {
               coverImage { large }
               trailer { id site }
             }
           }
-          upcoming: Page(page: 1, perPage: 20) {
+          upcoming: Page(page: 1, perPage: 50) {
             media(type: ANIME, status: RELEASING, sort: POPULARITY_DESC, isAdult: false) {
               coverImage { large }
               trailer { id site }
@@ -147,14 +147,14 @@ const Index = () => {
                 .filter((m) => m?.trailer?.site === "youtube" && m?.trailer?.id)
                 .map((m) => m.trailer.id as string),
             ),
-          ).slice(0, 8);
+          ).slice(0, 30);
         setAnimeTrailers({
           catalog: pickTrailers(trending),
           countdown: pickTrailers(upcoming),
         });
         setAnimePosters({
-          catalog: trending.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 8),
-          countdown: upcoming.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 8),
+          catalog: trending.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 30),
+          countdown: upcoming.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 30),
         });
       } catch (e) {
         console.error("AniList trailer fetch", e);
