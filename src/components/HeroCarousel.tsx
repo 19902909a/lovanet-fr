@@ -221,6 +221,10 @@ export const HeroCarousel = () => {
   const dragRef = useRef<{ id: number; lastY: number } | null>(null);
   const PX_PER_CARD = 40;
   const onPointerDown = (e: React.PointerEvent) => {
+    // Don't steal pointer from card links — capture would suppress the click
+    // on mobile/touch and break navigation to the video page.
+    const target = e.target as HTMLElement | null;
+    if (target && target.closest("a")) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     dragRef.current = { id: e.pointerId, lastY: e.clientY };
   };
@@ -343,11 +347,9 @@ export const HeroCarousel = () => {
           boxShadow: `
             inset 0 2px 0 hsl(0 0% 100% / 0.7),
             inset 0 -2px 0 hsl(0 0% 0% / 0.55),
-            inset 0 0 80px hsl(${hue} 100% 65% / 0.55),
-            inset 0 0 30px hsl(${(hue + 120) % 360} 100% 70% / 0.45),
-            0 0 22px hsl(${hue} 100% 70% / 1),
-            0 0 60px hsl(${(hue + 60) % 360} 100% 65% / 0.85),
-            0 0 140px hsl(${(hue + 180) % 360} 100% 65% / 0.6)`,
+            inset 0 0 28px hsl(${hue} 100% 65% / 0.45),
+            0 0 10px hsl(${hue} 100% 70% / 0.85),
+            0 0 22px hsl(${(hue + 60) % 360} 100% 65% / 0.4)`,
           cursor: "pointer",
           zIndex: 2,
           transition: "box-shadow .5s ease, border-color .5s ease",
@@ -386,8 +388,8 @@ export const HeroCarousel = () => {
               hsl(${(hue + 240) % 360} 100% 60%) 240deg,
               hsl(${(hue + 300) % 360} 100% 62%) 300deg,
               hsl(${hue} 100% 60%) 360deg)`,
-            filter: "blur(18px) saturate(2.6) brightness(1.55) contrast(1.15)",
-            opacity: 1,
+            filter: "blur(6px) saturate(2.2) brightness(1.35) contrast(1.15)",
+            opacity: 0.95,
             transition: "background 0.6s ease, filter 0.6s ease",
           }}
         />
@@ -427,8 +429,8 @@ export const HeroCarousel = () => {
           style={{
             clipPath: SHAPES[shapeIdx].clip,
             WebkitClipPath: SHAPES[shapeIdx].clip,
-            background: `radial-gradient(circle at 50% 50%, hsl(${hue} 100% 75% / 0.55), transparent 65%)`,
-            filter: "blur(10px) brightness(1.5)",
+            background: `radial-gradient(circle at 50% 50%, hsl(${hue} 100% 75% / 0.35), transparent 55%)`,
+            filter: "blur(4px) brightness(1.3)",
             mixBlendMode: "screen",
           }}
         />
