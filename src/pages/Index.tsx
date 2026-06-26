@@ -264,29 +264,25 @@ const Index = () => {
 
           <div className="relative">
             {/* Roulette de cartes vidéo */}
-            <div className="relative rounded-3xl overflow-hidden">
+            <div className="relative rounded-3xl">
               <HeroCarousel />
-              {/* Baie vitrée — verre transparent en façade */}
+              {/* Cadre verre 3D brillant — uniquement le contour, sans masquer les cartes */}
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0 rounded-3xl"
                 style={{
-                  background:
-                    "linear-gradient(135deg, hsl(0 0% 100% / 0.10) 0%, hsl(0 0% 100% / 0.02) 35%, hsl(0 0% 100% / 0) 55%, hsl(0 0% 100% / 0.06) 100%)",
-                  backdropFilter: "blur(1.5px) saturate(1.1)",
-                  WebkitBackdropFilter: "blur(1.5px) saturate(1.1)",
+                  border: "1px solid hsl(0 0% 100% / 0.35)",
                   boxShadow:
-                    "inset 0 1px 0 hsl(0 0% 100% / 0.35), inset 0 -1px 0 hsl(0 0% 0% / 0.35), inset 0 0 60px hsl(0 0% 100% / 0.06)",
-                  border: "1px solid hsl(0 0% 100% / 0.12)",
+                    "inset 0 1px 0 hsl(0 0% 100% / 0.55), inset 0 -1px 0 hsl(0 0% 0% / 0.45), 0 0 0 1px hsl(0 0% 100% / 0.08), 0 18px 50px -20px hsl(var(--neon-magenta) / 0.45)",
                 }}
               />
-              {/* Reflet diagonal de baie vitrée */}
+              {/* Liseré brillant supérieur — reflet de verre, sans flou */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute inset-0 rounded-3xl"
+                className="pointer-events-none absolute inset-x-0 top-0 h-[2px] rounded-t-3xl"
                 style={{
                   background:
-                    "linear-gradient(115deg, transparent 0%, transparent 38%, hsl(0 0% 100% / 0.10) 46%, hsl(0 0% 100% / 0.18) 50%, hsl(0 0% 100% / 0.08) 54%, transparent 62%, transparent 100%)",
+                    "linear-gradient(90deg, transparent 0%, hsl(0 0% 100% / 0.75) 50%, transparent 100%)",
                   mixBlendMode: "screen",
                 }}
               />
