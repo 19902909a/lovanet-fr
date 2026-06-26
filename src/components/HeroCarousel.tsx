@@ -429,8 +429,8 @@ export const HeroCarousel = () => {
           style={{
             clipPath: SHAPES[shapeIdx].clip,
             WebkitClipPath: SHAPES[shapeIdx].clip,
-            background: `radial-gradient(circle at 50% 50%, hsl(${hue} 100% 75% / 0.55), transparent 65%)`,
-            filter: "blur(10px) brightness(1.5)",
+            background: `radial-gradient(circle at 50% 50%, hsl(${hue} 100% 75% / 0.35), transparent 55%)`,
+            filter: "blur(4px) brightness(1.3)",
             mixBlendMode: "screen",
           }}
         />
