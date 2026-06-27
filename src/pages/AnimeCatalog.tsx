@@ -47,8 +47,12 @@ export default function AnimeCatalog() {
   const [angle, setAngle] = useState(0);
   const [tilt, setTilt] = useState(-8); // -45..+45 — raise/lower the wheel
   const [active, setActive] = useState<Media | null>(null);
+  const [promoted, setPromoted] = useState<Media[]>([]);
+  const [promotedAngle, setPromotedAngle] = useState(0);
+  const [trailerMedia, setTrailerMedia] = useState<Media | null>(null);
   const rafRef = useRef<number>();
   const draggingRef = useRef<{ x: number; a: number } | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
 
   const fetchData = async () => {
     try {
@@ -157,10 +161,135 @@ export default function AnimeCatalog() {
     return Math.max(420, items.length * 32);
   }, [items.length]);
 
+  const promotedRadius = useMemo(() => {
+    return Math.max(180, Math.min(260, promoted.length * 24));
+  }, [promoted.length]);
+
+  // Auto-rotate promoted carousel
+  useEffect(() => {
+    if (!promoted.length) return;
+    let last = performance.now();
+    let raf = 0;
+    const tick = (t: number) => {
+      const dt = (t - last) / 1000;
+      last = t;
+      setPromotedAngle((a) => a + dt * 14);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [promoted.length]);
+
+  // Chunk grid into rows
+  const rowSize = 10;
+  const rows = useMemo(() => {
+    const out: Media[][] = [];
+    for (let i = 0; i < gridItems.length; i += rowSize) {
+      out.push(gridItems.slice(i, i + rowSize));
+    }
+    return out;
+  }, [gridItems]);
+
+  const promoteRow = (rowItems: Media[]) => {
+    setPromoted((prev) => {
+      const map = new Map(prev.map((m) => [m.id, m]));
+      rowItems.forEach((m) => map.set(m.id, m));
+      return Array.from(map.values()).slice(0, 24);
+    });
+    // Auto-pick first trailer of the row if available
+    const first = rowItems.find((m) => m.trailer?.id && m.trailer?.site === "youtube");
+    if (first) setTrailerMedia(first);
+  };
+
   return (
     <main className="min-h-screen bg-[#05040b] text-white overflow-hidden relative">
       <Navbar />
       <div className="h-12" />
+
+      {/* Trailer player + promoted carousel (only when something promoted) */}
+      {promoted.length > 0 && (
+        <section className="relative px-4 md:px-10 pt-4 pb-2">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-[0_0_60px_rgba(168,85,247,0.35)]">
+              {trailerMedia?.trailer?.id && trailerMedia.trailer.site === "youtube" ? (
+                <iframe
+                  key={trailerMedia.trailer.id}
+                  src={`https://www.youtube-nocookie.com/embed/${trailerMedia.trailer.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&mute=1`}
+                  title={trailerMedia.title.english || trailerMedia.title.romaji || "Trailer"}
+                  className="absolute inset-0 w-full h-full"
+                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-white/40 text-sm">
+                  Sélectionnez une carte pour lire le trailer
+                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-between mt-2 px-1">
+              <span className="text-xs text-white/70 truncate">
+                {trailerMedia ? (trailerMedia.title.english || trailerMedia.title.romaji) : "—"}
+              </span>
+              <button
+                onClick={() => { setPromoted([]); setTrailerMedia(null); }}
+                className="text-[10px] uppercase tracking-widest text-white/60 hover:text-white border border-white/20 rounded-full px-2 py-1"
+              >
+                Vider
+              </button>
+            </div>
+          </div>
+
+          {/* Smaller promoted circle carousel */}
+          <div
+            className="relative h-[280px] mt-3 w-full select-none"
+            style={{ perspective: "1000px" }}
+          >
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div
+                className="relative"
+                style={{
+                  width: 1,
+                  height: 1,
+                  transformStyle: "preserve-3d",
+                  transform: `rotateX(-6deg) rotateY(${promotedAngle}deg)`,
+                }}
+              >
+                {promoted.map((m, i) => {
+                  const theta = (360 / Math.max(promoted.length, 1)) * i;
+                  const isActive = trailerMedia?.id === m.id;
+                  return (
+                    <button
+                      key={`p-${m.id}`}
+                      onClick={() => setTrailerMedia(m)}
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                      style={{
+                        width: 90,
+                        height: 135,
+                        transform: `rotateY(${theta}deg) translateZ(${promotedRadius}px)`,
+                      }}
+                    >
+                      <div
+                        className={`w-full h-full rounded-lg overflow-hidden border ${isActive ? "border-fuchsia-400 shadow-[0_0_20px_#f0f]" : "border-white/15"}`}
+                      >
+                        {m.coverImage.large && (
+                          <img
+                            src={m.coverImage.large}
+                            alt=""
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                            draggable={false}
+                          />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Top carousel */}
       <section
         className="relative h-[70vh] min-h-[520px] w-full select-none"
@@ -176,6 +305,14 @@ export default function AnimeCatalog() {
         }}
         onPointerUp={() => {
           draggingRef.current = null;
+        }}
+        onMouseMove={(e) => {
+          if (draggingRef.current) return;
+          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+          const ry = (e.clientY - rect.top) / rect.height; // 0..1
+          // raise (negative) when cursor up, lower when cursor down
+          const t = -((ry - 0.5) * 70);
+          setTilt(Math.max(-45, Math.min(45, t)));
         }}
       >
         {/* background aura */}
@@ -242,9 +379,6 @@ export default function AnimeCatalog() {
               Catalogue Animés — Tendances
             </span>
           </h1>
-          <p className="text-white/60 mt-2 text-sm">
-            Synchronisation automatique · Glissez pour faire tourner · Cliquez une carte
-          </p>
         </div>
         {/* Tilt slider — lever/baisser les cartes du carrousel */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2 bg-black/40 backdrop-blur px-2 py-3 rounded-full border border-white/10 pointer-events-auto">
@@ -284,48 +418,64 @@ export default function AnimeCatalog() {
             <span className="text-xs text-white/50">Chargement en cours…</span>
           )}
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
-          {gridItems.map((m) => (
-            <button
-              key={`g-${m.id}`}
-              onClick={() => setActive(m)}
-              className="group text-left"
-            >
-              <div className="aspect-[2/3] rounded-lg overflow-hidden border border-white/10 relative">
-                {m.coverImage.large && (
-                  <img
-                    src={m.coverImage.large}
-                    alt={m.title.romaji || ""}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    onError={(e) => {
-                      const img = e.currentTarget;
-                      if (m.coverImage.extraLarge && img.src !== m.coverImage.extraLarge) {
-                        img.src = m.coverImage.extraLarge;
-                      } else {
-                        img.style.display = "none";
-                      }
-                    }}
-                  />
-                )}
-                {typeof m.averageScore === "number" && (
-                  <span className="absolute top-1 right-1 text-[9px] px-1 py-0.5 rounded bg-black/70 text-cyan-300">
-                    {m.averageScore}
-                  </span>
-                )}
-                {m.trailer?.id && m.trailer?.site === "youtube" && (
-                  <span className="absolute bottom-1 left-1 text-[8px] uppercase tracking-widest px-1 py-0.5 rounded bg-fuchsia-500/80 text-white">
-                    ▶ Trailer
-                  </span>
-                )}
+        <div className="space-y-2">
+          {rows.map((row, ri) => (
+            <div key={`row-${ri}`} className="relative group/row">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+                {row.map((m) => (
+                  <button
+                    key={`g-${m.id}`}
+                    onClick={() => setActive(m)}
+                    className="group text-left"
+                  >
+                    <div className="aspect-[2/3] rounded-lg overflow-hidden border border-white/10 relative">
+                      {m.coverImage.large && (
+                        <img
+                          src={m.coverImage.large}
+                          alt={m.title.romaji || ""}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          onError={(e) => {
+                            const img = e.currentTarget;
+                            if (m.coverImage.extraLarge && img.src !== m.coverImage.extraLarge) {
+                              img.src = m.coverImage.extraLarge;
+                            } else {
+                              img.style.display = "none";
+                            }
+                          }}
+                        />
+                      )}
+                      {typeof m.averageScore === "number" && (
+                        <span className="absolute top-1 right-1 text-[9px] px-1 py-0.5 rounded bg-black/70 text-cyan-300">
+                          {m.averageScore}
+                        </span>
+                      )}
+                      {m.trailer?.id && m.trailer?.site === "youtube" && (
+                        <span className="absolute bottom-1 left-1 text-[8px] uppercase tracking-widest px-1 py-0.5 rounded bg-fuchsia-500/80 text-white">
+                          ▶ Trailer
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1 text-[10px] text-white/80 line-clamp-2 leading-tight">
+                      {m.title.english || m.title.romaji}
+                    </div>
+                    <div className="text-[9px] text-white/40">
+                      {m.format} · {m.seasonYear ?? "—"}
+                    </div>
+                  </button>
+                ))}
               </div>
-              <div className="mt-1 text-[10px] text-white/80 line-clamp-2 leading-tight">
-                {m.title.english || m.title.romaji}
-              </div>
-              <div className="text-[9px] text-white/40">
-                {m.format} · {m.seasonYear ?? "—"}
-              </div>
-            </button>
+              {/* Floating bubble: promote this row into the small circle carousel */}
+              <button
+                type="button"
+                onClick={() => promoteRow(row)}
+                title="Transférer cette ligne au carrousel cercle"
+                aria-label="Transférer cette ligne au carrousel cercle"
+                className="absolute -right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white text-sm font-bold shadow-[0_0_20px_rgba(217,70,239,0.6)] border border-white/20 opacity-0 group-hover/row:opacity-100 transition-opacity hover:scale-110"
+              >
+                ↑
+              </button>
+            </div>
           ))}
         </div>
       </section>

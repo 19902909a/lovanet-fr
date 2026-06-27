@@ -123,9 +123,6 @@ const PrimeVideo = () => {
             Prime Vidéo
           </span>
         </h1>
-        <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">
-          Lecteur cinématique · démarrage automatique · option vertical pour les shorts.
-        </p>
       </section>
 
       <section className="container mx-auto px-4 lg:px-8 pb-6">
@@ -134,7 +131,7 @@ const PrimeVideo = () => {
             <div className="px-3 py-1.5 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 text-white text-xs font-bold flex items-center gap-1.5">
               ◆ prime
             </div>
-            <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Lecteur cinématique</div>
+            <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">&nbsp;</div>
           </div>
 
           <div className="flex items-center gap-2">

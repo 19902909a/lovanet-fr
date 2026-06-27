@@ -109,9 +109,6 @@ export default function AnimeCountdown() {
             Animés à venir — Compte à rebours
           </span>
         </h1>
-        <p className="text-white/60 mt-2 text-sm">
-          Données synchronisées automatiquement depuis AniList · {items.length} épisodes à venir
-        </p>
       </header>
 
       <section className="relative px-4 md:px-10">

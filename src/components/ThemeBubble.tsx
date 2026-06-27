@@ -94,6 +94,10 @@ type Accent = {
   hue: number; // 0-360
   sat: number; // 0-100
   tone: Tone;
+  /** Optional custom backdrop (CSS background). Overrides the computed tint. */
+  customTint?: string;
+  /** When true, swatch swirls (animated gradient preview). */
+  animated?: boolean;
 };
 
 const ACCENTS: Accent[] = [
@@ -108,6 +112,62 @@ const ACCENTS: Accent[] = [
   { key: "blue",    label: "Bleu",     swatch: "#3b82f6",  hue: 217, sat: 90, tone: "dark"  },
   { key: "purple",  label: "Violet",   swatch: "#8b5cf6",  hue: 262, sat: 85, tone: "dark"  },
   { key: "pink",    label: "Rose",     swatch: "#ec4899",  hue: 328, sat: 85, tone: "dark"  },
+
+  // ---- 18 nuances simples (pastels / classiques) ----
+  { key: "ivory",    label: "Ivoire",    swatch: "#fffbe6", hue: 50,  sat: 30, tone: "white" },
+  { key: "cream",    label: "Crème",     swatch: "#f5e6c8", hue: 38,  sat: 40, tone: "dark"  },
+  { key: "sand",     label: "Sable",     swatch: "#d4b483", hue: 36,  sat: 50, tone: "dark"  },
+  { key: "taupe",    label: "Taupe",     swatch: "#8b7355", hue: 30,  sat: 30, tone: "dark"  },
+  { key: "coral",    label: "Corail",    swatch: "#ff7f6b", hue: 8,   sat: 80, tone: "dark"  },
+  { key: "salmon",   label: "Saumon",    swatch: "#fa8072", hue: 6,   sat: 70, tone: "dark"  },
+  { key: "rose",     label: "Rose pâle", swatch: "#f9c0d9", hue: 335, sat: 60, tone: "dark"  },
+  { key: "lavender", label: "Lavande",   swatch: "#b497d6", hue: 270, sat: 55, tone: "dark"  },
+  { key: "mint",     label: "Menthe",    swatch: "#98ddca", hue: 160, sat: 55, tone: "dark"  },
+  { key: "sage",     label: "Sauge",     swatch: "#9caf88", hue: 90,  sat: 35, tone: "dark"  },
+  { key: "olive",    label: "Olive",     swatch: "#808000", hue: 60,  sat: 80, tone: "dark"  },
+  { key: "teal",     label: "Sarcelle",  swatch: "#008080", hue: 180, sat: 90, tone: "dark"  },
+  { key: "navy",     label: "Marine",    swatch: "#1e3a8a", hue: 226, sat: 75, tone: "dark"  },
+  { key: "indigo",   label: "Indigo",    swatch: "#4338ca", hue: 244, sat: 75, tone: "dark"  },
+  { key: "plum",     label: "Prune",     swatch: "#6b2c5e", hue: 313, sat: 55, tone: "dark"  },
+  { key: "burgundy", label: "Bordeaux",  swatch: "#800020", hue: 345, sat: 95, tone: "dark"  },
+  { key: "brown",    label: "Brun",      swatch: "#6f4e37", hue: 24,  sat: 50, tone: "dark"  },
+  { key: "slate",    label: "Ardoise",   swatch: "#475569", hue: 215, sat: 25, tone: "dark"  },
+
+  // ---- 15 fluo / néon vifs ----
+  { key: "fluo-pink",   label: "Fluo Rose",   swatch: "#ff00d4", hue: 320, sat: 100, tone: "dark" },
+  { key: "fluo-green",  label: "Fluo Vert",   swatch: "#39ff14", hue: 113, sat: 100, tone: "dark" },
+  { key: "fluo-yellow", label: "Fluo Jaune",  swatch: "#ffff33", hue: 60,  sat: 100, tone: "dark" },
+  { key: "fluo-orange", label: "Fluo Orange", swatch: "#ff6700", hue: 24,  sat: 100, tone: "dark" },
+  { key: "fluo-cyan",   label: "Fluo Cyan",   swatch: "#00ffff", hue: 180, sat: 100, tone: "dark" },
+  { key: "fluo-blue",   label: "Fluo Bleu",   swatch: "#1f51ff", hue: 224, sat: 100, tone: "dark" },
+  { key: "fluo-purple", label: "Fluo Violet", swatch: "#bf00ff", hue: 285, sat: 100, tone: "dark" },
+  { key: "fluo-red",    label: "Fluo Rouge",  swatch: "#ff073a", hue: 351, sat: 100, tone: "dark" },
+  { key: "fluo-lime",   label: "Fluo Lime",   swatch: "#ccff00", hue: 72,  sat: 100, tone: "dark" },
+  { key: "fluo-magenta",label: "Fluo Magenta",swatch: "#ff00ff", hue: 300, sat: 100, tone: "dark" },
+  { key: "fluo-mint",   label: "Fluo Menthe", swatch: "#00ff9f", hue: 158, sat: 100, tone: "dark" },
+  { key: "fluo-peach",  label: "Fluo Pêche",  swatch: "#ff9966", hue: 18,  sat: 100, tone: "dark" },
+  { key: "fluo-sky",    label: "Fluo Ciel",   swatch: "#7df9ff", hue: 184, sat: 100, tone: "dark" },
+  { key: "fluo-violet", label: "Fluo Vio.",   swatch: "#9d00ff", hue: 277, sat: 100, tone: "dark" },
+  { key: "fluo-gold",   label: "Fluo Or",     swatch: "#ffd700", hue: 51,  sat: 100, tone: "dark" },
+
+  // ---- 12 dégradés animés ----
+  ...([
+    { k: "anim-rgb",     l: "RGB",        g: "linear-gradient(135deg,#ff0080,#7928ca,#0070f3,#00d4ff,#39ff14,#ffd700,#ff0080)" },
+    { k: "anim-aurora",  l: "Aurore",     g: "linear-gradient(135deg,#00c9ff,#92fe9d,#fc466b,#3f5efb,#00c9ff)" },
+    { k: "anim-sunset",  l: "Couché",     g: "linear-gradient(135deg,#ff6e7f,#bfe9ff,#ff9966,#ff5e62,#ff6e7f)" },
+    { k: "anim-ocean",   l: "Océan",      g: "linear-gradient(135deg,#2e3192,#1bffff,#0f2027,#2c5364,#2e3192)" },
+    { k: "anim-candy",   l: "Bonbon",     g: "linear-gradient(135deg,#ff9a9e,#fad0c4,#fbc2eb,#a18cd1,#ff9a9e)" },
+    { k: "anim-jungle",  l: "Jungle",     g: "linear-gradient(135deg,#134e5e,#71b280,#a8e063,#56ab2f,#134e5e)" },
+    { k: "anim-fire",    l: "Feu",        g: "linear-gradient(135deg,#f12711,#f5af19,#ff512f,#dd2476,#f12711)" },
+    { k: "anim-ice",     l: "Glace",      g: "linear-gradient(135deg,#83a4d4,#b6fbff,#a1c4fd,#c2e9fb,#83a4d4)" },
+    { k: "anim-galaxy",  l: "Galaxie",    g: "linear-gradient(135deg,#0f0c29,#302b63,#24243e,#7f00ff,#0f0c29)" },
+    { k: "anim-neon",    l: "Néon",       g: "linear-gradient(135deg,#fc00ff,#00dbde,#ff00aa,#00ff88,#fc00ff)" },
+    { k: "anim-vapor",   l: "Vaporwave",  g: "linear-gradient(135deg,#ff71ce,#01cdfe,#05ffa1,#b967ff,#ff71ce)" },
+    { k: "anim-rainbow", l: "Arc-en-ciel",g: "linear-gradient(90deg,#ff0000,#ff7f00,#ffff00,#00ff00,#0000ff,#4b0082,#9400d3,#ff0000)" },
+  ].map((x) => ({
+    key: x.k, label: x.l, swatch: x.g, hue: 0, sat: 0, tone: "dark" as Tone,
+    customTint: x.g, animated: true,
+  }))),
 ];
 
 const applyTheme = (t: Theme) => {
@@ -182,6 +242,11 @@ const applyAccent = (a: Accent) => {
     tint = `radial-gradient(1200px 900px at 15% -10%, hsl(${a.hue} ${a.sat}% 28%) 0%, hsl(${a.hue} ${a.sat}% 12%) 45%, hsl(${a.hue} ${Math.max(20, a.sat - 20)}% 6%) 100%)`;
   }
 
+  // Custom override (animated gradients)
+  if (a.customTint) {
+    tint = a.customTint;
+  }
+
   r.setProperty("--background", bg);
   r.setProperty("--foreground", fg);
   r.setProperty("--card", card);
@@ -203,6 +268,13 @@ const applyAccent = (a: Accent) => {
   // Paint the body itself so the tint reaches every page corner.
   document.body.style.background = tint;
   document.body.style.backgroundAttachment = "fixed";
+  if (a.animated) {
+    document.body.style.backgroundSize = "400% 400%";
+    document.body.style.animation = "lovanet-bg-shift 18s ease infinite";
+  } else {
+    document.body.style.backgroundSize = "";
+    document.body.style.animation = "";
+  }
 };
 
 export const ThemeBubble = () => {
