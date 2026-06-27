@@ -418,48 +418,64 @@ export default function AnimeCatalog() {
             <span className="text-xs text-white/50">Chargement en cours…</span>
           )}
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
-          {gridItems.map((m) => (
-            <button
-              key={`g-${m.id}`}
-              onClick={() => setActive(m)}
-              className="group text-left"
-            >
-              <div className="aspect-[2/3] rounded-lg overflow-hidden border border-white/10 relative">
-                {m.coverImage.large && (
-                  <img
-                    src={m.coverImage.large}
-                    alt={m.title.romaji || ""}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    onError={(e) => {
-                      const img = e.currentTarget;
-                      if (m.coverImage.extraLarge && img.src !== m.coverImage.extraLarge) {
-                        img.src = m.coverImage.extraLarge;
-                      } else {
-                        img.style.display = "none";
-                      }
-                    }}
-                  />
-                )}
-                {typeof m.averageScore === "number" && (
-                  <span className="absolute top-1 right-1 text-[9px] px-1 py-0.5 rounded bg-black/70 text-cyan-300">
-                    {m.averageScore}
-                  </span>
-                )}
-                {m.trailer?.id && m.trailer?.site === "youtube" && (
-                  <span className="absolute bottom-1 left-1 text-[8px] uppercase tracking-widest px-1 py-0.5 rounded bg-fuchsia-500/80 text-white">
-                    ▶ Trailer
-                  </span>
-                )}
+        <div className="space-y-2">
+          {rows.map((row, ri) => (
+            <div key={`row-${ri}`} className="relative group/row">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+                {row.map((m) => (
+                  <button
+                    key={`g-${m.id}`}
+                    onClick={() => setActive(m)}
+                    className="group text-left"
+                  >
+                    <div className="aspect-[2/3] rounded-lg overflow-hidden border border-white/10 relative">
+                      {m.coverImage.large && (
+                        <img
+                          src={m.coverImage.large}
+                          alt={m.title.romaji || ""}
+                          loading="lazy"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          onError={(e) => {
+                            const img = e.currentTarget;
+                            if (m.coverImage.extraLarge && img.src !== m.coverImage.extraLarge) {
+                              img.src = m.coverImage.extraLarge;
+                            } else {
+                              img.style.display = "none";
+                            }
+                          }}
+                        />
+                      )}
+                      {typeof m.averageScore === "number" && (
+                        <span className="absolute top-1 right-1 text-[9px] px-1 py-0.5 rounded bg-black/70 text-cyan-300">
+                          {m.averageScore}
+                        </span>
+                      )}
+                      {m.trailer?.id && m.trailer?.site === "youtube" && (
+                        <span className="absolute bottom-1 left-1 text-[8px] uppercase tracking-widest px-1 py-0.5 rounded bg-fuchsia-500/80 text-white">
+                          ▶ Trailer
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1 text-[10px] text-white/80 line-clamp-2 leading-tight">
+                      {m.title.english || m.title.romaji}
+                    </div>
+                    <div className="text-[9px] text-white/40">
+                      {m.format} · {m.seasonYear ?? "—"}
+                    </div>
+                  </button>
+                ))}
               </div>
-              <div className="mt-1 text-[10px] text-white/80 line-clamp-2 leading-tight">
-                {m.title.english || m.title.romaji}
-              </div>
-              <div className="text-[9px] text-white/40">
-                {m.format} · {m.seasonYear ?? "—"}
-              </div>
-            </button>
+              {/* Floating bubble: promote this row into the small circle carousel */}
+              <button
+                type="button"
+                onClick={() => promoteRow(row)}
+                title="Transférer cette ligne au carrousel cercle"
+                aria-label="Transférer cette ligne au carrousel cercle"
+                className="absolute -right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white text-sm font-bold shadow-[0_0_20px_rgba(217,70,239,0.6)] border border-white/20 opacity-0 group-hover/row:opacity-100 transition-opacity hover:scale-110"
+              >
+                ↑
+              </button>
+            </div>
           ))}
         </div>
       </section>
