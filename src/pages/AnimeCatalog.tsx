@@ -242,9 +242,6 @@ export default function AnimeCatalog() {
               Catalogue Animés — Tendances
             </span>
           </h1>
-          <p className="text-white/60 mt-2 text-sm">
-            Synchronisation automatique · Glissez pour faire tourner · Cliquez une carte
-          </p>
         </div>
         {/* Tilt slider — lever/baisser les cartes du carrousel */}
         <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2 bg-black/40 backdrop-blur px-2 py-3 rounded-full border border-white/10 pointer-events-auto">
