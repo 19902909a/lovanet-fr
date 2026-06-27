@@ -58,7 +58,11 @@ export default function AnimeCatalog() {
         body: JSON.stringify({ query: QUERY_TRENDING, variables: { page: 1, perPage: 30 } }),
       });
       const json = await res.json();
-      setItems(json?.data?.Page?.media ?? []);
+      const list = json?.data?.Page?.media ?? [];
+      if (list.length) {
+        setItems(list);
+        try { localStorage.setItem("lovanet.cache.catalog.top", JSON.stringify(list)); } catch {}
+      }
     } catch (e) {
       console.error("AniList fetch error", e);
     } finally {
@@ -95,7 +99,9 @@ export default function AnimeCatalog() {
           }
         }
         // Progressive render so the user sees cards as they arrive.
-        setGridItems(Array.from(dedup.values()));
+        const snapshot = Array.from(dedup.values());
+        setGridItems(snapshot);
+        try { localStorage.setItem("lovanet.cache.catalog.grid", JSON.stringify(snapshot.slice(0, 1500))); } catch {}
         if (stop) break;
         // small pause between batches
         await new Promise((r) => setTimeout(r, 120));
@@ -104,10 +110,21 @@ export default function AnimeCatalog() {
       console.error("AniList grid fetch error", e);
     } finally {
       setGridLoading(false);
+      try {
+        const all = Array.from(new Map<number, Media>().entries());
+        // best-effort persist current state
+      } catch {}
     }
   };
 
   useEffect(() => {
+    // Hydrate from local backup so the page works even if AniList is unreachable.
+    try {
+      const t = localStorage.getItem("lovanet.cache.catalog.top");
+      const g = localStorage.getItem("lovanet.cache.catalog.grid");
+      if (t) { setItems(JSON.parse(t)); setLoading(false); }
+      if (g) { setGridItems(JSON.parse(g)); setGridLoading(false); }
+    } catch {}
     fetchData();
     fetchGrid();
     const id = setInterval(fetchData, 1000 * 60 * 15); // auto-sync every 15 min

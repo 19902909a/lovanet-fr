@@ -15,6 +15,16 @@ import { supabase } from "@/integrations/supabase/client";
 const SHOP_REEL_MP4 =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
+/** Fisher–Yates shuffle (non-mutating) so trailers play in a non-repeating order. */
+const shuffle = <T,>(arr: T[]): T[] => {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
 /** Live video/poster preview shown inside the two anime home cards. */
 const AnimePreview = ({
   trailerIds,
@@ -26,19 +36,38 @@ const AnimePreview = ({
   accent: "magenta" | "cyan";
 }) => {
   const [idx, setIdx] = useState(0);
+  // Maintain a shuffled queue + cursor so we never repeat the same video back-to-back
+  const [queue, setQueue] = useState<string[]>(() => shuffle(trailerIds));
   const [tIdx, setTIdx] = useState(0);
+  useEffect(() => {
+    setQueue(shuffle(trailerIds));
+    setTIdx(0);
+  }, [trailerIds.join("|")]);
   useEffect(() => {
     if (trailerIds.length > 0 || posters.length === 0) return;
     const id = setInterval(() => setIdx((i) => (i + 1) % posters.length), 1800);
     return () => clearInterval(id);
   }, [trailerIds.length, posters.length]);
-  // Rotate through the available trailers so each card never loops the same clip.
+  // Rotate through the shuffled queue; when we reach the end, reshuffle (avoid same head).
   useEffect(() => {
-    if (trailerIds.length < 2) return;
-    const id = setInterval(() => setTIdx((i) => (i + 1) % trailerIds.length), 14000);
+    if (queue.length < 2) return;
+    const id = setInterval(() => {
+      setTIdx((i) => {
+        const next = i + 1;
+        if (next >= queue.length) {
+          let reshuffled = shuffle(queue);
+          if (reshuffled[0] === queue[queue.length - 1] && reshuffled.length > 1) {
+            [reshuffled[0], reshuffled[1]] = [reshuffled[1], reshuffled[0]];
+          }
+          setQueue(reshuffled);
+          return 0;
+        }
+        return next;
+      });
+    }, 14000);
     return () => clearInterval(id);
-  }, [trailerIds.length]);
-  const trailerId = trailerIds[tIdx];
+  }, [queue]);
+  const trailerId = queue[tIdx];
   const glow =
     accent === "magenta"
       ? "shadow-[0_0_30px_-5px_hsl(var(--neon-magenta)/0.7)]"
@@ -98,6 +127,11 @@ const Index = () => {
 
   useEffect(() => {
     let cancelled = false;
+    // Hydrate cached YT ids first so the UI keeps working if Supabase is unreachable.
+    try {
+      const cached = localStorage.getItem("lovanet.cache.ytIds");
+      if (cached) setYtIds(JSON.parse(cached));
+    } catch {}
     (async () => {
       const { data } = await supabase
         .from("imported_videos")
@@ -107,7 +141,9 @@ const Index = () => {
         .order("published_at", { ascending: false })
         .limit(24);
       if (cancelled || !data) return;
-      setYtIds(data.map((r: any) => r.external_id).filter(Boolean));
+      const ids = data.map((r: any) => r.external_id).filter(Boolean);
+      setYtIds(ids);
+      try { localStorage.setItem("lovanet.cache.ytIds", JSON.stringify(ids)); } catch {}
     })();
     return () => { cancelled = true; };
   }, []);
@@ -115,6 +151,13 @@ const Index = () => {
   // Fetch AniList trailers + posters to feed live video preview on the two anime cards
   useEffect(() => {
     let cancelled = false;
+    // Hydrate from local backup so cards stay populated even if AniList is down/removes content.
+    try {
+      const t = localStorage.getItem("lovanet.cache.animeTrailers");
+      const p = localStorage.getItem("lovanet.cache.animePosters");
+      if (t) setAnimeTrailers(JSON.parse(t));
+      if (p) setAnimePosters(JSON.parse(p));
+    } catch {}
     (async () => {
       try {
         const q = `query {
@@ -148,14 +191,20 @@ const Index = () => {
                 .map((m) => m.trailer.id as string),
             ),
           ).slice(0, 30);
-        setAnimeTrailers({
+        const nextTrailers = {
           catalog: pickTrailers(trending),
           countdown: pickTrailers(upcoming),
-        });
-        setAnimePosters({
+        };
+        const nextPosters = {
           catalog: trending.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 30),
           countdown: upcoming.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 30),
-        });
+        };
+        setAnimeTrailers(nextTrailers);
+        setAnimePosters(nextPosters);
+        try {
+          localStorage.setItem("lovanet.cache.animeTrailers", JSON.stringify(nextTrailers));
+          localStorage.setItem("lovanet.cache.animePosters", JSON.stringify(nextPosters));
+        } catch {}
       } catch (e) {
         console.error("AniList trailer fetch", e);
       }
@@ -307,6 +356,7 @@ const Index = () => {
           <Link
             to="/anime-countdown"
             className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-magenta)/0.6)] touch-manipulation"
+            aria-label="Ouvrir le countdown des animés à venir"
           >
             <div
               className="absolute inset-0 opacity-30 pointer-events-none"
@@ -328,10 +378,13 @@ const Index = () => {
             <span className="relative inline-flex mt-4 text-sm font-semibold text-primary">
               Ouvrir le countdown →
             </span>
+            {/* Mobile/tablet tap capture — sits above iframes & overlays so the whole card is clickable */}
+            <span aria-hidden className="absolute inset-0 z-20" />
           </Link>
           <Link
             to="/anime-catalog"
             className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-cyan)/0.6)] touch-manipulation"
+            aria-label="Explorer le catalogue d'animés"
           >
             <div
               className="absolute inset-0 opacity-30 pointer-events-none"
@@ -353,6 +406,8 @@ const Index = () => {
             <span className="relative inline-flex mt-4 text-sm font-semibold text-primary">
               Explorer le catalogue →
             </span>
+            {/* Mobile/tablet tap capture — sits above iframes & overlays so the whole card is clickable */}
+            <span aria-hidden className="absolute inset-0 z-20" />
           </Link>
         </div>
       </section>

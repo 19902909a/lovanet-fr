@@ -66,7 +66,10 @@ export default function AnimeCountdown() {
         (a, b) =>
           (a.nextAiringEpisode?.airingAt ?? 0) - (b.nextAiringEpisode?.airingAt ?? 0)
       );
-      setItems(list);
+      if (list.length) {
+        setItems(list);
+        try { localStorage.setItem("lovanet.cache.countdown", JSON.stringify(list)); } catch {}
+      }
     } catch (e) {
       console.error("AniList fetch error", e);
     } finally {
@@ -75,6 +78,10 @@ export default function AnimeCountdown() {
   };
 
   useEffect(() => {
+    try {
+      const c = localStorage.getItem("lovanet.cache.countdown");
+      if (c) { setItems(JSON.parse(c)); setLoading(false); }
+    } catch {}
     fetchData();
     const sync = setInterval(fetchData, 1000 * 60 * 10); // auto-sync every 10 min
     const tick = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
