@@ -127,6 +127,11 @@ const Index = () => {
 
   useEffect(() => {
     let cancelled = false;
+    // Hydrate cached YT ids first so the UI keeps working if Supabase is unreachable.
+    try {
+      const cached = localStorage.getItem("lovanet.cache.ytIds");
+      if (cached) setYtIds(JSON.parse(cached));
+    } catch {}
     (async () => {
       const { data } = await supabase
         .from("imported_videos")
@@ -136,7 +141,9 @@ const Index = () => {
         .order("published_at", { ascending: false })
         .limit(24);
       if (cancelled || !data) return;
-      setYtIds(data.map((r: any) => r.external_id).filter(Boolean));
+      const ids = data.map((r: any) => r.external_id).filter(Boolean);
+      setYtIds(ids);
+      try { localStorage.setItem("lovanet.cache.ytIds", JSON.stringify(ids)); } catch {}
     })();
     return () => { cancelled = true; };
   }, []);
@@ -144,6 +151,13 @@ const Index = () => {
   // Fetch AniList trailers + posters to feed live video preview on the two anime cards
   useEffect(() => {
     let cancelled = false;
+    // Hydrate from local backup so cards stay populated even if AniList is down/removes content.
+    try {
+      const t = localStorage.getItem("lovanet.cache.animeTrailers");
+      const p = localStorage.getItem("lovanet.cache.animePosters");
+      if (t) setAnimeTrailers(JSON.parse(t));
+      if (p) setAnimePosters(JSON.parse(p));
+    } catch {}
     (async () => {
       try {
         const q = `query {
@@ -177,14 +191,20 @@ const Index = () => {
                 .map((m) => m.trailer.id as string),
             ),
           ).slice(0, 30);
-        setAnimeTrailers({
+        const nextTrailers = {
           catalog: pickTrailers(trending),
           countdown: pickTrailers(upcoming),
-        });
-        setAnimePosters({
+        };
+        const nextPosters = {
           catalog: trending.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 30),
           countdown: upcoming.map((m: any) => m?.coverImage?.large).filter(Boolean).slice(0, 30),
-        });
+        };
+        setAnimeTrailers(nextTrailers);
+        setAnimePosters(nextPosters);
+        try {
+          localStorage.setItem("lovanet.cache.animeTrailers", JSON.stringify(nextTrailers));
+          localStorage.setItem("lovanet.cache.animePosters", JSON.stringify(nextPosters));
+        } catch {}
       } catch (e) {
         console.error("AniList trailer fetch", e);
       }
