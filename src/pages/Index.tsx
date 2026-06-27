@@ -372,9 +372,6 @@ const Index = () => {
             />
             <p className="relative text-xs uppercase tracking-widest text-primary mb-2 mt-4">Auto-sync AniList</p>
             <h3 className="relative font-display text-2xl font-bold mb-2">Animés à venir</h3>
-            <p className="relative text-sm text-muted-foreground">
-              Compte à rebours live des prochains épisodes, mis à jour automatiquement.
-            </p>
             <span className="relative inline-flex mt-4 text-sm font-semibold text-primary">
               Ouvrir le countdown →
             </span>
