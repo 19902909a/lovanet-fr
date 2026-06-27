@@ -15,6 +15,16 @@ import { supabase } from "@/integrations/supabase/client";
 const SHOP_REEL_MP4 =
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4";
 
+/** Fisher–Yates shuffle (non-mutating) so trailers play in a non-repeating order. */
+const shuffle = <T,>(arr: T[]): T[] => {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
 /** Live video/poster preview shown inside the two anime home cards. */
 const AnimePreview = ({
   trailerIds,
@@ -26,19 +36,38 @@ const AnimePreview = ({
   accent: "magenta" | "cyan";
 }) => {
   const [idx, setIdx] = useState(0);
+  // Maintain a shuffled queue + cursor so we never repeat the same video back-to-back
+  const [queue, setQueue] = useState<string[]>(() => shuffle(trailerIds));
   const [tIdx, setTIdx] = useState(0);
+  useEffect(() => {
+    setQueue(shuffle(trailerIds));
+    setTIdx(0);
+  }, [trailerIds.join("|")]);
   useEffect(() => {
     if (trailerIds.length > 0 || posters.length === 0) return;
     const id = setInterval(() => setIdx((i) => (i + 1) % posters.length), 1800);
     return () => clearInterval(id);
   }, [trailerIds.length, posters.length]);
-  // Rotate through the available trailers so each card never loops the same clip.
+  // Rotate through the shuffled queue; when we reach the end, reshuffle (avoid same head).
   useEffect(() => {
-    if (trailerIds.length < 2) return;
-    const id = setInterval(() => setTIdx((i) => (i + 1) % trailerIds.length), 14000);
+    if (queue.length < 2) return;
+    const id = setInterval(() => {
+      setTIdx((i) => {
+        const next = i + 1;
+        if (next >= queue.length) {
+          let reshuffled = shuffle(queue);
+          if (reshuffled[0] === queue[queue.length - 1] && reshuffled.length > 1) {
+            [reshuffled[0], reshuffled[1]] = [reshuffled[1], reshuffled[0]];
+          }
+          setQueue(reshuffled);
+          return 0;
+        }
+        return next;
+      });
+    }, 14000);
     return () => clearInterval(id);
-  }, [trailerIds.length]);
-  const trailerId = trailerIds[tIdx];
+  }, [queue]);
+  const trailerId = queue[tIdx];
   const glow =
     accent === "magenta"
       ? "shadow-[0_0_30px_-5px_hsl(var(--neon-magenta)/0.7)]"
