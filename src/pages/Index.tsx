@@ -356,6 +356,7 @@ const Index = () => {
           <Link
             to="/anime-countdown"
             className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-magenta)/0.6)] touch-manipulation"
+            aria-label="Ouvrir le countdown des animés à venir"
           >
             <div
               className="absolute inset-0 opacity-30 pointer-events-none"
@@ -377,10 +378,13 @@ const Index = () => {
             <span className="relative inline-flex mt-4 text-sm font-semibold text-primary">
               Ouvrir le countdown →
             </span>
+            {/* Mobile/tablet tap capture — sits above iframes & overlays so the whole card is clickable */}
+            <span aria-hidden className="absolute inset-0 z-20" />
           </Link>
           <Link
             to="/anime-catalog"
             className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_hsl(var(--neon-cyan)/0.6)] touch-manipulation"
+            aria-label="Explorer le catalogue d'animés"
           >
             <div
               className="absolute inset-0 opacity-30 pointer-events-none"
@@ -402,6 +406,8 @@ const Index = () => {
             <span className="relative inline-flex mt-4 text-sm font-semibold text-primary">
               Explorer le catalogue →
             </span>
+            {/* Mobile/tablet tap capture — sits above iframes & overlays so the whole card is clickable */}
+            <span aria-hidden className="absolute inset-0 z-20" />
           </Link>
         </div>
       </section>
