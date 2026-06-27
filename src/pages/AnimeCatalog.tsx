@@ -99,7 +99,9 @@ export default function AnimeCatalog() {
           }
         }
         // Progressive render so the user sees cards as they arrive.
-        setGridItems(Array.from(dedup.values()));
+        const snapshot = Array.from(dedup.values());
+        setGridItems(snapshot);
+        try { localStorage.setItem("lovanet.cache.catalog.grid", JSON.stringify(snapshot.slice(0, 1500))); } catch {}
         if (stop) break;
         // small pause between batches
         await new Promise((r) => setTimeout(r, 120));
