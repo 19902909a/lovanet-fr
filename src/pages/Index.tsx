@@ -397,9 +397,6 @@ const Index = () => {
             />
             <p className="relative text-xs uppercase tracking-widest text-primary mb-2 mt-4">Carrousel 3D</p>
             <h3 className="relative font-display text-2xl font-bold mb-2">Catalogue Animés</h3>
-            <p className="relative text-sm text-muted-foreground">
-              Tendances actuelles avec carrousel rotatif 3D et fiches détaillées.
-            </p>
             <span className="relative inline-flex mt-4 text-sm font-semibold text-primary">
               Explorer le catalogue →
             </span>
