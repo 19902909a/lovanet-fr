@@ -149,22 +149,58 @@ ${urls.join("\n")}
   writeFileSync(resolve(PUB, "sitemap.xml"), xml);
 }
 
-async function run() {
-  // Dynamic import — Vite bundles config with esbuild so TS imports work.
-  const seedsMod = await import(resolve(ROOT, "src/data/shopProducts.ts").replace(/\\/g, "/"));
-  const videosMod = await import(resolve(ROOT, "src/data/videos.ts").replace(/\\/g, "/"));
-  generate(seedsMod.SHOP_PRODUCTS, videosMod.videos);
+function parseProducts(): Product[] {
+  const src = readFileSync(resolve(ROOT, "src/data/shopProducts.ts"), "utf8");
+  // Match each `{ name: "...", category: "...", ..., description: "..." }` seed entry.
+  const re =
+    /\{\s*name:\s*"((?:[^"\\]|\\.)*)",\s*category:\s*"([^"]+)",\s*tag:\s*"((?:[^"\\]|\\.)*)",\s*price:\s*(\d+(?:\.\d+)?),\s*description:\s*"((?:[^"\\]|\\.)*)"/g;
+  const out: Product[] = [];
+  let m: RegExpExecArray | null;
+  let i = 0;
+  while ((m = re.exec(src))) {
+    i += 1;
+    out.push({
+      id: `am-${String(i).padStart(3, "0")}`,
+      name: m[1].replace(/\\"/g, '"'),
+      category: m[2],
+      description: m[5].replace(/\\"/g, '"'),
+    });
+  }
+  return out;
+}
+
+function parseVideos(): Video[] {
+  const src = readFileSync(resolve(ROOT, "src/data/videos.ts"), "utf8");
+  const re =
+    /id:\s*"([^"]+)",\s*title:\s*"((?:[^"\\]|\\.)*)",\s*series:\s*"((?:[^"\\]|\\.)*)"/g;
+  const out: Video[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) {
+    out.push({ id: m[1], title: m[2].replace(/\\"/g, '"'), series: m[3] });
+  }
+  return out;
+}
+
+function run() {
+  const products = parseProducts();
+  const videos = parseVideos();
+  if (products.length === 0) {
+    console.warn("[shop-seo] no products parsed — skipping");
+    return;
+  }
+  generate(products, videos);
+  console.log(`[shop-seo] wrote ${products.length} product SVGs + sitemap.xml`);
 }
 
 export default function shopSeoPlugin() {
   let ran = false;
   return {
     name: "shop-seo",
-    async buildStart() {
+    buildStart() {
       if (ran) return;
       ran = true;
       try {
-        await run();
+        run();
       } catch (e) {
         // Non-fatal: only affects SEO assets.
         console.warn("[shop-seo] generation failed:", (e as Error).message);
