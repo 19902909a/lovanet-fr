@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Menu, X, LayoutGrid, ShoppingBag, Youtube, Play, Music2, Film, Mail } from "lucide-react";
+import { Menu, X, LayoutGrid, ShoppingBag, Youtube, Play, Music2, Film, Mail, User } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import lovanetLogo from "@/assets/lovanet-logo.jpg.asset.json";
@@ -17,6 +17,7 @@ const navItems = [
 
 const extraItems = [
   { to: "/contact", label: "Contact" },
+  { to: "/login", label: "Connexion" },
 ];
 
 const megaSections = [
@@ -27,6 +28,7 @@ const megaSections = [
   { to: "/lecteurs-video", label: "Lecteur vidéo", desc: "Player immersif anime", icon: Film, tint: "from-purple-500 to-violet-600" },
   { to: "/anime-countdown", label: "Animés à venir", desc: "Countdown live des prochains épisodes", icon: Play, tint: "from-fuchsia-500 to-cyan-500" },
   { to: "/anime-catalog", label: "Catalogue Animés", desc: "Carrousel 3D tendances", icon: Film, tint: "from-cyan-500 to-violet-600" },
+  { to: "/login", label: "Espace client", desc: "Connexion & inscription", icon: User, tint: "from-indigo-500 to-blue-600" },
   { to: "/contact", label: "Contact", desc: "Écrire à l'équipe", icon: Mail, tint: "from-emerald-500 to-teal-600" },
 ];
 
@@ -122,6 +124,13 @@ export const Navbar = () => {
           style={{ background: "var(--gradient-magenta)" }}
         >
           Boutique
+        </Link>
+        <Link
+          to="/login"
+          className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-border bg-card/60 backdrop-blur-md text-foreground/80 hover:text-primary hover:border-primary/60 transition-all"
+          aria-label="Connexion espace client"
+        >
+          <User className="w-3.5 h-3.5" /> Connexion
         </Link>
 
         <button

@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +18,21 @@ const Login = () => {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const prevTitle = document.title;
+    document.title = "Connexion client — AnimemomentsAnimeofficiel · Lovanet";
+    const desc = document.querySelector('meta[name="description"]');
+    const prevDesc = desc?.getAttribute("content") ?? "";
+    desc?.setAttribute(
+      "content",
+      "Connectez-vous à votre espace client AnimemomentsAnimeofficiel pour suivre vos commandes, sauvegarder vos favoris anime et accéder aux drops exclusifs Lovanet.",
+    );
+    return () => {
+      document.title = prevTitle;
+      if (desc && prevDesc) desc.setAttribute("content", prevDesc);
+    };
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,17 +80,6 @@ const Login = () => {
 
   return (
     <PageShell>
-      <Helmet>
-        <title>Connexion client — AnimemomentsAnimeofficiel · Lovanet</title>
-        <meta
-          name="description"
-          content="Connectez-vous à votre espace client AnimemomentsAnimeofficiel pour suivre vos commandes, sauvegarder vos favoris anime et accéder aux drops exclusifs Lovanet."
-        />
-        <link rel="canonical" href="https://lovanet.fr/login" />
-        <meta property="og:title" content="Connexion client — Lovanet" />
-        <meta property="og:url" content="https://lovanet.fr/login" />
-      </Helmet>
-
       <section className="container mx-auto px-4 py-16 max-w-md">
         <header className="text-center mb-8">
           <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Espace client</p>

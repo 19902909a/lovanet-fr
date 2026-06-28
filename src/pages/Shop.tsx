@@ -43,6 +43,7 @@ const Shop = () => {
           category: categoryLabel(p.category),
           brand: { "@type": "Brand", name: "AnimemomentsAnimeofficiel" },
           image: `${origin}/og-product-${p.id}.svg`,
+          url: `${origin}/shop#${p.id}`,
           offers: {
             "@type": "Offer",
             priceCurrency: "EUR",
@@ -131,9 +132,18 @@ const Shop = () => {
                   label={`${p.name} — AnimemomentsAnimeofficiel ${categoryLabel(p.category)}`}
                 />
               </div>
-              <figcaption className="sr-only" itemProp="image">
-                {p.name} — visuel produit AnimemomentsAnimeofficiel
-              </figcaption>
+              {/* Crawlable real image URL (generated to /public/products at build) */}
+              <img
+                src={`/products/${p.id}.svg`}
+                alt={`${p.name} — AnimemomentsAnimeofficiel ${categoryLabel(p.category)}`}
+                width={400}
+                height={400}
+                loading="lazy"
+                decoding="async"
+                itemProp="image"
+                className="sr-only"
+              />
+              <link itemProp="url" href={`/shop#${p.id}`} />
               <span className="absolute top-3 left-3 z-10 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur text-primary border border-primary/40">
                 360°
               </span>
