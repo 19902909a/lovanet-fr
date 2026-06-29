@@ -372,8 +372,30 @@ export const HeroCarousel = () => {
           background: "transparent",
           cursor: "pointer",
           zIndex: 1,
+          transformStyle: "preserve-3d",
+          transform: "rotateX(12deg)",
         }}
       >
+        {/* Depth stack — multiple parallel layers create real 3D thickness */}
+        {[-60, -42, -26, -12].map((zd, i) => (
+          <span
+            key={`d-${zd}`}
+            aria-hidden
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              transform: `translateZ(${zd}px)`,
+              clipPath: SHAPES[shapeIdx].clip,
+              WebkitClipPath: SHAPES[shapeIdx].clip,
+              background: `conic-gradient(from ${i * 30}deg,
+                hsl(${hue} 100% 55% / ${0.18 + i * 0.05}),
+                hsl(${(hue + 120) % 360} 100% 55% / ${0.18 + i * 0.05}),
+                hsl(${(hue + 240) % 360} 100% 55% / ${0.18 + i * 0.05}),
+                hsl(${hue} 100% 55% / ${0.18 + i * 0.05}))`,
+              filter: `blur(${10 - i * 2}px) saturate(2)`,
+              opacity: 0.55 + i * 0.08,
+            }}
+          />
+        ))}
         <span
           key={pulseKey}
           aria-hidden
