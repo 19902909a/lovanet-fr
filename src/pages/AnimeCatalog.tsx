@@ -306,14 +306,6 @@ export default function AnimeCatalog() {
         onPointerUp={() => {
           draggingRef.current = null;
         }}
-        onMouseMove={(e) => {
-          if (draggingRef.current) return;
-          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-          const ry = (e.clientY - rect.top) / rect.height; // 0..1
-          // raise (negative) when cursor up, lower when cursor down
-          const t = -((ry - 0.5) * 70);
-          setTilt(Math.max(-45, Math.min(45, t)));
-        }}
       >
         {/* background aura */}
         <div
