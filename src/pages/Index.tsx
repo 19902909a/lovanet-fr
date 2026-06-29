@@ -4,6 +4,7 @@ import { Play, ShoppingBag, Youtube, Music2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
+import MiniCatalogOrb from "@/components/MiniCatalogOrb";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
