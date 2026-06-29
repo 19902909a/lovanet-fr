@@ -97,7 +97,7 @@ function generate(products: Product[], videos: Video[]) {
   const staticRoutes = [
     { loc: "/",                  prio: "1.0", freq: "weekly" },
     { loc: "/shop",              prio: "0.9", freq: "weekly" },
-    { loc: "/login",             prio: "0.7", freq: "monthly" },
+    { loc: "/decouvrir",         prio: "0.9", freq: "weekly" },
     { loc: "/lecteurs-video",    prio: "0.8", freq: "weekly" },
     { loc: "/chaine-youtube",    prio: "0.7", freq: "weekly" },
     { loc: "/prime-video",       prio: "0.7", freq: "weekly" },

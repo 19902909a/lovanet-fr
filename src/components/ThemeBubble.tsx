@@ -247,6 +247,16 @@ const applyAccent = (a: Accent) => {
     tint = a.customTint;
   }
 
+  // Fluo colors: force a vibrant, strongly-lit backdrop so the color
+  // is actually felt on the whole page (not just a faint dark wash).
+  if (a.key.startsWith("fluo-")) {
+    const hex = a.swatch;
+    bg = `${a.hue} 100% 12%`;
+    border = `${a.hue} 100% 55%`;
+    primary = `${a.hue} 100% 60%`;
+    tint = `radial-gradient(1400px 1000px at 15% -10%, ${hex} 0%, ${hex}cc 25%, hsl(${a.hue} 90% 18%) 60%, hsl(${a.hue} 80% 8%) 100%)`;
+  }
+
   r.setProperty("--background", bg);
   r.setProperty("--foreground", fg);
   r.setProperty("--card", card);
@@ -289,8 +299,8 @@ export const ThemeBubble = () => {
     setActive(t.key);
 
     // Default to white background on first visit (per user request).
-    const savedAccent = localStorage.getItem(ACCENT_STORAGE_KEY) ?? "white";
-    const a = ACCENTS.find((x) => x.key === savedAccent) ?? ACCENTS.find((x) => x.key === "white")!;
+    const savedAccent = localStorage.getItem(ACCENT_STORAGE_KEY) ?? "black";
+    const a = ACCENTS.find((x) => x.key === savedAccent) ?? ACCENTS.find((x) => x.key === "black")!;
     applyAccent(a);
     setAccent(a.key);
   }, []);
