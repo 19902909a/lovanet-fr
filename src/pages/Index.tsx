@@ -275,6 +275,10 @@ const Index = () => {
             >
               ANIME<br />MOMENTS
             </h1>
+            {/* Mini 3D circle carousel — mirrors the full catalogue */}
+            <div className="relative pt-2">
+              <MiniCatalogOrb size={210} cardW={40} cardH={58} />
+            </div>
             <p className="text-base text-muted-foreground max-w-lg">
               Lovanet présente les mangas animés, vidéos anime, moments forts et contenus directs YouTube / TikTok.
             </p>
