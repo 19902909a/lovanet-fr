@@ -299,8 +299,8 @@ export const ThemeBubble = () => {
     setActive(t.key);
 
     // Default to white background on first visit (per user request).
-    const savedAccent = localStorage.getItem(ACCENT_STORAGE_KEY) ?? "black";
-    const a = ACCENTS.find((x) => x.key === savedAccent) ?? ACCENTS.find((x) => x.key === "black")!;
+    const savedAccent = localStorage.getItem(ACCENT_STORAGE_KEY) ?? "white";
+    const a = ACCENTS.find((x) => x.key === savedAccent) ?? ACCENTS.find((x) => x.key === "white")!;
     applyAccent(a);
     setAccent(a.key);
   }, []);
