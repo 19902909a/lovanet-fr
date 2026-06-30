@@ -274,6 +274,9 @@ const applyAccent = (a: Accent) => {
   r.setProperty("--accent-foreground", primaryFg);
   r.setProperty("--ring", primary);
   r.setProperty("--site-tint", tint);
+  // Make the hero overlay inherit the tint instead of the dark default,
+  // otherwise the Index hero gradient hides the chosen color.
+  r.setProperty("--gradient-hero", tint);
 
   // Paint the body itself so the tint reaches every page corner.
   document.body.style.background = tint;
