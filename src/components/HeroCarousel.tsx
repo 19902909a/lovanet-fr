@@ -171,8 +171,8 @@ export const HeroCarousel = () => {
   const CENTER_X = size.w * 0.5;
   const CENTER_Y = size.h * 0.42;
   const R = Math.max(180, Math.min(size.w * 0.4, size.h * 0.55));
-  // Card size — much bigger
-  const cardW = Math.max(220, Math.min(R * 1.25, 360));
+  // Card size — XL format
+  const cardW = Math.max(260, Math.min(R * 1.55, 460));
   const cardH = cardW * (9 / 16);
   // Tight vertical travel band so cards visibly OVERLAP and feel stacked
   const margin = cardH * 0.45;
@@ -185,7 +185,9 @@ export const HeroCarousel = () => {
   // only the few visible cards, so 34 videos all pass through the center.
   // ~1s per card so the whole catalogue defiles visibly
   const loopSecRef = useRef(26);
-  loopSecRef.current = Math.max(20, N * 1.0);
+  // Speed multiplier (0.25× .. 3×). Higher = faster.
+  const [speed, setSpeed] = useState(1);
+  loopSecRef.current = Math.max(20, N * 1.0) / Math.max(0.1, speed);
   const [prog, setProg] = useState(0);
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
@@ -324,13 +326,65 @@ export const HeroCarousel = () => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[460px] sm:h-[520px] overflow-hidden touch-none cursor-grab active:cursor-grabbing"
+      className="relative w-full h-[540px] sm:h-[640px] overflow-hidden touch-none cursor-grab active:cursor-grabbing"
       style={{ perspective: "1400px", perspectiveOrigin: "50% 50%" }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
+      {/* Interactive controls — mode picker, speed slider, prev/next */}
+      <div
+        className="absolute top-2 left-1/2 -translate-x-1/2 z-[200] flex flex-wrap items-center justify-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md bg-black/40 ring-1 ring-white/15"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        {ROLL_MODES.map((m, i) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setRollIdx(i)}
+            className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full transition-all ${
+              rollIdx === i
+                ? "bg-white text-black shadow-[0_0_10px_hsl(var(--neon-magenta))]"
+                : "text-white/70 hover:text-white hover:bg-white/10"
+            }`}
+            aria-label={`Mode ${m}`}
+          >
+            {m}
+          </button>
+        ))}
+        <span className="mx-1 h-3 w-px bg-white/20" />
+        <button
+          type="button"
+          onClick={() => advance(-1)}
+          className="text-white/80 hover:text-white px-1.5"
+          aria-label="Précédent"
+        >‹</button>
+        <input
+          type="range"
+          min={0.25}
+          max={3}
+          step={0.05}
+          value={speed}
+          onChange={(e) => setSpeed(parseFloat(e.target.value))}
+          className="w-24 accent-fuchsia-400"
+          aria-label="Vitesse de défilement"
+        />
+        <button
+          type="button"
+          onClick={() => advance(1)}
+          className="text-white/80 hover:text-white px-1.5"
+          aria-label="Suivant"
+        >›</button>
+        <button
+          type="button"
+          onClick={() => setPaused((p) => !p)}
+          className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white hover:bg-white/20"
+          aria-label={paused ? "Lecture" : "Pause"}
+        >
+          {paused ? "▶" : "❚❚"}
+        </button>
+      </div>
       {/* Interactive neon dial ring — click pulses the halo */}
       <button
         type="button"
