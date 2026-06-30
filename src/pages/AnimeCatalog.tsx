@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import { Navbar } from "@/components/Navbar";
+import CardSkinBubble from "@/components/CardSkinBubble";
 
 type Media = {
   id: number;
@@ -356,7 +357,14 @@ export default function AnimeCatalog() {
                       />
                     )}
                   </div>
-                  <div className="mt-2 text-xs text-center text-white/80 line-clamp-2">
+                  <div
+                    className="mt-2 text-xs text-center line-clamp-2 px-2 py-1 rounded-md border"
+                    style={{
+                      background: "var(--card-skin-bg, #fff)",
+                      color: "var(--card-skin-fg, #0a0a0a)",
+                      borderColor: "var(--card-skin-border, rgba(0,0,0,0.12))",
+                    }}
+                  >
                     {m.title.english || m.title.romaji}
                   </div>
                 </button>
@@ -399,6 +407,7 @@ export default function AnimeCatalog() {
       <div className="px-4 md:px-10 pt-2">
         <NeonFooterBar inline height={22} className="rounded-full overflow-hidden" />
       </div>
+      <CardSkinBubble />
 
       {/* Grid below */}
       <section className="px-4 md:px-10 py-10">
@@ -418,9 +427,17 @@ export default function AnimeCatalog() {
                   <button
                     key={`g-${m.id}`}
                     onClick={() => setActive(m)}
-                    className="group text-left"
+                    className="group text-left rounded-lg overflow-hidden border"
+                    style={{
+                      background: "var(--card-skin-bg, #fff)",
+                      color: "var(--card-skin-fg, #0a0a0a)",
+                      borderColor: "var(--card-skin-border, rgba(0,0,0,0.12))",
+                    }}
                   >
-                    <div className="aspect-[2/3] rounded-lg overflow-hidden border border-white/10 relative">
+                    <div
+                      className="aspect-[2/3] overflow-hidden border-b relative"
+                      style={{ borderColor: "var(--card-skin-border, rgba(0,0,0,0.08))" }}
+                    >
                       {m.coverImage.large && (
                         <img
                           src={m.coverImage.large}
@@ -448,11 +465,13 @@ export default function AnimeCatalog() {
                         </span>
                       )}
                     </div>
-                    <div className="mt-1 text-[10px] text-white/80 line-clamp-2 leading-tight">
-                      {m.title.english || m.title.romaji}
-                    </div>
-                    <div className="text-[9px] text-white/40">
-                      {m.format} · {m.seasonYear ?? "—"}
+                    <div className="px-1.5 pt-1 pb-1.5">
+                      <div className="text-[10px] line-clamp-2 leading-tight">
+                        {m.title.english || m.title.romaji}
+                      </div>
+                      <div className="text-[9px] opacity-60">
+                        {m.format} · {m.seasonYear ?? "—"}
+                      </div>
                     </div>
                   </button>
                 ))}
