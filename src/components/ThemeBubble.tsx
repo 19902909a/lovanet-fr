@@ -274,6 +274,9 @@ const applyAccent = (a: Accent) => {
   r.setProperty("--accent-foreground", primaryFg);
   r.setProperty("--ring", primary);
   r.setProperty("--site-tint", tint);
+  // Make the hero overlay inherit the tint instead of the dark default,
+  // otherwise the Index hero gradient hides the chosen color.
+  r.setProperty("--gradient-hero", tint);
 
   // Paint the body itself so the tint reaches every page corner.
   document.body.style.background = tint;
@@ -299,8 +302,8 @@ export const ThemeBubble = () => {
     setActive(t.key);
 
     // Default to white background on first visit (per user request).
-    const savedAccent = localStorage.getItem(ACCENT_STORAGE_KEY) ?? "black";
-    const a = ACCENTS.find((x) => x.key === savedAccent) ?? ACCENTS.find((x) => x.key === "black")!;
+    const savedAccent = localStorage.getItem(ACCENT_STORAGE_KEY) ?? "white";
+    const a = ACCENTS.find((x) => x.key === savedAccent) ?? ACCENTS.find((x) => x.key === "white")!;
     applyAccent(a);
     setAccent(a.key);
   }, []);

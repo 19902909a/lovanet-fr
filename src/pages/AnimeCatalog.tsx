@@ -202,7 +202,7 @@ export default function AnimeCatalog() {
   };
 
   return (
-    <main className="min-h-screen bg-[#05040b] text-white overflow-hidden relative">
+    <main className="min-h-screen text-foreground overflow-hidden relative" style={{ background: "transparent" }}>
       <Navbar />
       <div className="h-12" />
 
