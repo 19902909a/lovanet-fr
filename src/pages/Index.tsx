@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import MiniCatalogOrb from "@/components/MiniCatalogOrb";
+import AnimeMomentsOrb from "@/components/AnimeMomentsOrb";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
