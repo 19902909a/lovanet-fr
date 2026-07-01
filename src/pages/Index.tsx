@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import MiniCatalogOrb from "@/components/MiniCatalogOrb";
+import AnimeMomentsOrb from "@/components/AnimeMomentsOrb";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
@@ -351,11 +352,7 @@ const Index = () => {
 
       {/* Anime Moments — quick access to countdown & catalog */}
       <section className="container mx-auto px-4 lg:px-8 pt-4 pb-2">
-        <div className="flex items-baseline justify-between mb-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Anime moments</p>
-          </div>
-        </div>
+        <AnimeMomentsOrb />
         <div className="grid sm:grid-cols-2 gap-4">
           <Link
             to="/anime-countdown"
