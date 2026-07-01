@@ -333,58 +333,6 @@ export const HeroCarousel = () => {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      {/* Interactive controls — mode picker, speed slider, prev/next */}
-      <div
-        className="absolute top-2 left-1/2 -translate-x-1/2 z-[200] flex flex-wrap items-center justify-center gap-1.5 px-3 py-1.5 rounded-full backdrop-blur-md bg-black/40 ring-1 ring-white/15"
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        {ROLL_MODES.map((m, i) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => setRollIdx(i)}
-            className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full transition-all ${
-              rollIdx === i
-                ? "bg-white text-black shadow-[0_0_10px_hsl(var(--neon-magenta))]"
-                : "text-white/70 hover:text-white hover:bg-white/10"
-            }`}
-            aria-label={`Mode ${m}`}
-          >
-            {m}
-          </button>
-        ))}
-        <span className="mx-1 h-3 w-px bg-white/20" />
-        <button
-          type="button"
-          onClick={() => advance(-1)}
-          className="text-white/80 hover:text-white px-1.5"
-          aria-label="Précédent"
-        >‹</button>
-        <input
-          type="range"
-          min={0.25}
-          max={3}
-          step={0.05}
-          value={speed}
-          onChange={(e) => setSpeed(parseFloat(e.target.value))}
-          className="w-24 accent-fuchsia-400"
-          aria-label="Vitesse de défilement"
-        />
-        <button
-          type="button"
-          onClick={() => advance(1)}
-          className="text-white/80 hover:text-white px-1.5"
-          aria-label="Suivant"
-        >›</button>
-        <button
-          type="button"
-          onClick={() => setPaused((p) => !p)}
-          className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 text-white hover:bg-white/20"
-          aria-label={paused ? "Lecture" : "Pause"}
-        >
-          {paused ? "▶" : "❚❚"}
-        </button>
-      </div>
       {/* Interactive neon dial ring — click pulses the halo */}
       <button
         type="button"
