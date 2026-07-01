@@ -354,7 +354,6 @@ const Index = () => {
         <div className="flex items-baseline justify-between mb-6">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Anime moments</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold">Suivez la vague animée</h2>
           </div>
         </div>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -375,10 +374,9 @@ const Index = () => {
               posters={animePosters.countdown}
               accent="magenta"
             />
-            <p className="relative text-xs uppercase tracking-widest text-primary mb-2 mt-4">Auto-sync AniList</p>
-            <h3 className="relative font-display text-2xl font-bold mb-2">Animés à venir</h3>
+            <h3 className="relative font-display text-2xl font-bold mb-2 mt-4">Animés à venir</h3>
             <span className="relative inline-flex mt-4 text-sm font-semibold text-primary">
-              Ouvrir le countdown →
+              Ouvrir →
             </span>
             {/* Mobile/tablet tap capture — sits above iframes & overlays so the whole card is clickable */}
             <span aria-hidden className="absolute inset-0 z-20" />
@@ -400,8 +398,7 @@ const Index = () => {
               posters={animePosters.catalog}
               accent="cyan"
             />
-            <p className="relative text-xs uppercase tracking-widest text-primary mb-2 mt-4">Carrousel 3D</p>
-            <h3 className="relative font-display text-2xl font-bold mb-2">Catalogue Animés</h3>
+            <h3 className="relative font-display text-2xl font-bold mb-2 mt-4">Catalogue Animés</h3>
             <span className="relative inline-flex mt-4 text-sm font-semibold text-primary">
               Explorer le catalogue →
             </span>
@@ -416,7 +413,6 @@ const Index = () => {
         <div className="flex items-baseline justify-between mb-6">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Direct selection</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold">À regarder sur Lovanet</h2>
           </div>
           <Link to="/lecteurs-video" className="text-sm text-primary hover:underline whitespace-nowrap">Tout voir →</Link>
         </div>
