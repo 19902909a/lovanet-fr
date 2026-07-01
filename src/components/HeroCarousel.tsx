@@ -212,9 +212,6 @@ export const HeroCarousel = () => {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, []);
-  const advance = useCallback((dir: 1 | -1) => {
-    setProg((p) => (p + dir / N + 1) % 1);
-  }, [N]);
 
   // Stable cards: one per video; only their angular position changes.
   const cards = allVideos.map((v, i) => ({ key: v.id, v, slotIdx: i }));
