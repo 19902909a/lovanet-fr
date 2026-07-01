@@ -293,7 +293,7 @@ const applyAccent = (a: Accent) => {
 export const ThemeBubble = () => {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<ThemeKey>("default");
-  const [accent, setAccent] = useState<string>("off");
+  const [accent, setAccent] = useState<string>("white");
 
   useEffect(() => {
     const saved = (localStorage.getItem(STORAGE_KEY) as ThemeKey | null) ?? "default";
