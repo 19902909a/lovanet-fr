@@ -460,8 +460,8 @@ export default function AnimeCatalog() {
                         </span>
                       )}
                       {m.trailer?.id && m.trailer?.site === "youtube" && (
-                        <span className="absolute bottom-1 left-1 text-[8px] uppercase tracking-widest px-1 py-0.5 rounded bg-fuchsia-500/80 text-white">
-                          ▶ Trailer
+                        <span className="absolute bottom-1 left-1 text-[10px] px-1 py-0.5 rounded bg-fuchsia-500/80 text-white">
+                          ▶
                         </span>
                       )}
                     </div>
