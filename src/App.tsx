@@ -16,6 +16,8 @@ import AnimeCountdown from "./pages/AnimeCountdown";
 import AnimeCatalog from "./pages/AnimeCatalog";
 import Discover from "./pages/Discover";
 import { ThemeBubble } from "./components/ThemeBubble";
+import { CartProvider } from "./context/CartContext";
+import { CartDrawer } from "./components/CartDrawer";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
+        <CartProvider>
         <Toaster />
         <Sonner />
         <Routes>
@@ -41,6 +44,8 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
         <ThemeBubble />
+        <CartDrawer />
+        </CartProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

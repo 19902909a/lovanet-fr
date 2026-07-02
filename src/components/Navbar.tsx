@@ -1,8 +1,9 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Menu, X, LayoutGrid, ShoppingBag, Youtube, Play, Music2, Film, Mail, User } from "lucide-react";
+import { Menu, X, LayoutGrid, ShoppingBag, Youtube, Play, Music2, Film, Mail, Compass, ShoppingCart } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import lovanetLogo from "@/assets/lovanet-logo.jpg.asset.json";
+import { useCart } from "@/context/CartContext";
 
 const navItems = [
   { to: "/", label: "Accueil" },
@@ -12,6 +13,7 @@ const navItems = [
   { to: "/tiktok", label: "TikTok" },
   { to: "/anime-countdown", label: "À venir" },
   { to: "/anime-catalog", label: "Catalogue" },
+  { to: "/decouvrir", label: "Découvrir" },
   { to: "/shop", label: "Shop" },
 ];
 
@@ -27,6 +29,7 @@ const megaSections = [
   { to: "/lecteurs-video", label: "Lecteur vidéo", desc: "Player immersif anime", icon: Film, tint: "from-purple-500 to-violet-600" },
   { to: "/anime-countdown", label: "Animés à venir", desc: "Countdown live des prochains épisodes", icon: Play, tint: "from-fuchsia-500 to-cyan-500" },
   { to: "/anime-catalog", label: "Catalogue Animés", desc: "Carrousel 3D tendances", icon: Film, tint: "from-cyan-500 to-violet-600" },
+  { to: "/decouvrir", label: "Découvrir", desc: "Vitrine SEO produits & vidéos", icon: Compass, tint: "from-amber-500 to-pink-600" },
   { to: "/contact", label: "Contact", desc: "Écrire à l'équipe", icon: Mail, tint: "from-emerald-500 to-teal-600" },
 ];
 
@@ -36,6 +39,7 @@ export const Navbar = () => {
   const [megaOpen, setMegaOpen] = useState(false);
   const megaRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<number | null>(null);
+  const { count, setOpen: setCartOpen } = useCart();
   useLocation();
 
   const scheduleClose = () => {
@@ -123,6 +127,19 @@ export const Navbar = () => {
         >
           Boutique
         </Link>
+        <button
+          type="button"
+          onClick={() => setCartOpen(true)}
+          className="relative inline-flex items-center justify-center w-9 h-9 rounded-full border border-border bg-card/60 backdrop-blur hover:border-primary/60 hover:text-primary transition-all"
+          aria-label={`Ouvrir le panier (${count} article${count > 1 ? "s" : ""})`}
+        >
+          <ShoppingCart className="w-4 h-4" />
+          {count > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold text-white grid place-items-center shadow-md" style={{ background: "var(--gradient-magenta)" }}>
+              {count > 99 ? "99+" : count}
+            </span>
+          )}
+        </button>
         <button
           className="lg:hidden p-2 rounded-lg hover:bg-secondary"
           onClick={() => setOpen((v) => !v)}
