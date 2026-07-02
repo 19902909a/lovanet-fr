@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { PageShell } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Product360Viewer } from "@/components/Product360Viewer";
 import { ProductArtwork } from "@/components/ProductArtwork";
-import { SHOP_CATEGORIES, SHOP_PRODUCTS, type ShopProduct, type ShopCategory, categoryLabel } from "@/data/shopProducts";
-import { Youtube } from "lucide-react";
+import { SHOP_CATEGORIES, type ShopProduct, type ShopCategory, categoryLabel } from "@/data/shopProducts";
+import { ALL_PRODUCTS, loadManualProducts } from "@/data/generatedProducts";
+import { DropshipAdminPanel } from "@/components/DropshipAdminPanel";
+import { useCart } from "@/context/CartContext";
+import { useIsAdmin } from "@/hooks/use-is-admin";
+import { Search, Star, Flame, Truck, ShieldCheck, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 
+const PAGE_SIZE = 40;
 const SOURCE_LABEL: Record<ShopProduct["source"], string> = {
   youtube: "YouTube drop",
   tiktok: "TikTok drop",
@@ -14,97 +20,108 @@ const SOURCE_LABEL: Record<ShopProduct["source"], string> = {
 };
 
 const Shop = () => {
+  const isAdmin = useIsAdmin();
+  const { add, setOpen: openCart, count } = useCart();
+  const [manual, setManual] = useState<ShopProduct[]>(() => loadManualProducts());
   const [filter, setFilter] = useState<ShopCategory | "all">("all");
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<"pop" | "asc" | "desc">("pop");
+  const [page, setPage] = useState(1);
   const [active, setActive] = useState<ShopProduct | null>(null);
 
-  const filtered = useMemo(
-    () => (filter === "all" ? SHOP_PRODUCTS : SHOP_PRODUCTS.filter((p) => p.category === filter)),
-    [filter]
-  );
+  const products = useMemo(() => [...manual, ...ALL_PRODUCTS], [manual]);
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let list = products;
+    if (filter !== "all") list = list.filter((p) => p.category === filter);
+    if (q) list = list.filter((p) => p.name.toLowerCase().includes(q) || p.tag.toLowerCase().includes(q));
+    if (sort === "asc") list = [...list].sort((a, b) => a.price - b.price);
+    else if (sort === "desc") list = [...list].sort((a, b) => b.price - a.price);
+    return list;
+  }, [products, filter, query, sort]);
 
-  // SEO: emit ItemList + Product JSON-LD so search engines identify each
-  // product (name, description, price, image, brand) on the shop page.
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  useEffect(() => { setPage(1); }, [filter, query, sort]);
+
+  const flashDeals = useMemo(() => products.slice(0, 12), [products]);
+  const bestSellers = useMemo(() => products.slice(12, 24), [products]);
+
   useEffect(() => {
-    const origin =
-      typeof window !== "undefined" ? window.location.origin : "https://lovanet.fr";
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://lovanet.fr";
     const ld = {
-      "@context": "https://schema.org",
-      "@type": "ItemList",
+      "@context": "https://schema.org", "@type": "ItemList",
       name: "Boutique AnimemomentsAnimeofficiel",
-      itemListElement: SHOP_PRODUCTS.map((p, i) => ({
-        "@type": "ListItem",
-        position: i + 1,
+      numberOfItems: products.length,
+      itemListElement: products.slice(0, 100).map((p, i) => ({
+        "@type": "ListItem", position: i + 1,
         item: {
-          "@type": "Product",
-          "@id": `${origin}/shop#${p.id}`,
-          sku: p.id,
-          name: p.name,
-          description: p.description,
-          category: categoryLabel(p.category),
+          "@type": "Product", "@id": `${origin}/shop#${p.id}`, sku: p.id,
+          name: p.name, description: p.description, category: categoryLabel(p.category),
           brand: { "@type": "Brand", name: "AnimemomentsAnimeofficiel" },
-          image: `${origin}/og-product-${p.id}.svg`,
-          url: `${origin}/shop#${p.id}`,
-          offers: {
-            "@type": "Offer",
-            priceCurrency: "EUR",
-            price: p.price.toFixed(2),
-            availability: "https://schema.org/InStock",
-            url: `${origin}/shop#${p.id}`,
-          },
+          image: `${origin}/products/${p.id}.svg`, url: `${origin}/shop#${p.id}`,
+          offers: { "@type": "Offer", priceCurrency: "EUR", price: p.price.toFixed(2), availability: "https://schema.org/InStock", url: `${origin}/shop#${p.id}` },
         },
       })),
     };
     const tag = document.createElement("script");
-    tag.type = "application/ld+json";
-    tag.id = "shop-itemlist-jsonld";
-    tag.textContent = JSON.stringify(ld);
-    const old = document.getElementById("shop-itemlist-jsonld");
-    if (old) old.remove();
+    tag.type = "application/ld+json"; tag.id = "shop-itemlist-jsonld"; tag.textContent = JSON.stringify(ld);
+    document.getElementById("shop-itemlist-jsonld")?.remove();
     document.head.appendChild(tag);
+    const prev = document.title;
+    document.title = "Boutique AnimemomentsAnimeofficiel — 5000+ produits Anime, Manga & Collectors";
+    return () => { tag.remove(); document.title = prev; };
+  }, [products.length]);
 
-    const prevTitle = document.title;
-    document.title = "Boutique AnimemomentsAnimeofficiel — Affiches, Collectors, Vêtements 360°";
-    const desc = document.querySelector('meta[name="description"]');
-    const prevDesc = desc?.getAttribute("content") ?? "";
-    desc?.setAttribute(
-      "content",
-      `${SHOP_PRODUCTS.length} produits AnimemomentsAnimeofficiel : affiches, collectors, vêtements, chaussures, musique, mangas en rotation 360°.`,
-    );
-    return () => {
-      tag.remove();
-      document.title = prevTitle;
-      if (desc && prevDesc) desc.setAttribute("content", prevDesc);
-    };
-  }, []);
+  const addToCart = (p: ShopProduct) => {
+    add({ id: p.id, name: p.name, price: p.price, category: categoryLabel(p.category) });
+    openCart(true);
+  };
 
   return (
     <PageShell>
-      <section className="container mx-auto px-4 lg:px-8 py-16 text-center">
-        <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Shop creator · AnimemomentsAnimeofficiel</p>
-        <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-3">
-          <span className="gradient-text">Boutique Anime 360°</span>
-        </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          {SHOP_PRODUCTS.length} produits uniques AnimemomentsAnimeofficiel — affiches, collectors, vêtements,
-          chaussures, musique, mangas et objets du quotidien. Chaque visuel est généré individuellement.
-          Cliquez un produit pour le faire tourner en 360°.
-        </p>
+      {/* HERO */}
+      <section className="container mx-auto px-4 lg:px-8 pt-10 pb-6">
+        <div className="rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-card to-card p-6 sm:p-10 relative overflow-hidden">
+          <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full opacity-40 blur-3xl" style={{ background: "var(--gradient-magenta)" }} />
+          <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Boutique AnimemomentsAnimeofficiel</p>
+          <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-3">
+            <span className="gradient-text">Shop Anime · 5000+ produits</span>
+          </h1>
+          <p className="text-muted-foreground max-w-2xl">
+            Affiches, collectors, streetwear, sneakers, manga, musique et objets du quotidien.
+            Livraison suivie, dropshipping premium, retours 14 jours.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3 items-center">
+            <div className="relative flex-1 min-w-[220px] max-w-lg">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input className="pl-9 h-11 text-sm" placeholder="Rechercher un produit, un tag…" value={query} onChange={(e) => setQuery(e.target.value)} />
+            </div>
+            <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className="rounded-md border border-border bg-background px-3 h-11 text-sm">
+              <option value="pop">Populaires</option>
+              <option value="asc">Prix ↑</option>
+              <option value="desc">Prix ↓</option>
+            </select>
+            <Button onClick={() => openCart(true)} className="h-11 rounded-full">
+              <ShoppingCart className="w-4 h-4 mr-2" /> Panier ({count})
+            </Button>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-4 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1"><Truck className="w-4 h-4 text-primary" /> Livraison 3–7j</span>
+            <span className="inline-flex items-center gap-1"><ShieldCheck className="w-4 h-4 text-primary" /> Paiement sécurisé</span>
+            <span className="inline-flex items-center gap-1"><Star className="w-4 h-4 text-primary" /> Note 4.8/5</span>
+          </div>
+        </div>
       </section>
 
-      <section className="container mx-auto px-4 lg:px-8 pb-6">
-        <div className="flex flex-wrap items-center justify-center gap-2">
+      {/* CATEGORY CHIPS */}
+      <section className="container mx-auto px-4 lg:px-8 pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
           {[{ id: "all" as const, label: "Tous" }, ...SHOP_CATEGORIES].map((c) => {
             const isActive = filter === c.id;
             return (
-              <button
-                key={c.id}
-                onClick={() => setFilter(c.id as ShopCategory | "all")}
-                className={`px-4 py-1.5 rounded-full text-xs uppercase tracking-wider transition-all border ${
-                  isActive
-                    ? "bg-primary text-primary-foreground border-primary shadow-[0_0_18px_hsl(var(--neon-magenta)/0.55)]"
-                    : "bg-card border-border text-muted-foreground hover:text-primary hover:border-primary/50"
-                }`}
-              >
+              <button key={c.id} onClick={() => setFilter(c.id as ShopCategory | "all")}
+                className={`shrink-0 px-4 py-2 rounded-full text-xs uppercase tracking-wider transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary shadow-[0_0_18px_hsl(var(--neon-magenta)/0.55)]" : "bg-card border-border text-muted-foreground hover:text-primary hover:border-primary/50"}`}>
                 {c.label}
               </button>
             );
@@ -112,75 +129,105 @@ const Shop = () => {
         </div>
       </section>
 
-      <section className="container mx-auto px-4 lg:px-8 pb-16 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filtered.map((p) => (
-          <article
-            key={p.id}
-            id={p.id}
-            itemScope
-            itemType="https://schema.org/Product"
-            className="rgb-card tilt-card overflow-hidden transition-all group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-            onClick={() => setActive(p)}
-            tabIndex={0}
-            onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setActive(p)}
-          >
-            <figure className="rgb-frame relative aspect-square overflow-hidden bg-gradient-to-br from-primary/20 via-card to-card m-0 rounded-t-2xl">
-              <div className="rgb-art absolute inset-0 group-hover:scale-110 group-hover:rotate-1 transition-transform duration-700">
-                <ProductArtwork
-                  seed={p.id}
-                  category={p.category}
-                  label={`${p.name} — AnimemomentsAnimeofficiel ${categoryLabel(p.category)}`}
-                />
+      {/* FLASH DEALS carousel */}
+      <section className="container mx-auto px-4 lg:px-8 py-6">
+        <header className="flex items-center gap-2 mb-3">
+          <Flame className="w-5 h-5 text-primary" />
+          <h2 className="font-display font-bold text-xl">Flash Deals</h2>
+          <span className="ml-auto text-xs text-muted-foreground">Défile →</span>
+        </header>
+        <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 no-scrollbar">
+          {flashDeals.map((p) => (
+            <button key={p.id} onClick={() => setActive(p)} className="snap-start shrink-0 w-40 rounded-xl border border-border/60 bg-card overflow-hidden text-left hover:border-primary/60 transition-all hover:-translate-y-0.5">
+              <div className="aspect-square"><ProductArtwork seed={p.id} category={p.category} label={p.name} /></div>
+              <div className="p-2">
+                <p className="text-[11px] font-medium line-clamp-2 min-h-[2.2rem]">{p.name}</p>
+                <p className="mt-1 font-display font-bold text-primary text-sm">{p.price} €</p>
               </div>
-              {/* Crawlable real image URL (generated to /public/products at build) */}
-              <img
-                src={`/products/${p.id}.svg`}
-                alt={`${p.name} — AnimemomentsAnimeofficiel ${categoryLabel(p.category)}`}
-                width={400}
-                height={400}
-                loading="lazy"
-                decoding="async"
-                itemProp="image"
-                className="sr-only"
-              />
-              <link itemProp="url" href={`/shop#${p.id}`} />
-              <span className="absolute top-3 left-3 z-10 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur text-primary border border-primary/40">
-                360°
-              </span>
-              <span className="absolute top-3 right-3 z-10 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur text-foreground/80">
-                {categoryLabel(p.category)}
-              </span>
-            </figure>
-            <div className="p-5">
-              <span className="inline-block text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary mb-2">
-                {p.tag}
-              </span>
-              <h3 className="font-display font-bold text-base leading-snug min-h-[3rem]" itemProp="name">
-                {p.name}
-              </h3>
-              <meta itemProp="sku" content={p.id} />
-              <meta itemProp="description" content={p.description} />
-              <div className="flex items-center justify-between mt-3">
-                <span
-                  className="font-display font-bold rgb-price text-lg"
-                  itemProp="offers"
-                  itemScope
-                  itemType="https://schema.org/Offer"
-                >
-                  <span itemProp="price" content={p.price.toFixed(2)}>
-                    {p.price}
-                  </span>{" "}
-                  <span itemProp="priceCurrency" content="EUR">€</span>
-                </span>
-                <Button size="sm" variant="outline" className="rounded-full">
-                  Voir 360°
-                </Button>
-              </div>
-            </div>
-          </article>
-        ))}
+            </button>
+          ))}
+        </div>
       </section>
 
+      {/* BEST SELLERS carousel */}
+      <section className="container mx-auto px-4 lg:px-8 pb-6">
+        <header className="flex items-center gap-2 mb-3">
+          <Star className="w-5 h-5 text-primary" />
+          <h2 className="font-display font-bold text-xl">Meilleures ventes</h2>
+        </header>
+        <div className="flex gap-3 overflow-x-auto snap-x pb-2 no-scrollbar">
+          {bestSellers.map((p) => (
+            <button key={p.id} onClick={() => setActive(p)} className="snap-start shrink-0 w-40 rounded-xl border border-border/60 bg-card overflow-hidden text-left hover:border-primary/60 transition-all hover:-translate-y-0.5">
+              <div className="aspect-square"><ProductArtwork seed={p.id} category={p.category} label={p.name} /></div>
+              <div className="p-2">
+                <p className="text-[11px] font-medium line-clamp-2 min-h-[2.2rem]">{p.name}</p>
+                <p className="mt-1 font-display font-bold text-primary text-sm">{p.price} €</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* GRID */}
+      <section className="container mx-auto px-4 lg:px-8 pb-8">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-muted-foreground">
+            {filtered.length.toLocaleString()} produits · page {page}/{pages}
+          </p>
+          <div className="flex items-center gap-1">
+            <Button size="icon" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} aria-label="Précédent"><ChevronLeft className="w-4 h-4" /></Button>
+            <Button size="icon" variant="outline" disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))} aria-label="Suivant"><ChevronRight className="w-4 h-4" /></Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {pageItems.map((p) => (
+            <article key={p.id} id={p.id} itemScope itemType="https://schema.org/Product"
+              className="rgb-card group overflow-hidden bg-card rounded-2xl">
+              <button onClick={() => setActive(p)} className="block w-full text-left">
+                <figure className="rgb-frame relative aspect-square overflow-hidden m-0">
+                  <div className="rgb-art absolute inset-0 group-hover:scale-110 transition-transform duration-500">
+                    <ProductArtwork seed={p.id} category={p.category} label={p.name} />
+                  </div>
+                  <span className="absolute top-2 left-2 z-10 text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur text-primary border border-primary/40">360°</span>
+                  <span className="absolute top-2 right-2 z-10 text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-background/70 backdrop-blur">{categoryLabel(p.category)}</span>
+                </figure>
+                <div className="p-3">
+                  <p className="text-[11px] uppercase tracking-wider text-primary">{p.tag}</p>
+                  <h3 className="font-display font-bold text-sm leading-snug line-clamp-2 min-h-[2.6rem]" itemProp="name">{p.name}</h3>
+                  <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground">
+                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <span>4.{(p.price % 10) || 5} · {100 + (p.price * 13) % 900} ventes</span>
+                  </div>
+                  <p className="mt-2 font-display font-extrabold gradient-text text-lg">
+                    <span itemProp="offers" itemScope itemType="https://schema.org/Offer">
+                      <span itemProp="price" content={p.price.toFixed(2)}>{p.price}</span>{" "}
+                      <span itemProp="priceCurrency" content="EUR">€</span>
+                    </span>
+                  </p>
+                  <meta itemProp="sku" content={p.id} />
+                  <meta itemProp="description" content={p.description} />
+                </div>
+              </button>
+              <div className="px-3 pb-3">
+                <Button size="sm" className="w-full rounded-full" onClick={() => addToCart(p)}>
+                  <ShoppingCart className="w-3.5 h-3.5 mr-1" /> Ajouter
+                </Button>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <Button variant="outline" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}><ChevronLeft className="w-4 h-4 mr-1" />Précédent</Button>
+          <span className="text-sm text-muted-foreground px-3">Page {page} / {pages}</span>
+          <Button variant="outline" disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))}>Suivant<ChevronRight className="w-4 h-4 ml-1" /></Button>
+        </div>
+      </section>
+
+      {isAdmin && <DropshipAdminPanel onProductsChange={setManual} />}
+
+      {/* DETAIL */}
       <Dialog open={!!active} onOpenChange={(o) => !o && setActive(null)}>
         <DialogContent className="max-w-3xl">
           {active && (
@@ -188,15 +235,10 @@ const Shop = () => {
               <DialogHeader>
                 <DialogTitle className="font-display text-2xl">{active.name}</DialogTitle>
                 <DialogDescription className="flex flex-wrap gap-2 items-center pt-1">
-                  <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary">
-                    {categoryLabel(active.category)}
-                  </span>
-                  <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-foreground/80 inline-flex items-center gap-1">
-                    <Youtube className="w-3 h-3" /> {SOURCE_LABEL[active.source]}
-                  </span>
+                  <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary">{categoryLabel(active.category)}</span>
+                  <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-foreground/80">{SOURCE_LABEL[active.source]}</span>
                 </DialogDescription>
               </DialogHeader>
-
               <div className="grid md:grid-cols-2 gap-6">
                 <Product360Viewer>
                   <ProductArtwork seed={active.id} category={active.category} label={active.name} />
@@ -205,10 +247,12 @@ const Shop = () => {
                   <p className="text-sm text-muted-foreground leading-relaxed">{active.description}</p>
                   <div className="mt-6 flex items-center justify-between">
                     <span className="font-display text-3xl font-extrabold gradient-text">{active.price} €</span>
-                    <Button className="rounded-full">Ajouter au panier</Button>
+                    <Button className="rounded-full" onClick={() => { addToCart(active); setActive(null); }}>
+                      <ShoppingCart className="w-4 h-4 mr-2" /> Ajouter au panier
+                    </Button>
                   </div>
                   <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Référence {active.id} · {active.tag}
+                    Référence {active.id} · {active.tag} · Expédition suivie 3–7 jours
                   </p>
                 </div>
               </div>
