@@ -16,27 +16,82 @@ const SHAPES = [
 
 export default function AnimeMomentsOrb() {
   const [shape, setShape] = useState(0);
-  const [hue, setHue] = useState(0);
   const [paused, setPaused] = useState(false);
   const [speed, setSpeed] = useState(1); // 0.25 .. 3
   const [dir, setDir] = useState<1 | -1>(1);
-  const [angle, setAngle] = useState(0);
+  // Live values kept in refs to avoid re-rendering every frame.
+  const hueRef = useRef(0);
+  const angleRef = useRef(0);
+  const pausedRef = useRef(paused);
+  const speedRef = useRef(speed);
+  const dirRef = useRef<1 | -1>(dir);
   const rafRef = useRef<number>();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
+  const ringRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const particleRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const orbRef = useRef<HTMLButtonElement>(null);
+  const orbConicRef = useRef<HTMLSpanElement>(null);
+  const orbHiliteRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => { pausedRef.current = paused; }, [paused]);
+  useEffect(() => { speedRef.current = speed; }, [speed]);
+  useEffect(() => { dirRef.current = dir; }, [dir]);
 
   useEffect(() => {
     let last = performance.now();
     const tick = (t: number) => {
-      const dt = (t - last) / 1000;
+      const dt = Math.min(0.05, (t - last) / 1000);
       last = t;
-      if (!paused) {
-        setAngle((a) => a + dt * 40 * speed * dir);
-        setHue((h) => (h + dt * 30 * speed + 360) % 360);
+      if (!pausedRef.current) {
+        angleRef.current += dt * 40 * speedRef.current * dirRef.current;
+        hueRef.current = (hueRef.current + dt * 30 * speedRef.current + 360) % 360;
+      }
+      const angle = angleRef.current;
+      const hue = hueRef.current;
+      if (bgRef.current) {
+        bgRef.current.style.background =
+          `radial-gradient(60% 50% at 50% 40%, hsl(${hue} 90% 55% / 0.28), transparent 70%),` +
+          `radial-gradient(40% 40% at 70% 70%, hsl(${(hue + 120) % 360} 90% 55% / 0.22), transparent 75%),` +
+          `radial-gradient(35% 35% at 20% 80%, hsl(${(hue + 240) % 360} 90% 55% / 0.22), transparent 75%)`;
+      }
+      ringRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const r = rings[i];
+        const h = (hue + r.hueShift) % 360;
+        el.style.transform = `rotateX(${r.tilt}deg) rotateZ(${angle * r.spin}deg)`;
+        el.style.borderColor = `hsl(${h} 100% 65% / 0.6)`;
+        el.style.boxShadow = `0 0 24px hsl(${h} 100% 65% / 0.35), inset 0 0 24px hsl(${h} 100% 65% / 0.25)`;
+      });
+      particleRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const p = particles[i];
+        const rad = ((p.a + angle * 0.6) * Math.PI) / 180;
+        const x = Math.cos(rad) * p.r;
+        const y = Math.sin(rad) * p.r * 0.4;
+        const color = `hsl(${(hue + p.hueShift) % 360} 100% 65%)`;
+        el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        el.style.background = color;
+        el.style.boxShadow = `0 0 10px ${color}`;
+      });
+      if (orbRef.current) {
+        orbRef.current.style.transform = `rotateZ(${angle * 0.4}deg)`;
+      }
+      if (orbConicRef.current) {
+        orbConicRef.current.style.background = `conic-gradient(from ${angle}deg, hsl(${hue} 100% 60%), hsl(${(hue + 60) % 360} 100% 60%), hsl(${(hue + 120) % 360} 100% 60%), hsl(${(hue + 180) % 360} 100% 60%), hsl(${(hue + 240) % 360} 100% 60%), hsl(${(hue + 300) % 360} 100% 60%), hsl(${hue} 100% 60%))`;
+        orbConicRef.current.style.boxShadow = `0 0 60px hsl(${hue} 100% 60% / 0.9), 0 0 120px hsl(${(hue + 180) % 360} 100% 60% / 0.5)`;
+      }
+      if (orbHiliteRef.current) {
+        orbHiliteRef.current.style.background =
+          `radial-gradient(circle at 35% 30%, hsl(0 0% 100% / 0.85), transparent 45%),` +
+          `radial-gradient(circle at 60% 70%, hsl(${(hue + 60) % 360} 100% 70% / 0.5), transparent 60%)`;
       }
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
-  }, [paused, speed, dir]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const cycle = () => setShape((s) => (s + 1) % SHAPES.length);
   const prev = () => setShape((s) => (s - 1 + SHAPES.length) % SHAPES.length);
@@ -65,15 +120,11 @@ export default function AnimeMomentsOrb() {
     <section className="relative w-full py-14 overflow-hidden">
       {/* 3D animated background */}
       <div
+        ref={bgRef}
         aria-hidden
         className="absolute inset-0 -z-10"
         style={{
-          background:
-            `radial-gradient(60% 50% at 50% 40%, hsl(${hue} 90% 55% / 0.28), transparent 70%),` +
-            `radial-gradient(40% 40% at 70% 70%, hsl(${(hue + 120) % 360} 90% 55% / 0.22), transparent 75%),` +
-            `radial-gradient(35% 35% at 20% 80%, hsl(${(hue + 240) % 360} 90% 55% / 0.22), transparent 75%)`,
           filter: "saturate(1.4)",
-          transition: "background .4s linear",
         }}
       />
       {/* Star-field */}
@@ -130,6 +181,7 @@ export default function AnimeMomentsOrb() {
         </div>
 
         <div
+          ref={rootRef}
           className="relative w-full h-[380px] sm:h-[460px] select-none"
           style={{ perspective: "1200px" }}
           onWheel={(e) => {
@@ -142,36 +194,32 @@ export default function AnimeMomentsOrb() {
             {rings.map((r, i) => (
               <div
                 key={i}
+                ref={(el) => (ringRefs.current[i] = el)}
                 aria-hidden
                 className="absolute rounded-full"
                 style={{
                   width: r.size,
                   height: r.size,
-                  border: `1.5px solid hsl(${(hue + r.hueShift) % 360} 100% 65% / 0.6)`,
-                  boxShadow: `0 0 24px hsl(${(hue + r.hueShift) % 360} 100% 65% / 0.35), inset 0 0 24px hsl(${(hue + r.hueShift) % 360} 100% 65% / 0.25)`,
-                  transform: `rotateX(${r.tilt}deg) rotateZ(${angle * r.spin}deg)`,
+                  borderWidth: 1.5,
+                  borderStyle: "solid",
                   transformStyle: "preserve-3d",
+                  willChange: "transform",
                 }}
               />
             ))}
 
             {/* Orbiting particles */}
             {particles.map((p, i) => {
-              const rad = ((p.a + angle * 0.6) * Math.PI) / 180;
-              const x = Math.cos(rad) * p.r;
-              const y = Math.sin(rad) * p.r * 0.4;
-              const color = `hsl(${(hue + p.hueShift) % 360} 100% 65%)`;
               return (
                 <span
                   key={i}
+                  ref={(el) => (particleRefs.current[i] = el)}
                   aria-hidden
                   className="absolute rounded-full"
                   style={{
                     width: p.s,
                     height: p.s,
-                    transform: `translate3d(${x}px, ${y}px, 0)`,
-                    background: color,
-                    boxShadow: `0 0 10px ${color}`,
+                    willChange: "transform",
                   }}
                 />
               );
@@ -179,6 +227,7 @@ export default function AnimeMomentsOrb() {
 
             {/* Central clickable RGB orb */}
             <button
+              ref={orbRef}
               type="button"
               onClick={cycle}
               aria-label="Changer la forme du halo"
@@ -186,29 +235,25 @@ export default function AnimeMomentsOrb() {
               style={{
                 width: 220,
                 height: 220,
-                transform: `rotateZ(${angle * 0.4}deg)`,
-                transition: "transform .1s linear",
+                willChange: "transform",
               }}
             >
               <span
+                ref={orbConicRef}
                 aria-hidden
                 className="absolute inset-0"
                 style={{
                   clipPath: SHAPES[shape].clip,
-                  background: `conic-gradient(from ${angle}deg, hsl(${hue} 100% 60%), hsl(${(hue + 60) % 360} 100% 60%), hsl(${(hue + 120) % 360} 100% 60%), hsl(${(hue + 180) % 360} 100% 60%), hsl(${(hue + 240) % 360} 100% 60%), hsl(${(hue + 300) % 360} 100% 60%), hsl(${hue} 100% 60%))`,
                   filter: "saturate(1.5) blur(0.2px)",
-                  boxShadow: `0 0 60px hsl(${hue} 100% 60% / 0.9), 0 0 120px hsl(${(hue + 180) % 360} 100% 60% / 0.5)`,
                   transition: "clip-path .5s ease",
                 }}
               />
               <span
+                ref={orbHiliteRef}
                 aria-hidden
                 className="absolute inset-3"
                 style={{
                   clipPath: SHAPES[shape].clip,
-                  background:
-                    `radial-gradient(circle at 35% 30%, hsl(0 0% 100% / 0.85), transparent 45%),` +
-                    `radial-gradient(circle at 60% 70%, hsl(${(hue + 60) % 360} 100% 70% / 0.5), transparent 60%)`,
                   mixBlendMode: "screen",
                 }}
               />
