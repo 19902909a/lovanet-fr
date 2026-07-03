@@ -487,88 +487,19 @@ export const HeroCarousel = () => {
               e.stopPropagation();
             }}
           >
-            {/* Deep back body — stacked slices give visible thickness */}
-            {[-32, -26, -20, -14, -8, -3].map((zd, idx, arr) => {
-              const t = (arr.length - 1 - idx) / (arr.length - 1); // 1=back .. 0=near
-              return (
-                <div
-                  key={zd}
-                  aria-hidden
-                  className="absolute inset-0 rounded-xl"
-                  style={{
-                    transform: `translateZ(${zd}px)`,
-                    background: `linear-gradient(180deg, hsl(var(--neon-purple) / ${0.25 + t * 0.45}), hsl(280 60% 6% / 0.98))`,
-                    boxShadow:
-                      zd === -32
-                        ? "0 0 0 1px hsl(var(--neon-magenta) / 0.55), 0 30px 60px -10px hsl(var(--neon-magenta) / 0.45)"
-                        : "inset 0 0 0 1px hsl(0 0% 100% / 0.04)",
-                  }}
-                />
-              );
-            })}
-
-            {/* Beveled side faces — real edges visible when tilted */}
-            {/* Top face */}
+            {/* Front face (image) — clean, unobstructed for crisp thumbnails */}
             <div
-              aria-hidden
-              className="absolute left-0 right-0 top-0 pointer-events-none"
+              className="card-3d-front rgb-frame relative w-full aspect-video overflow-hidden rounded-xl bg-black"
               style={{
-                height: "32px",
-                transform: "rotateX(90deg) translateZ(0px)",
-                transformOrigin: "top center",
-                background:
-                  "linear-gradient(180deg, hsl(0 0% 100% / 0.35), hsl(290 60% 18% / 0.95))",
-                borderRadius: "0 0 6px 6px",
+                transform: "translateZ(0)",
+                boxShadow:
+                  "0 0 0 1px hsl(var(--neon-magenta) / 0.45), 0 20px 40px -12px hsl(var(--neon-purple) / 0.6)",
               }}
-            />
-            {/* Bottom face */}
-            <div
-              aria-hidden
-              className="absolute left-0 right-0 bottom-0 pointer-events-none"
-              style={{
-                height: "32px",
-                transform: "rotateX(-90deg) translateZ(0px)",
-                transformOrigin: "bottom center",
-                background:
-                  "linear-gradient(0deg, hsl(0 0% 0% / 0.85), hsl(290 60% 14% / 0.95))",
-                borderRadius: "6px 6px 0 0",
-              }}
-            />
-            {/* Left face */}
-            <div
-              aria-hidden
-              className="absolute top-0 bottom-0 left-0 pointer-events-none"
-              style={{
-                width: "32px",
-                transform: "rotateY(-90deg) translateZ(0px)",
-                transformOrigin: "left center",
-                background:
-                  "linear-gradient(90deg, hsl(290 60% 22% / 0.95), hsl(290 60% 10% / 0.95))",
-              }}
-            />
-            {/* Right face */}
-            <div
-              aria-hidden
-              className="absolute top-0 bottom-0 right-0 pointer-events-none"
-              style={{
-                width: "32px",
-                transform: "rotateY(90deg) translateZ(0px)",
-                transformOrigin: "right center",
-                background:
-                  "linear-gradient(270deg, hsl(var(--neon-magenta) / 0.55), hsl(290 60% 10% / 0.95))",
-                boxShadow: "inset 0 0 12px hsl(var(--neon-magenta) / 0.45)",
-              }}
-            />
-
-            {/* Front face (image) — pushed forward for clear relief */}
-            <div
-              className="card-3d-front rgb-frame relative w-full aspect-video overflow-hidden rounded-xl bg-muted"
-              style={{ transform: "translateZ(2px)" }}
             >
               <img
                 src={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
                 alt={c.v.title}
-                loading="lazy"
+                loading="eager"
                 decoding="async"
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
