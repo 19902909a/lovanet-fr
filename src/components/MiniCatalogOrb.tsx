@@ -21,26 +21,23 @@ export default function MiniCatalogOrb({
   const [hue, setHue] = useState(0);
   const [speed, setSpeed] = useState(18);
   const [hovered, setHovered] = useState(false);
-  const [shapeIdx, setShapeIdx] = useState(0);
-  const SHAPES = [
-    "circle(50% at 50% 50%)",
-    "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
-    "polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%)",
-    "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
-    "polygon(5% 5%, 95% 5%, 95% 95%, 5% 95%)",
-  ];
+  const [pulse, setPulse] = useState(0);
+  const [morph, setMorph] = useState(0);
 
-  // Continuous RGB cycling
+  // Continuous RGB cycling + morph pulse
   useEffect(() => {
-    const t = setInterval(() => setHue((h) => (h + 4) % 360), 80);
+    const t = setInterval(() => {
+      setHue((h) => (h + 4) % 360);
+      setPulse((p) => (p + 1) % 360);
+    }, 60);
     return () => clearInterval(t);
   }, []);
 
   const cycle = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    setShapeIdx((i) => (i + 1) % SHAPES.length);
+    setMorph((i) => (i + 1) % 4);
     setSpeed((s) => (s >= 90 ? 18 : s + 24));
-  }, [SHAPES.length]);
+  }, []);
 
   useEffect(() => {
     const hydrate = (raw: any[]): Cover[] =>
@@ -85,60 +82,104 @@ export default function MiniCatalogOrb({
     return () => { if (raf.current) cancelAnimationFrame(raf.current); };
   }, [hovered, speed]);
 
-  const N = Math.max(items.length, 1);
-  const radius = Math.max(70, size * 0.42);
+  // Space out cards: cap visible count so they don't overlap
+  const visible = items.slice(0, 14);
+  const N = Math.max(visible.length, 1);
+  const radius = Math.max(90, size * 0.58);
+  const pulseScale = 1 + Math.sin((pulse * Math.PI) / 180) * 0.04;
+  const wobble = Math.sin((pulse * Math.PI) / 90) * 6;
 
   return (
     <Link
       to="/anime-catalog"
       aria-label="Explorer le catalogue animé"
       className="relative block select-none group"
-      style={{ width: size, height: size, perspective: 800 }}
+      style={{ width: size, height: size, perspective: 900 }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={cycle}
     >
-      {/* Stratified RGB halo — multi-layer 3D depth with interactive shape */}
-      {[-24, -14, -6, 0].map((zd, i) => (
-        <span
-          key={zd}
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            clipPath: SHAPES[shapeIdx],
-            WebkitClipPath: SHAPES[shapeIdx],
-            transform: `translateZ(${zd}px) rotate(${angle * (i + 1) * 0.3}deg)`,
-            background: `conic-gradient(from ${i * 45 + angle}deg,
-              hsl(${hue} 100% 60%),
-              hsl(${(hue + 90) % 360} 100% 60%),
-              hsl(${(hue + 180) % 360} 100% 60%),
-              hsl(${(hue + 270) % 360} 100% 60%),
-              hsl(${hue} 100% 60%))`,
-            filter: `blur(${10 - i * 2}px) saturate(2.2) brightness(${1.2 + i * 0.1})`,
-            opacity: 0.55 + i * 0.1,
-          }}
-        />
-      ))}
+      {/* Diffuse plasma glow behind everything */}
       <span
         aria-hidden
-        className="absolute inset-1"
+        className="absolute -inset-6 rounded-full pointer-events-none"
         style={{
-          clipPath: SHAPES[shapeIdx],
-          WebkitClipPath: SHAPES[shapeIdx],
-          boxShadow: `inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(0,0,0,.5), 0 0 22px hsl(${hue} 100% 65% / 0.85), 0 0 44px hsl(${(hue + 120) % 360} 100% 60% / 0.5)`,
-          border: `1.5px solid hsl(${hue} 100% 70% / 0.8)`,
-          transition: "box-shadow .3s, border-color .3s",
+          background: `radial-gradient(circle at 50% 50%,
+            hsl(${hue} 100% 65% / 0.55),
+            hsl(${(hue + 120) % 360} 100% 55% / 0.35) 40%,
+            transparent 70%)`,
+          filter: "blur(24px)",
+          transform: `scale(${pulseScale})`,
         }}
       />
+      {/* Orbital neon rings — tilted at different angles for a gyroscope feel */}
+      {[
+        { tiltX: 70, tiltY: 0, spin: 1, dash: "6 10" },
+        { tiltX: 20, tiltY: 60, spin: -1.4, dash: "4 14" },
+        { tiltX: 55, tiltY: -40, spin: 0.8, dash: "10 6" },
+      ].map((r, i) => (
+        <svg
+          key={i}
+          aria-hidden
+          viewBox="0 0 100 100"
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          style={{
+            transform: `rotateX(${r.tiltX + (morph * 8)}deg) rotateY(${r.tiltY + morph * 12}deg) rotateZ(${angle * r.spin}deg)`,
+            transformStyle: "preserve-3d",
+            filter: `drop-shadow(0 0 6px hsl(${(hue + i * 90) % 360} 100% 65% / 0.9))`,
+          }}
+        >
+          <defs>
+            <linearGradient id={`ring-g-${i}`} x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0%" stopColor={`hsl(${hue} 100% 65%)`} />
+              <stop offset="50%" stopColor={`hsl(${(hue + 120) % 360} 100% 60%)`} />
+              <stop offset="100%" stopColor={`hsl(${(hue + 240) % 360} 100% 60%)`} />
+            </linearGradient>
+          </defs>
+          <circle
+            cx="50"
+            cy="50"
+            r={44 - i * 3}
+            fill="none"
+            stroke={`url(#ring-g-${i})`}
+            strokeWidth={1.4}
+            strokeDasharray={r.dash}
+            strokeLinecap="round"
+            opacity={0.9}
+          />
+        </svg>
+      ))}
+      {/* Floating particles orbiting the sphere */}
+      {Array.from({ length: 10 }).map((_, i) => {
+        const t = (angle * 2 + i * 36) % 360;
+        const r = radius + 14;
+        const x = Math.cos((t * Math.PI) / 180) * r;
+        const y = Math.sin((t * Math.PI) / 180 * 1.6) * (r * 0.4);
+        return (
+          <span
+            key={i}
+            aria-hidden
+            className="absolute top-1/2 left-1/2 rounded-full pointer-events-none"
+            style={{
+              width: 4,
+              height: 4,
+              transform: `translate(${x}px, ${y}px)`,
+              background: `hsl(${(hue + i * 30) % 360} 100% 70%)`,
+              boxShadow: `0 0 10px hsl(${(hue + i * 30) % 360} 100% 70%)`,
+            }}
+          />
+        );
+      })}
       <div
         className="absolute inset-0"
         style={{
           transformStyle: "preserve-3d",
-          transform: `rotateX(-14deg) rotateY(${angle}deg)`,
+          transform: `rotateX(${-14 + wobble}deg) rotateY(${angle}deg) rotateZ(${wobble * 0.4}deg) scale(${pulseScale})`,
         }}
       >
         {items.map((m, i) => {
           const theta = (360 / N) * i;
+          const lift = Math.sin(((angle + i * 30) * Math.PI) / 180) * 6;
           return (
             <div
               key={m.id}
@@ -148,9 +189,9 @@ export default function MiniCatalogOrb({
                 height: cardH,
                 marginLeft: -cardW / 2,
                 marginTop: -cardH / 2,
-                transform: `rotateY(${theta}deg) translateZ(${radius}px)`,
+                transform: `rotateY(${theta}deg) translateY(${lift}px) translateZ(${radius}px)`,
                 background: m.color || "#222",
-                boxShadow: `0 0 10px ${m.color || "#a855f7"}aa, 0 0 18px hsl(${(hue + i * 12) % 360} 100% 60% / 0.6)`,
+                boxShadow: `0 0 8px ${m.color || "#a855f7"}aa, 0 0 20px hsl(${(hue + i * 12) % 360} 100% 60% / 0.7)`,
                 backfaceVisibility: "hidden",
               }}
             >
