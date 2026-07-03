@@ -16,27 +16,24 @@ export default function MiniCatalogOrb({
   cardH = 54,
 }: { size?: number; cardW?: number; cardH?: number }) {
   const [items, setItems] = useState<Cover[]>([]);
-  const [angle, setAngle] = useState(0);
   const raf = useRef<number>();
-  const [hue, setHue] = useState(0);
-  const [speed, setSpeed] = useState(18);
-  const [hovered, setHovered] = useState(false);
-  const [pulse, setPulse] = useState(0);
   const [morph, setMorph] = useState(0);
+  const angleRef = useRef(0);
+  const hueRef = useRef(0);
+  const pulseRef = useRef(0);
+  const speedRef = useRef(18);
+  const hoveredRef = useRef(false);
 
-  // Continuous RGB cycling + morph pulse
-  useEffect(() => {
-    const t = setInterval(() => {
-      setHue((h) => (h + 4) % 360);
-      setPulse((p) => (p + 1) % 360);
-    }, 60);
-    return () => clearInterval(t);
-  }, []);
+  const glowRef = useRef<HTMLSpanElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const ringRefs = useRef<(SVGSVGElement | null)[]>([]);
+  const particleRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const cycle = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     setMorph((i) => (i + 1) % 4);
-    setSpeed((s) => (s >= 90 ? 18 : s + 24));
+    speedRef.current = speedRef.current >= 90 ? 18 : speedRef.current + 24;
   }, []);
 
   useEffect(() => {
@@ -69,25 +66,66 @@ export default function MiniCatalogOrb({
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    let last = performance.now();
-    const tick = (t: number) => {
-      const dt = (t - last) / 1000;
-      last = t;
-      const sp = hovered ? speed * 2.2 : speed;
-      setAngle((a) => (a + dt * sp) % 360);
-      raf.current = requestAnimationFrame(tick);
-    };
-    raf.current = requestAnimationFrame(tick);
-    return () => { if (raf.current) cancelAnimationFrame(raf.current); };
-  }, [hovered, speed]);
-
   // Space out cards: cap visible count so they don't overlap
   const visible = items.slice(0, 14);
   const N = Math.max(visible.length, 1);
   const radius = Math.max(90, size * 0.58);
-  const pulseScale = 1 + Math.sin((pulse * Math.PI) / 180) * 0.04;
-  const wobble = Math.sin((pulse * Math.PI) / 90) * 6;
+
+  useEffect(() => {
+    let last = performance.now();
+    const tick = (t: number) => {
+      const dt = Math.min(0.05, (t - last) / 1000);
+      last = t;
+      const sp = hoveredRef.current ? speedRef.current * 2.2 : speedRef.current;
+      angleRef.current = (angleRef.current + dt * sp) % 360;
+      hueRef.current = (hueRef.current + dt * 60) % 360;
+      pulseRef.current = (pulseRef.current + dt * 60) % 360;
+      const angle = angleRef.current;
+      const hue = hueRef.current;
+      const pulse = pulseRef.current;
+      const pulseScale = 1 + Math.sin((pulse * Math.PI) / 180) * 0.04;
+      const wobble = Math.sin((pulse * Math.PI) / 90) * 6;
+
+      if (glowRef.current) {
+        glowRef.current.style.background = `radial-gradient(circle at 50% 50%, hsl(${hue} 100% 65% / 0.55), hsl(${(hue + 120) % 360} 100% 55% / 0.35) 40%, transparent 70%)`;
+        glowRef.current.style.transform = `scale(${pulseScale})`;
+      }
+      const ringMeta = [
+        { tiltX: 70, tiltY: 0, spin: 1 },
+        { tiltX: 20, tiltY: 60, spin: -1.4 },
+        { tiltX: 55, tiltY: -40, spin: 0.8 },
+      ];
+      ringRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const r = ringMeta[i];
+        el.style.transform = `rotateX(${r.tiltX + morph * 8}deg) rotateY(${r.tiltY + morph * 12}deg) rotateZ(${angle * r.spin}deg)`;
+        el.style.filter = `drop-shadow(0 0 6px hsl(${(hue + i * 90) % 360} 100% 65% / 0.9))`;
+      });
+      particleRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const th = (angle * 2 + i * 36) % 360;
+        const r = radius + 14;
+        const x = Math.cos((th * Math.PI) / 180) * r;
+        const y = Math.sin(((th * Math.PI) / 180) * 1.6) * (r * 0.4);
+        const c = `hsl(${(hue + i * 30) % 360} 100% 70%)`;
+        el.style.transform = `translate(${x}px, ${y}px)`;
+        el.style.background = c;
+        el.style.boxShadow = `0 0 10px ${c}`;
+      });
+      if (stageRef.current) {
+        stageRef.current.style.transform = `rotateX(${-14 + wobble}deg) rotateY(${angle}deg) rotateZ(${wobble * 0.4}deg) scale(${pulseScale})`;
+      }
+      cardRefs.current.forEach((el, i) => {
+        if (!el) return;
+        const theta = (360 / N) * i;
+        const lift = Math.sin(((angle + i * 30) * Math.PI) / 180) * 6;
+        el.style.transform = `rotateY(${theta}deg) translateY(${lift}px) translateZ(${radius}px)`;
+      });
+      raf.current = requestAnimationFrame(tick);
+    };
+    raf.current = requestAnimationFrame(tick);
+    return () => { if (raf.current) cancelAnimationFrame(raf.current); };
+  }, [morph, N, radius]);
 
   return (
     <Link
@@ -95,21 +133,18 @@ export default function MiniCatalogOrb({
       aria-label="Explorer le catalogue animé"
       className="relative block select-none group"
       style={{ width: size, height: size, perspective: 900 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => { hoveredRef.current = true; }}
+      onMouseLeave={() => { hoveredRef.current = false; }}
       onClick={cycle}
     >
       {/* Diffuse plasma glow behind everything */}
       <span
+        ref={glowRef}
         aria-hidden
         className="absolute -inset-6 rounded-full pointer-events-none"
         style={{
-          background: `radial-gradient(circle at 50% 50%,
-            hsl(${hue} 100% 65% / 0.55),
-            hsl(${(hue + 120) % 360} 100% 55% / 0.35) 40%,
-            transparent 70%)`,
           filter: "blur(24px)",
-          transform: `scale(${pulseScale})`,
+          willChange: "transform",
         }}
       />
       {/* Orbital neon rings — tilted at different angles for a gyroscope feel */}
@@ -120,20 +155,20 @@ export default function MiniCatalogOrb({
       ].map((r, i) => (
         <svg
           key={i}
+          ref={(el) => (ringRefs.current[i] = el)}
           aria-hidden
           viewBox="0 0 100 100"
           className="absolute inset-0 w-full h-full pointer-events-none"
           style={{
-            transform: `rotateX(${r.tiltX + (morph * 8)}deg) rotateY(${r.tiltY + morph * 12}deg) rotateZ(${angle * r.spin}deg)`,
             transformStyle: "preserve-3d",
-            filter: `drop-shadow(0 0 6px hsl(${(hue + i * 90) % 360} 100% 65% / 0.9))`,
+            willChange: "transform",
           }}
         >
           <defs>
             <linearGradient id={`ring-g-${i}`} x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stopColor={`hsl(${hue} 100% 65%)`} />
-              <stop offset="50%" stopColor={`hsl(${(hue + 120) % 360} 100% 60%)`} />
-              <stop offset="100%" stopColor={`hsl(${(hue + 240) % 360} 100% 60%)`} />
+              <stop offset="0%" stopColor={`hsl(${i * 120} 100% 65%)`} />
+              <stop offset="50%" stopColor={`hsl(${(i * 120 + 120) % 360} 100% 60%)`} />
+              <stop offset="100%" stopColor={`hsl(${(i * 120 + 240) % 360} 100% 60%)`} />
             </linearGradient>
           </defs>
           <circle
@@ -151,48 +186,43 @@ export default function MiniCatalogOrb({
       ))}
       {/* Floating particles orbiting the sphere */}
       {Array.from({ length: 10 }).map((_, i) => {
-        const t = (angle * 2 + i * 36) % 360;
-        const r = radius + 14;
-        const x = Math.cos((t * Math.PI) / 180) * r;
-        const y = Math.sin((t * Math.PI) / 180 * 1.6) * (r * 0.4);
         return (
           <span
             key={i}
+            ref={(el) => (particleRefs.current[i] = el)}
             aria-hidden
             className="absolute top-1/2 left-1/2 rounded-full pointer-events-none"
             style={{
               width: 4,
               height: 4,
-              transform: `translate(${x}px, ${y}px)`,
-              background: `hsl(${(hue + i * 30) % 360} 100% 70%)`,
-              boxShadow: `0 0 10px hsl(${(hue + i * 30) % 360} 100% 70%)`,
+              willChange: "transform",
             }}
           />
         );
       })}
       <div
+        ref={stageRef}
         className="absolute inset-0"
         style={{
           transformStyle: "preserve-3d",
-          transform: `rotateX(${-14 + wobble}deg) rotateY(${angle}deg) rotateZ(${wobble * 0.4}deg) scale(${pulseScale})`,
+          willChange: "transform",
         }}
       >
-        {items.map((m, i) => {
-          const theta = (360 / N) * i;
-          const lift = Math.sin(((angle + i * 30) * Math.PI) / 180) * 6;
+        {visible.map((m, i) => {
           return (
             <div
               key={m.id}
+              ref={(el) => (cardRefs.current[i] = el)}
               className="absolute top-1/2 left-1/2 rounded-md overflow-hidden ring-1 ring-white/20"
               style={{
                 width: cardW,
                 height: cardH,
                 marginLeft: -cardW / 2,
                 marginTop: -cardH / 2,
-                transform: `rotateY(${theta}deg) translateY(${lift}px) translateZ(${radius}px)`,
                 background: m.color || "#222",
-                boxShadow: `0 0 8px ${m.color || "#a855f7"}aa, 0 0 20px hsl(${(hue + i * 12) % 360} 100% 60% / 0.7)`,
+                boxShadow: `0 0 8px ${m.color || "#a855f7"}aa`,
                 backfaceVisibility: "hidden",
+                willChange: "transform",
               }}
             >
               <img
