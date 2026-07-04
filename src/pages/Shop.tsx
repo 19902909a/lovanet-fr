@@ -401,13 +401,6 @@ const Shop = () => {
                   <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground">
                     Réf. {active.id} · {active.tag} · Expédition {active.shippingDays ?? "3–7j"}
                   </p>
-                    <Button className="rounded-full" onClick={() => { addToCart(active); setActive(null); }}>
-                      <ShoppingCart className="w-4 h-4 mr-2" /> Ajouter au panier
-                    </Button>
-                  </div>
-                  <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground">
-                    Référence {active.id} · {active.tag} · Expédition suivie 3–7 jours
-                  </p>
                 </div>
               </div>
             </>
