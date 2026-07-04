@@ -418,6 +418,26 @@
   }
   .animate-hero-rise { animation: hero-rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 
+  /* Marquee — infinite auto-scrolling row (used in shop rails) */
+  @keyframes marquee-x {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-x var(--marquee-duration, 45s) linear infinite;
+    will-change: transform;
+  }
+  .marquee-viewport:hover .marquee-track { animation-play-state: paused; }
+  .marquee-viewport {
+    -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track { animation: none; }
+  }
+
   @keyframes hero-float {
     0%, 100% { transform: translateY(0) rotate(var(--float-rot, 0deg)); }
     50%      { transform: translateY(-12px) rotate(var(--float-rot, 0deg)); }
