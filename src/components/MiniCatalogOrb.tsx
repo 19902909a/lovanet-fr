@@ -11,9 +11,9 @@ type Cover = { id: number; img: string; color?: string; title?: string };
 const QUERY = `query{Page(page:1,perPage:40){media(type:ANIME,sort:TRENDING_DESC,isAdult:false){id title{romaji english} coverImage{large color}}}}`;
 
 export default function MiniCatalogOrb({
-  size = 220,
-  cardW = 36,
-  cardH = 54,
+  size = 188,
+  cardW = 32,
+  cardH = 48,
 }: { size?: number; cardW?: number; cardH?: number }) {
   const [items, setItems] = useState<Cover[]>([]);
   const raf = useRef<number>();
@@ -67,9 +67,9 @@ export default function MiniCatalogOrb({
   }, []);
 
   // Space out cards: cap visible count so they don't overlap
-  const visible = items.slice(0, 14);
+  const visible = items.slice(0, 12);
   const N = Math.max(visible.length, 1);
-  const radius = Math.max(90, size * 0.58);
+  const radius = Math.max(70, size * 0.46);
 
   useEffect(() => {
     let last = performance.now();

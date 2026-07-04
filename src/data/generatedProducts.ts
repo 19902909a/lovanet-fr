@@ -1,5 +1,6 @@
 import type { ShopCategory, ShopProduct } from "./shopProducts";
 import { SHOP_PRODUCTS } from "./shopProducts";
+import { videos as VIDEOS } from "./videos";
 
 const THEMES = [
   "Sakura","Kitsune","Ronin","Shinobi","Kaiju","Neko","Onmyoji","Yokai",
@@ -52,27 +53,88 @@ function seededPrice(base: number, range: number, seed: number) {
 
 const SOURCES: ShopProduct["source"][] = ["youtube","tiktok","both"];
 
-export function generateProducts(count = 5000): ShopProduct[] {
+function slugify(s: string) {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+}
+
+export function generateProducts(count = 1500): ShopProduct[] {
   const out: ShopProduct[] = [];
-  for (let i = 0; i < count; i++) {
+  const seen = new Set<string>();
+  let i = 0;
+  let attempts = 0;
+  while (out.length < count && attempts < count * 6) {
+    attempts++;
     const line = LINES[i % LINES.length];
     const type = line.types[Math.floor(i / LINES.length) % line.types.length];
-    const theme = THEMES[(i * 3) % THEMES.length];
-    const style = STYLES[(i * 7) % STYLES.length];
+    const theme = THEMES[(i * 3 + attempts) % THEMES.length];
+    const style = STYLES[(i * 7 + attempts) % STYLES.length];
     const tag = line.tags[i % line.tags.length];
-    const name = `${type} ${style} ${theme} - Serie ${String(1 + (i % 99)).padStart(2, "0")}`;
-    const id = `gm-${String(i + 1).padStart(5, "0")}`;
+    const serie = String(1 + ((i + attempts) % 240)).padStart(3, "0");
+    const name = `${type} ${style} ${theme} · Édition ${serie}`;
+    const sig = name;
+    if (seen.has(sig)) { i++; continue; }
+    seen.add(sig);
+    const idNum = out.length + 1;
+    const id = `gm-${String(idNum).padStart(5, "0")}`;
+    const seed = idNum + 17;
+    const price = seededPrice(line.base, line.range, seed);
+    const compareAt = Math.round(price * (1.15 + ((seed % 40) / 100)));
+    const rating = 4 + ((seed % 10) / 10); // 4.0 - 4.9
+    const reviews = 12 + (seed * 7) % 980;
+    const sold = 40 + (seed * 13) % 4800;
+    const stock = 5 + (seed % 200);
+    const isDigital = line.category === "music" && (seed % 3 === 0);
+    const hasVideo = seed % 3 === 0;
+    const vid = VIDEOS[seed % VIDEOS.length];
     out.push({
-      id, name, category: line.category, tag,
-      price: seededPrice(line.base, line.range, i + 1),
+      id,
+      slug: slugify(name) + "-" + id,
+      name,
+      category: line.category,
+      tag,
+      price,
+      compareAt,
+      rating: Number(rating.toFixed(1)),
+      reviews,
+      sold,
+      stock,
+      type: isDigital ? "digital" : "physical",
+      brand: "AnimemomentsAnimeofficiel",
       description: line.desc(name, theme, style),
-      source: SOURCES[i % SOURCES.length],
+      bullets: [
+        `Univers ${theme} · style ${style}`,
+        `Finition premium, contrôle qualité en atelier`,
+        `Emballage protecteur & suivi de colis`,
+        `Retour offert sous 14 jours`,
+      ],
+      specs: {
+        Référence: id.toUpperCase(),
+        Marque: "AnimemomentsAnimeofficiel",
+        Catégorie: line.category,
+        Édition: serie,
+        Thème: theme,
+        Style: style,
+      },
+      shippingDays: isDigital ? "Instantané" : "3–7j",
+      video: hasVideo ? vid.id : undefined,
+      source: SOURCES[seed % SOURCES.length],
     });
+    i++;
   }
   return out;
 }
 
-export const ALL_PRODUCTS: ShopProduct[] = [...SHOP_PRODUCTS, ...generateProducts(5000)];
+export const ALL_PRODUCTS: ShopProduct[] = [...SHOP_PRODUCTS, ...generateProducts(1500)];
+
+const HIDDEN_KEY = "lovanet:hidden-products";
+export function loadHiddenIds(): string[] {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) || "[]"); } catch { return []; }
+}
+export function saveHiddenIds(ids: string[]) {
+  try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(ids)); } catch {}
+}
 
 export function loadManualProducts(): ShopProduct[] {
   if (typeof window === "undefined") return [];
