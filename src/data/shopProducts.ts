@@ -15,6 +15,20 @@ export type ShopProduct = {
   price: number;
   description: string;
   source: "youtube" | "tiktok" | "both";
+  slug?: string;
+  compareAt?: number;
+  rating?: number;
+  reviews?: number;
+  sold?: number;
+  stock?: number;
+  type?: "physical" | "digital";
+  brand?: string;
+  images?: string[];
+  video?: string;
+  bullets?: string[];
+  specs?: Record<string, string>;
+  affiliateUrl?: string;
+  shippingDays?: string;
 };
 
 const CATEGORY_LABEL: Record<ShopCategory, string> = {
