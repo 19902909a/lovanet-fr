@@ -165,13 +165,318 @@ var list_shop_categories_default = defineTool3({
   })
 });
 
+// src/lib/mcp/tools/search-shop-products.ts
+import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { z as z3 } from "npm:zod@^3.25.76";
+
+// src/data/videos.ts
+var videos = [
+  { id: "bGFUthZjGd4", title: "So It's Something Else \u{1F602}", series: "Ruri no Houseki", channel: "AnimeOfficial", episode: "Ep. 09", date: "2026-05-26", recent: true },
+  { id: "5Fr9M1GBDBo", title: "You Did A Good Job \u{1F602}", series: "Ruri no Houseki", channel: "AnimeOfficial", episode: "Ep. 08", date: "2026-05-22", recent: true },
+  { id: "i0Pz8tmOy8o", title: "I Was Working So Much Harder! \u{1F602}", series: "Ruri no Houseki", channel: "AnimeOfficial", episode: "Ep. 07", date: "2026-05-18", recent: true },
+  { id: "E6X7VsKuMsM", title: "I'm Just So Impressed With Your Determination \u{1F602}", series: "Ruri no Houseki", channel: "AnimeOfficial", episode: "Ep. 06", date: "2026-05-14", recent: true },
+  { id: "DtEDLCrliHs", title: "You Haven't Forgotten About The Task At Hand \u{1F602}", series: "Ruri no Houseki", channel: "AnimeOfficial", episode: "Ep. 05", date: "2026-05-10", recent: true },
+  { id: "S0BmS2xG8tg", title: "What Do You Want The Most ? GOLD \u{1F602}", series: "Ruri no Houseki", channel: "AnimeOfficial", episode: "Ep. 04", date: "2026-05-06", recent: true }
+];
+
+// src/data/generatedProducts.ts
+var THEMES = [
+  "Sakura",
+  "Kitsune",
+  "Ronin",
+  "Shinobi",
+  "Kaiju",
+  "Neko",
+  "Onmyoji",
+  "Yokai",
+  "Samurai",
+  "Miko",
+  "Oni",
+  "Tengu",
+  "Kirin",
+  "Ryu",
+  "Hoshi",
+  "Tsuki",
+  "Hikari",
+  "Kaze",
+  "Mizu",
+  "Hana",
+  "Yuki",
+  "Kumo",
+  "Tori",
+  "Ame",
+  "Neo Tokyo",
+  "Akihabara",
+  "Shibuya",
+  "Harajuku",
+  "Kyoto",
+  "Osaka",
+  "Mecha",
+  "Gundam Style",
+  "Cyber Katana",
+  "Neon City",
+  "Chibi Squad",
+  "Magical Girl",
+  "Idol Live",
+  "Shonen Hero",
+  "Shojo Dream",
+  "Isekai Quest",
+  "Battle Arena",
+  "Dojo Legend",
+  "Onsen",
+  "Matsuri",
+  "Sakura Festival",
+  "Moonlight",
+  "Sunset Bay",
+  "Starlight",
+  "Rainbow Wave",
+  "Prism"
+];
+var STYLES = [
+  "Neon",
+  "Chibi",
+  "Retro",
+  "Hologramme",
+  "Cyberpunk",
+  "Kawaii",
+  "Vintage",
+  "Glitch",
+  "Pastel",
+  "Fluo",
+  "Dark",
+  "Sunset",
+  "Aqua",
+  "Rose Gold",
+  "Chrome",
+  "Vaporwave",
+  "Line Art",
+  "Watercolor",
+  "Ink Wash",
+  "Sketch"
+];
+var LINES = [
+  {
+    category: "poster",
+    types: ["Affiche", "Poster", "Tirage art", "Triptyque", "Mural XXL", "Poster lenticulaire"],
+    tags: ["A2", "A1", "50x70", "Holo", "Mat premium", "Edition limitee"],
+    base: 18,
+    range: 42,
+    desc: (n, t, s) => `${n} \u2014 impression giclee HD, papier 250g mat, finition ${s.toLowerCase()}. Univers ${t}, signe AnimemomentsAnimeofficiel. Tube renforce, expedition suivie 3-7j.`
+  },
+  {
+    category: "collector",
+    types: ["Figurine", "Statue", "Nendoroid", "Buste", "Diorama", "Boule cristal", "Vinyle picture disc", "Artbook"],
+    tags: ["Edition 500", "Numerote", "Resine", "PVC premium", "Coffret", "Rare"],
+    base: 34,
+    range: 220,
+    desc: (n, t, s) => `${n} \u2014 piece collection ${s.toLowerCase()} inspiree de ${t}. Peinture main, socle premium, boite fenetre, certificat d'authenticite AnimemomentsAnimeofficiel.`
+  },
+  {
+    category: "apparel",
+    types: ["Hoodie", "T-shirt", "Crewneck", "Bomber", "Coach jacket", "Long sleeve", "Kimono street", "Varsity"],
+    tags: ["Oversize", "Heavyweight 320g", "Coton bio", "Broderie", "All-over", "Streetwear"],
+    base: 32,
+    range: 95,
+    desc: (n, t, s) => `${n} \u2014 piece streetwear ${s.toLowerCase()} oversize, coton 240-320g, serigraphie haute densite, broderie ${t}. XS-XXL. Livraison suivie.`
+  },
+  {
+    category: "sneakers",
+    types: ["Sneakers basses", "Sneakers hautes", "Runners", "Slip-on", "Chunky", "Skate"],
+    tags: ["Edition capsule", "Numerote", "Cuir vegan", "Mesh", "Semelle epaisse", "Reflective"],
+    base: 79,
+    range: 140,
+    desc: (n, t, s) => `${n} \u2014 silhouette ${s.toLowerCase()} univers ${t}. Tige mesh + cuir vegan, semelle EVA amortie, oeillets metal. Boite collector incluse.`
+  },
+  {
+    category: "music",
+    types: ['Vinyle 12"', "Vinyle picture", "OST double CD", "Cassette collector", "EP digital deluxe"],
+    tags: ["OST", "Vinyle 180g", "Edition limitee", "Signe", "Bonus"],
+    base: 19,
+    range: 45,
+    desc: (n, t, s) => `${n} \u2014 bande-son originale ${s.toLowerCase()} pour la serie ${t}. Pressage 180g, pochette holo, livret 12 pages avec artworks exclusifs.`
+  },
+  {
+    category: "manga",
+    types: ["Manga tome", "Coffret 3 tomes", "Coffret integrale", "Artbook", "Roman visuel", "BD"],
+    tags: ["VF", "Collector", "Jaquette alt.", "Souple", "Rigide"],
+    base: 9,
+    range: 89,
+    desc: (n, t, s) => `${n} \u2014 edition ${s.toLowerCase()} AnimemomentsAnimeofficiel. Papier bouffant, jaquette alternative, pages couleur bonus autour de l'univers ${t}.`
+  },
+  {
+    category: "daily",
+    types: ["Mug thermo", "Gourde inox", "Tote bag", "Tapis souris XXL", "Bougie parfumee", "Plaid sherpa", "Sticker pack", "Carnet A5", "Lampe LED", "Coque smartphone", "Porte-cles", "Casquette 3D", "Beanie", "Chaussettes", "Eventail sensu"],
+    tags: ["Quotidien", "Cadeau", "Gaming", "Deco", "Accessoire"],
+    base: 8,
+    range: 42,
+    desc: (n, t, s) => `${n} \u2014 objet quotidien ${s.toLowerCase()} finition premium. Materiau durable, impression resistante, packaging responsable. Design exclusif autour de ${t}.`
+  }
+];
+function seededPrice(base, range, seed) {
+  const v = seed * 2654435761 >>> 0;
+  const n = base + v % range;
+  return Math.max(base, Math.round(n));
+}
+var SOURCES = ["youtube", "tiktok", "both"];
+function slugify(s) {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
+}
+function generateProducts(count = 1500) {
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  let i = 0;
+  let attempts = 0;
+  while (out.length < count && attempts < count * 6) {
+    attempts++;
+    const line = LINES[i % LINES.length];
+    const type = line.types[Math.floor(i / LINES.length) % line.types.length];
+    const theme = THEMES[(i * 3 + attempts) % THEMES.length];
+    const style = STYLES[(i * 7 + attempts) % STYLES.length];
+    const tag = line.tags[i % line.tags.length];
+    const serie = String(1 + (i + attempts) % 240).padStart(3, "0");
+    const name = `${type} ${style} ${theme} \xB7 \xC9dition ${serie}`;
+    const sig = name;
+    if (seen.has(sig)) {
+      i++;
+      continue;
+    }
+    seen.add(sig);
+    const idNum = out.length + 1;
+    const id = `gm-${String(idNum).padStart(5, "0")}`;
+    const seed = idNum + 17;
+    const price = seededPrice(line.base, line.range, seed);
+    const compareAt = Math.round(price * (1.15 + seed % 40 / 100));
+    const rating = 4 + seed % 10 / 10;
+    const reviews = 12 + seed * 7 % 980;
+    const sold = 40 + seed * 13 % 4800;
+    const stock = 5 + seed % 200;
+    const isDigital = line.category === "music" && seed % 3 === 0;
+    const hasVideo = seed % 3 === 0;
+    const vid = videos[seed % videos.length];
+    out.push({
+      id,
+      slug: slugify(name) + "-" + id,
+      name,
+      category: line.category,
+      tag,
+      price,
+      compareAt,
+      rating: Number(rating.toFixed(1)),
+      reviews,
+      sold,
+      stock,
+      type: isDigital ? "digital" : "physical",
+      brand: "AnimemomentsAnimeofficiel",
+      description: line.desc(name, theme, style),
+      bullets: [
+        `Univers ${theme} \xB7 style ${style}`,
+        `Finition premium, contr\xF4le qualit\xE9 en atelier`,
+        `Emballage protecteur & suivi de colis`,
+        `Retour offert sous 14 jours`
+      ],
+      specs: {
+        R\u00E9f\u00E9rence: id.toUpperCase(),
+        Marque: "AnimemomentsAnimeofficiel",
+        Cat\u00E9gorie: line.category,
+        \u00C9dition: serie,
+        Th\u00E8me: theme,
+        Style: style
+      },
+      shippingDays: isDigital ? "Instantan\xE9" : "3\u20137j",
+      video: hasVideo ? vid.id : void 0,
+      source: SOURCES[seed % SOURCES.length]
+    });
+    i++;
+  }
+  return out;
+}
+var ALL_PRODUCTS = [...SHOP_PRODUCTS, ...generateProducts(1500)];
+
+// src/lib/mcp/tools/search-shop-products.ts
+var CATEGORY_VALUES = ["poster", "collector", "apparel", "sneakers", "music", "manga", "daily"];
+var SOURCE_VALUES = ["youtube", "tiktok", "both"];
+var normalize = (value) => value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+var searchableText = (product) => normalize(
+  [
+    product.name,
+    product.description,
+    product.tag,
+    product.category,
+    product.brand,
+    product.type,
+    product.source,
+    ...product.bullets ?? [],
+    ...Object.values(product.specs ?? {})
+  ].filter(Boolean).join(" ")
+);
+var search_shop_products_default = defineTool4({
+  name: "search_shop_products",
+  title: "Search shop products",
+  description: "Search the Lovanet shop catalog by keyword and filters such as category, product type, source, price range, stock, and sort order.",
+  inputSchema: {
+    query: z3.string().optional().describe("Keyword to search in product names, tags, descriptions, bullets, and specs."),
+    category: z3.enum(CATEGORY_VALUES).optional().describe("Restrict results to one product category."),
+    type: z3.enum(["physical", "digital"]).optional().describe("Restrict results to physical or digital products."),
+    source: z3.enum(SOURCE_VALUES).optional().describe("Restrict results to YouTube, TikTok, or products connected to both."),
+    minPrice: z3.number().optional().describe("Minimum product price in euros."),
+    maxPrice: z3.number().optional().describe("Maximum product price in euros."),
+    inStockOnly: z3.boolean().optional().describe("When true, only return products with stock above zero."),
+    sort: z3.enum(["relevance", "price_asc", "price_desc", "rating", "sold"]).optional().describe("Result sort order. Default is relevance."),
+    limit: z3.number().int().min(1).max(100).optional().describe("Maximum number of results to return. Default is 25.")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: ({ query, category, type, source, minPrice, maxPrice, inStockOnly, sort, limit }) => {
+    const terms = normalize(query ?? "").split(/\s+/).filter(Boolean);
+    const max = limit ?? 25;
+    const scored = ALL_PRODUCTS.map((product, index) => {
+      const haystack = searchableText(product);
+      const name = normalize(product.name);
+      const tag = normalize(product.tag);
+      const score = terms.length ? terms.reduce((total, term) => {
+        if (name.includes(term)) return total + 8;
+        if (tag.includes(term)) return total + 5;
+        if (haystack.includes(term)) return total + 2;
+        return total;
+      }, 0) : 1;
+      return { product, score, index };
+    }).filter(({ product, score }) => {
+      if (terms.length && score <= 0) return false;
+      if (category && product.category !== category) return false;
+      if (type && product.type !== type) return false;
+      if (source && product.source !== source) return false;
+      if (typeof minPrice === "number" && product.price < minPrice) return false;
+      if (typeof maxPrice === "number" && product.price > maxPrice) return false;
+      if (inStockOnly && (product.stock ?? 1) <= 0) return false;
+      return true;
+    });
+    const sorted = scored.sort((a, b) => {
+      if (sort === "price_asc") return a.product.price - b.product.price;
+      if (sort === "price_desc") return b.product.price - a.product.price;
+      if (sort === "rating") return (b.product.rating ?? 0) - (a.product.rating ?? 0);
+      if (sort === "sold") return (b.product.sold ?? 0) - (a.product.sold ?? 0);
+      return b.score - a.score || a.index - b.index;
+    });
+    const items = sorted.slice(0, max).map(({ product, score }) => ({ ...product, searchScore: score }));
+    return {
+      content: [{ type: "text", text: JSON.stringify(items, null, 2) }],
+      structuredContent: {
+        count: items.length,
+        total: sorted.length,
+        query: query ?? "",
+        filters: { category, type, source, minPrice, maxPrice, inStockOnly, sort: sort ?? "relevance" },
+        items
+      }
+    };
+  }
+});
+
 // src/lib/mcp/index.ts
 var mcp_default = defineMcp({
   name: "lovanet-mcp",
   title: "Lovanet MCP",
   version: "0.1.0",
-  instructions: "Tools exposing the public Lovanet catalog. Use `echo` to test connectivity, `list_shop_categories` to discover categories, and `list_shop_products` to browse products (optionally filtered by category).",
-  tools: [echo_default, list_shop_categories_default, list_shop_products_default]
+  instructions: "Tools exposing the public Lovanet catalog. Use `echo` to test connectivity, `list_shop_categories` to discover categories, `list_shop_products` to browse products, and `search_shop_products` to search by keyword, price, source, type, stock, and category.",
+  tools: [echo_default, list_shop_categories_default, list_shop_products_default, search_shop_products_default]
 });
 
 // lovable-mcp-supabase-entry.ts
