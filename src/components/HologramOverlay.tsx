@@ -184,7 +184,7 @@ export const HologramOverlay = () => {
   // Only opt out for explicit reduced-motion preference — otherwise we go all in.
   const skip = useMemo(() => {
     if (typeof window === "undefined") return true;
-    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    return !!window.matchMedia?.("(prefers-reduced-motion: reduce), (pointer: coarse), (max-width: 767px)").matches;
   }, []);
 
   // Limit concurrent figures on small viewports to keep things smooth.
@@ -224,7 +224,7 @@ export const HologramOverlay = () => {
     <div
       aria-hidden
       className="pointer-events-none fixed inset-0 z-[5]"
-      style={{ mixBlendMode: "screen" }}
+      style={{ mixBlendMode: "screen", pointerEvents: "none" }}
     >
       <Canvas
         dpr={[1, 2]}
@@ -236,7 +236,7 @@ export const HologramOverlay = () => {
           preserveDrawingBuffer: false,
         }}
         camera={{ position: [0, 0.4, 6], fov: 45 }}
-        style={{ background: "transparent" }}
+        style={{ background: "transparent", pointerEvents: "none" }}
       >
         <Stage figures={figures} removeFigure={removeFigure} />
       </Canvas>
