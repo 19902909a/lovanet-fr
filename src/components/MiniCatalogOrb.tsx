@@ -18,6 +18,7 @@ export default function MiniCatalogOrb({
   const [items, setItems] = useState<Cover[]>([]);
   const raf = useRef<number>();
   const [morph, setMorph] = useState(0);
+  const [isConstrained, setIsConstrained] = useState(false);
   const angleRef = useRef(0);
   const hueRef = useRef(0);
   const pulseRef = useRef(0);
@@ -29,6 +30,15 @@ export default function MiniCatalogOrb({
   const ringRefs = useRef<(SVGSVGElement | null)[]>([]);
   const particleRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(pointer: coarse), (max-width: 767px), (prefers-reduced-motion: reduce)");
+    const update = () => setIsConstrained(media.matches || ((navigator as any).deviceMemory ?? 8) < 4);
+    update();
+    media.addEventListener?.("change", update);
+    return () => media.removeEventListener?.("change", update);
+  }, []);
 
   const cycle = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -67,15 +77,22 @@ export default function MiniCatalogOrb({
   }, []);
 
   // Space out cards: cap visible count so they don't overlap
-  const visible = items.slice(0, 12);
+  const visible = items.slice(0, isConstrained ? 8 : 12);
   const N = Math.max(visible.length, 1);
   const radius = Math.max(70, size * 0.46);
 
   useEffect(() => {
     let last = performance.now();
+    let lastPaint = last;
     const tick = (t: number) => {
+      const minFrameMs = isConstrained ? 34 : 17;
+      if (t - lastPaint < minFrameMs) {
+        raf.current = requestAnimationFrame(tick);
+        return;
+      }
       const dt = Math.min(0.05, (t - last) / 1000);
       last = t;
+      lastPaint = t;
       const sp = hoveredRef.current ? speedRef.current * 2.2 : speedRef.current;
       angleRef.current = (angleRef.current + dt * sp) % 360;
       hueRef.current = (hueRef.current + dt * 60) % 360;
@@ -87,8 +104,8 @@ export default function MiniCatalogOrb({
       const wobble = Math.sin((pulse * Math.PI) / 90) * 6;
 
       if (glowRef.current) {
-        glowRef.current.style.background = `radial-gradient(circle at 50% 50%, hsl(${hue} 100% 65% / 0.55), hsl(${(hue + 120) % 360} 100% 55% / 0.35) 40%, transparent 70%)`;
-        glowRef.current.style.transform = `scale(${pulseScale})`;
+        glowRef.current.style.background = `radial-gradient(circle at 50% 50%, hsl(${hue} 100% 65% / ${isConstrained ? 0.26 : 0.55}), hsl(${(hue + 120) % 360} 100% 55% / ${isConstrained ? 0.18 : 0.35}) 40%, transparent 70%)`;
+        glowRef.current.style.transform = `scale(${isConstrained ? 1 : pulseScale})`;
       }
       const ringMeta = [
         { tiltX: 70, tiltY: 0, spin: 1 },
@@ -99,7 +116,7 @@ export default function MiniCatalogOrb({
         if (!el) return;
         const r = ringMeta[i];
         el.style.transform = `rotateX(${r.tiltX + morph * 8}deg) rotateY(${r.tiltY + morph * 12}deg) rotateZ(${angle * r.spin}deg)`;
-        el.style.filter = `drop-shadow(0 0 6px hsl(${(hue + i * 90) % 360} 100% 65% / 0.9))`;
+        el.style.filter = isConstrained ? "none" : `drop-shadow(0 0 6px hsl(${(hue + i * 90) % 360} 100% 65% / 0.9))`;
       });
       particleRefs.current.forEach((el, i) => {
         if (!el) return;
@@ -113,19 +130,20 @@ export default function MiniCatalogOrb({
         el.style.boxShadow = `0 0 10px ${c}`;
       });
       if (stageRef.current) {
-        stageRef.current.style.transform = `rotateX(${-14 + wobble}deg) rotateY(${angle}deg) rotateZ(${wobble * 0.4}deg) scale(${pulseScale})`;
+        stageRef.current.style.transform = `rotateX(${-14 + (isConstrained ? 0 : wobble)}deg) rotateY(${angle}deg) rotateZ(${isConstrained ? 0 : wobble * 0.4}deg) scale(${isConstrained ? 1 : pulseScale})`;
       }
       cardRefs.current.forEach((el, i) => {
         if (!el) return;
         const theta = (360 / N) * i;
-        const lift = Math.sin(((angle + i * 30) * Math.PI) / 180) * 6;
-        el.style.transform = `rotateY(${theta}deg) translateY(${lift}px) translateZ(${radius}px)`;
+        const lift = isConstrained ? 0 : Math.sin(((angle + i * 30) * Math.PI) / 180) * 6;
+        el.style.transform = `rotateY(${theta}deg) translateY(${lift}px) translateZ(${radius}px) rotateY(${-theta - angle}deg)`;
+        el.style.opacity = "1";
       });
       raf.current = requestAnimationFrame(tick);
     };
     raf.current = requestAnimationFrame(tick);
     return () => { if (raf.current) cancelAnimationFrame(raf.current); };
-  }, [morph, N, radius]);
+  }, [morph, N, radius, isConstrained]);
 
   return (
     <Link
@@ -221,8 +239,8 @@ export default function MiniCatalogOrb({
                 marginTop: -cardH / 2,
                 background: m.color || "#222",
                 boxShadow: `0 0 8px ${m.color || "#a855f7"}aa`,
-                backfaceVisibility: "hidden",
-                willChange: "transform",
+                backfaceVisibility: "visible",
+                willChange: "transform, opacity",
               }}
             >
               <img
