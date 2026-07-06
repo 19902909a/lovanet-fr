@@ -179,6 +179,69 @@ export type Database = {
         }
         Relationships: []
       }
+      youtube_manga_videos: {
+        Row: {
+          channel_title: string | null
+          created_at: string
+          description: string | null
+          duration_sec: number
+          is_hidden: boolean
+          published_at: string
+          thumbnail: string | null
+          title: string
+          updated_at: string
+          video_id: string
+          view_count: number
+        }
+        Insert: {
+          channel_title?: string | null
+          created_at?: string
+          description?: string | null
+          duration_sec?: number
+          is_hidden?: boolean
+          published_at: string
+          thumbnail?: string | null
+          title: string
+          updated_at?: string
+          video_id: string
+          view_count?: number
+        }
+        Update: {
+          channel_title?: string | null
+          created_at?: string
+          description?: string | null
+          duration_sec?: number
+          is_hidden?: boolean
+          published_at?: string
+          thumbnail?: string | null
+          title?: string
+          updated_at?: string
+          video_id?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
+      youtube_sync_state: {
+        Row: {
+          key: string
+          last_published_at: string | null
+          last_run_at: string
+          updated_at: string
+        }
+        Insert: {
+          key: string
+          last_published_at?: string | null
+          last_run_at?: string
+          updated_at?: string
+        }
+        Update: {
+          key?: string
+          last_published_at?: string | null
+          last_run_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
