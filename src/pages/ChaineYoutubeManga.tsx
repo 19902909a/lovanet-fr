@@ -229,7 +229,7 @@ export default function ChaineYoutubeManga() {
           <h3 className="font-display text-xl font-bold">
             Vidéos manga & anime
             <span className="text-muted-foreground font-normal">
-              {" "}· {visibleVideos.length} titres · du plus ancien au plus récent · Shorts, streamers &amp; commentateurs exclus
+              {" "}· {visibleVideos.length} titres
             </span>
           </h3>
           {loading && <span className="text-xs text-muted-foreground">Chargement…</span>}
