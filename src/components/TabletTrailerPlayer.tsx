@@ -46,7 +46,7 @@ export default function TabletTrailerPlayer() {
   const [items, setItems] = useState<Media[]>([]);
   const [current, setCurrent] = useState<Media | null>(null);
   const playedRef = useRef<Set<string>>(new Set());
-  const [angle, setAngle] = useState(0);
+  const [phase, setPhase] = useState(0); // 0..1 flow along the 3D spiral
   const draggingRef = useRef<{ x: number; a: number; moved?: boolean } | null>(null);
   const playerHostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
