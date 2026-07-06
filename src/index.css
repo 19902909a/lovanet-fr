@@ -597,8 +597,8 @@
   .card-3d:hover {
     transform: translate3d(0, -6px, 24px) scale(1.06) !important;
     filter:
-      drop-shadow(0 0 28px hsl(var(--neon-magenta) / 0.65))
-      drop-shadow(0 24px 40px hsl(var(--neon-purple) / 0.55)) !important;
+      drop-shadow(0 0 22px hsl(0 0% 100% / 0.25))
+      drop-shadow(0 24px 40px hsl(240 30% 5% / 0.5)) !important;
     z-index: 80 !important;
   }
   .card-3d-front {
@@ -688,8 +688,8 @@
     transform: translateZ(-14px);
     background: linear-gradient(180deg, hsl(280 45% 14%), hsl(220 55% 6%));
     box-shadow:
-      0 0 0 1px hsl(var(--neon-cyan) / 0.4),
-      0 0 22px -6px hsl(var(--neon-magenta) / 0.55),
+      0 0 0 1px hsl(0 0% 100% / 0.18),
+      0 0 18px -6px hsl(240 30% 5% / 0.6),
       inset 0 0 18px hsl(0 0% 0% / 0.6);
   }
   .card-3d-edge {
@@ -912,8 +912,8 @@
     animation: rgb-spin 5s linear infinite;
     box-shadow:
       0 0 0 1px hsl(0 0% 100% / 0.08) inset,
-      0 0 18px hsl(330 100% 65% / 0.55),
-      0 0 32px hsl(210 100% 65% / 0.4);
+      0 0 10px hsl(0 0% 100% / 0.12),
+      0 8px 24px hsl(240 30% 5% / 0.35);
   }
   .rgb-frame::before {
     content: "";

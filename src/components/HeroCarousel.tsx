@@ -316,7 +316,7 @@ export const HeroCarousel = () => {
       pointerEvents: opacity > 0.6 ? "auto" : "none",
       filter: isConstrained
         ? (saturate < 1 ? `saturate(${saturate})` : "none")
-        : `saturate(${saturate}) drop-shadow(0 22px 40px hsl(var(--neon-purple) / ${absO <= 1 ? 0.55 : 0.25}))`,
+        : `saturate(${saturate}) drop-shadow(0 18px 30px hsl(240 20% 5% / ${absO <= 1 ? 0.5 : 0.25}))`,
     };
   }, [flowBlend, flowIdx, geometry, isConstrained, visibleRadius]);
 
@@ -420,7 +420,7 @@ export const HeroCarousel = () => {
           top: geometry.centerY - geometry.radius * 0.95,
           clipPath: SHAPES[shapeIdx],
           WebkitClipPath: SHAPES[shapeIdx],
-          opacity: isConstrained ? 0.4 : 0.72,
+          opacity: isConstrained ? 0.12 : 0.22,
         }}
       />
 
@@ -432,8 +432,8 @@ export const HeroCarousel = () => {
           height: geometry.radius * 2,
           left: geometry.centerX - geometry.radius,
           top: geometry.centerY - geometry.radius,
-          border: "1px solid hsl(var(--neon-cyan) / 0.55)",
-          boxShadow: "inset 0 0 22px hsl(var(--neon-magenta) / 0.22), 0 0 24px hsl(var(--neon-cyan) / 0.22)",
+          border: "1px solid hsl(var(--neon-cyan) / 0.25)",
+          boxShadow: "inset 0 0 14px hsl(0 0% 100% / 0.08)",
         }}
       />
 
@@ -481,7 +481,7 @@ export const HeroCarousel = () => {
               className="card-3d-front rgb-frame relative w-full aspect-video overflow-hidden rounded-xl bg-card"
               style={{
                 transform: "translateZ(2px)",
-                boxShadow: "0 0 0 1px hsl(var(--neon-magenta) / 0.35), 0 18px 36px -18px hsl(var(--neon-purple) / 0.55)",
+                boxShadow: "0 0 0 1px hsl(0 0% 100% / 0.18), 0 18px 36px -18px hsl(240 30% 5% / 0.55)",
               }}
             >
               {c.v.source === "tiktok" && (
