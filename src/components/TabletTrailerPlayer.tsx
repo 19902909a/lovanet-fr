@@ -189,30 +189,28 @@ export default function TabletTrailerPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current?.ytId]);
 
-  // Auto-rotate the circular carousel
+  // Slowly advance the phase — cards drift rightward along a 3D helix.
   useEffect(() => {
     let raf = 0;
     let last = performance.now();
     const tick = (t: number) => {
       const dt = (t - last) / 1000;
       last = t;
-      // Slow drift so cards stay readable/selectable.
-      if (!draggingRef.current) setAngle((a) => a + dt * 2);
+      if (!draggingRef.current) {
+        setPhase((p) => (p + dt * 0.01) % 1); // full loop ~= 100 s
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // Cylinder layout — all trailers packed in multiple rings so 1500 fit.
+  // Helix / spiral layout — all trailers strung along a horizontal 3D spiral.
   const visible = useMemo(() => items.slice(0, 1500), [items]);
-  const RINGS = 12;
-  const perRing = Math.max(1, Math.ceil(visible.length / RINGS));
-  const radius = useMemo(
-    () => Math.min(560, Math.max(260, perRing * 12)),
-    [perRing],
-  );
-  const ringGapY = 18;
+  const count = Math.max(visible.length, 1);
+  const TURNS = Math.max(4, Math.round(count / 40)); // more items → more turns
+  const helixWidth = 1600; // total spread along X
+  const helixRadius = 70; // Y/Z amplitude
 
   const onSelect = (m: Media) => {
     playedRef.current.add(m.ytId);
@@ -270,83 +268,103 @@ export default function TabletTrailerPlayer() {
         </div>
       </div>
 
-      {/* Circular carousel BELOW the tablet */}
+      {/* 3D spiral trailer strip BELOW the tablet — drifts slowly to the right */}
       <div
         className="relative w-full select-none mt-4"
-        style={{ height: 320, perspective: "1600px", overflow: "visible" }}
+        style={{ height: 260, perspective: "1400px", overflow: "hidden" }}
         onPointerDown={(e) => {
-          draggingRef.current = { x: e.clientX, a: angle, moved: false } as any;
+          draggingRef.current = { x: e.clientX, a: phase, moved: false };
         }}
         onPointerMove={(e) => {
           if (!draggingRef.current) return;
           const dx = e.clientX - draggingRef.current.x;
           if (Math.abs(dx) > 4) {
-            (draggingRef.current as any).moved = true;
-            setAngle(draggingRef.current.a + dx * 0.15);
+            draggingRef.current.moved = true;
+            // Dragging right pushes phase back (cards move with the finger).
+            const next = (draggingRef.current.a - dx / helixWidth) % 1;
+            setPhase(next < 0 ? next + 1 : next);
           }
         }}
         onPointerUp={() => { draggingRef.current = null; }}
       >
+        {/* Soft edge gradients so cards fade in/out at the ends */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 w-24 z-10"
+          style={{ background: "linear-gradient(to right, rgba(0,0,0,0.7), transparent)" }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 right-0 w-24 z-10"
+          style={{ background: "linear-gradient(to left, rgba(0,0,0,0.7), transparent)" }}
+        />
         <div className="absolute inset-0 flex items-center justify-center">
-              <div
-                className="relative"
-                style={{
-                  width: 1,
-                  height: 1,
-                  transformStyle: "preserve-3d",
-                  transform: `rotateX(-10deg) rotateY(${angle}deg)`,
-                }}
-              >
-                {visible.map((m, i) => {
-                  const ring = i % RINGS;
-                  const idxInRing = Math.floor(i / RINGS);
-                  const theta = (360 / perRing) * idxInRing;
-                  const y = (ring - (RINGS - 1) / 2) * ringGapY;
-                  const isActive = current?.ytId === m.ytId;
-                  return (
-                    <button
-                      key={String(m.id) + i}
-                      onClick={(e) => {
-                        // Ignore accidental clicks after a drag.
-                        if ((draggingRef.current as any)?.moved) return;
-                        e.stopPropagation();
-                        onSelect(m);
-                      }}
-                      title={m.title}
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
-                      style={{
-                        width: 44,
-                        height: 64,
-                        transform: `rotateY(${theta}deg) translateZ(${radius}px) translateY(${y}px)`,
-                      }}
-                    >
-                      <div
-                        className="w-full h-full rounded-md overflow-hidden border transition-transform hover:scale-110"
-                        style={{
-                          transform: `rotateY(${-theta - angle}deg)`,
-                          borderColor: isActive ? "#f0abfc" : "rgba(255,255,255,0.15)",
-                          boxShadow: isActive
-                            ? "0 0 18px rgba(240,171,252,0.9)"
-                            : "0 4px 12px rgba(0,0,0,0.6)",
-                        }}
-                      >
-                        {m.cover ? (
-                          <img
-                            src={m.cover}
-                            alt=""
-                            loading="lazy"
-                            draggable={false}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-white/5" />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+          <div
+            className="relative"
+            style={{
+              width: 1,
+              height: 1,
+              transformStyle: "preserve-3d",
+              transform: "rotateX(6deg)",
+            }}
+          >
+            {visible.map((m, i) => {
+              // u ∈ [0,1) is the card's position along the spiral, drifting right.
+              const u = ((i / count) + phase) % 1;
+              const x = (u - 0.5) * helixWidth;
+              const theta = u * TURNS * Math.PI * 2;
+              const y = Math.sin(theta) * helixRadius;
+              const z = Math.cos(theta) * helixRadius;
+              const isActive = current?.ytId === m.ytId;
+              // Depth-based scale so front cards are bigger, back cards smaller — real relief.
+              const depth = (z + helixRadius) / (helixRadius * 2); // 0..1
+              const scale = 0.75 + depth * 0.55; // 0.75 back → 1.3 front
+              const opacity = 0.35 + depth * 0.65;
+              return (
+                <button
+                  key={String(m.id)}
+                  onClick={(e) => {
+                    if (draggingRef.current?.moved) return;
+                    e.stopPropagation();
+                    onSelect(m);
+                  }}
+                  title={m.title}
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+                  style={{
+                    width: 68,
+                    height: 96,
+                    transform: `translate3d(${x}px, ${y}px, ${z}px) scale(${scale})`,
+                    opacity,
+                    zIndex: Math.round(depth * 1000),
+                    transition: "opacity 0.15s linear",
+                  }}
+                >
+                  <div
+                    className="w-full h-full rounded-md overflow-hidden border transition-transform group-hover:scale-125 group-hover:z-50"
+                    style={{
+                      borderColor: isActive ? "#f0abfc" : "rgba(255,255,255,0.18)",
+                      boxShadow: isActive
+                        ? "0 0 22px rgba(240,171,252,0.95), 0 8px 20px rgba(0,0,0,0.7)"
+                        : "0 8px 18px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06) inset",
+                    }}
+                  >
+                    {m.cover ? (
+                      <img
+                        src={m.cover}
+                        alt=""
+                        loading="lazy"
+                        draggable={false}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-white/5" />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="absolute top-1 left-3 text-[10px] uppercase tracking-widest text-white/60">
           {items.length} bandes-annonces · aléatoire non-répété
