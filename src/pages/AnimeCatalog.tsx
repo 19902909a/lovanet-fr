@@ -17,10 +17,10 @@ type Media = {
   trailer?: { id?: string; site?: string } | null;
 };
 
-const QUERY_TRENDING = `
-query ($page: Int, $perPage: Int) {
+const QUERY_SORTED = `
+query ($page: Int, $perPage: Int, $sort: [MediaSort]) {
   Page(page: $page, perPage: $perPage) {
-    media(type: ANIME, sort: TRENDING_DESC, isAdult: false) {
+    media(type: ANIME, sort: $sort, isAdult: false) {
       id
       title { romaji english native }
       coverImage { extraLarge large color }
@@ -60,7 +60,7 @@ export default function AnimeCatalog() {
       const res = await fetch("https://graphql.anilist.co", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ query: QUERY_TRENDING, variables: { page: 1, perPage: 30 } }),
+        body: JSON.stringify({ query: QUERY_SORTED, variables: { page: 1, perPage: 30, sort: ["TRENDING_DESC"] } }),
       });
       const json = await res.json();
       const list = json?.data?.Page?.media ?? [];
@@ -75,50 +75,68 @@ export default function AnimeCatalog() {
     }
   };
 
-  // Heavy grid below — fetches up to 5000 trending anime across 100 pages.
+  // Heavy grid below — fetches up to 15 000 anime across trending / popularity / score / upcoming sorts.
   const fetchGrid = async () => {
     setGridLoading(true);
     try {
       const dedup = new Map<number, Media>();
-      // Batch by 2 to stay polite with AniList rate limits. 100 pages × 50 = 5000 titles.
-      const pages = Array.from({ length: 100 }, (_, i) => i + 1);
-      for (let i = 0; i < pages.length; i += 2) {
-        const batch = pages.slice(i, i + 2);
-        const results = await Promise.all(
-          batch.map((p) =>
-            fetch("https://graphql.anilist.co", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", Accept: "application/json" },
-              body: JSON.stringify({ query: QUERY_TRENDING, variables: { page: p, perPage: 50 } }),
-            })
-              .then((r) => r.json())
-              .catch(() => null)
-          )
-        );
-        let stop = false;
-        for (const j of results) {
-          const list = j?.data?.Page?.media ?? [];
-          if (!list.length) stop = true;
-          for (const m of list) {
-            if (!dedup.has(m.id)) dedup.set(m.id, m);
+      // Combine multiple discovery axes so we surface every anime AniList exposes,
+      // not just the trending pipeline. 100 pages × 50 × 4 sorts = 20 000 requests max,
+      // deduplicated by id → ~15 000 unique titles in practice.
+      const sorts: string[][] = [
+        ["TRENDING_DESC"],
+        ["POPULARITY_DESC"],
+        ["SCORE_DESC"],
+        ["START_DATE_DESC"], // newest additions first (auto-sync catches new series)
+      ];
+      for (const sort of sorts) {
+        const pages = Array.from({ length: 100 }, (_, i) => i + 1);
+        for (let i = 0; i < pages.length; i += 2) {
+          const batch = pages.slice(i, i + 2);
+          const results = await Promise.all(
+            batch.map((p) =>
+              fetch("https://graphql.anilist.co", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Accept: "application/json" },
+                body: JSON.stringify({ query: QUERY_SORTED, variables: { page: p, perPage: 50, sort } }),
+              })
+                .then((r) => r.json())
+                .catch(() => null)
+            )
+          );
+          let stop = false;
+          for (const j of results) {
+            const list = j?.data?.Page?.media ?? [];
+            if (!list.length) stop = true;
+            for (const m of list) {
+              if (!dedup.has(m.id)) dedup.set(m.id, m);
+            }
           }
+          const snapshot = Array.from(dedup.values());
+          setGridItems(snapshot);
+          // Persist up to 5000 items (localStorage quota-safe compact serialization)
+          try {
+            const slim = snapshot.slice(0, 5000).map((m) => ({
+              id: m.id,
+              title: m.title,
+              coverImage: { large: m.coverImage.large, color: m.coverImage.color },
+              averageScore: m.averageScore,
+              episodes: m.episodes,
+              genres: m.genres,
+              format: m.format,
+              seasonYear: m.seasonYear,
+              trailer: m.trailer,
+            }));
+            localStorage.setItem("lovanet.cache.catalog.grid", JSON.stringify(slim));
+          } catch {}
+          if (stop) break;
+          await new Promise((r) => setTimeout(r, 120));
         }
-        // Progressive render so the user sees cards as they arrive.
-        const snapshot = Array.from(dedup.values());
-        setGridItems(snapshot);
-        try { localStorage.setItem("lovanet.cache.catalog.grid", JSON.stringify(snapshot.slice(0, 1500))); } catch {}
-        if (stop) break;
-        // small pause between batches
-        await new Promise((r) => setTimeout(r, 120));
       }
     } catch (e) {
       console.error("AniList grid fetch error", e);
     } finally {
       setGridLoading(false);
-      try {
-        const all = Array.from(new Map<number, Media>().entries());
-        // best-effort persist current state
-      } catch {}
     }
   };
 
@@ -132,11 +150,17 @@ export default function AnimeCatalog() {
     } catch {}
     fetchData();
     fetchGrid();
-    const id = setInterval(fetchData, 1000 * 60 * 15); // auto-sync every 15 min
-    const gid = setInterval(fetchGrid, 1000 * 60 * 30);
+    const id = setInterval(fetchData, 1000 * 60 * 5); // auto-sync top every 5 min
+    const gid = setInterval(fetchGrid, 1000 * 60 * 15); // full re-scan every 15 min
+    const onFocus = () => { fetchData(); };
+    const onVisibility = () => { if (document.visibilityState === "visible") fetchData(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       clearInterval(id);
       clearInterval(gid);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
