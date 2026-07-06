@@ -280,33 +280,36 @@ const Index = () => {
               }}
             />
 
-            {/* Overlay title + orb, anchored to the left side of the carousel */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center">
-              <div className="pointer-events-auto max-w-[42%] sm:max-w-[38%] lg:max-w-[32%] pl-4 sm:pl-6 lg:pl-10 space-y-3">
-                <a
-                  href="https://www.youtube.com/channel/UC0T9pcWA9_lpdB6-ZucZYmw"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium text-fuchsia-200 ring-1 ring-fuchsia-400/40 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 transition-colors"
-                >
-                  <span className="w-1 h-1 rounded-full bg-fuchsia-400 animate-pulse" />
-                  AnimemomentsAnimeofficiel
-                </a>
-                <h1
-                  className="neon-rgb-text-mini font-display text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black leading-[0.9] tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
-                  style={{ letterSpacing: "-0.02em" }}
-                >
-                  ANIME<br />MOMENTS
-                </h1>
-                <div className="relative">
-                  <MiniCatalogOrb size={140} cardW={26} cardH={38} />
-                </div>
-              </div>
-            </div>
           </div>
           {/* Barre RGB fluo sous le carrousel */}
           <div className="container mx-auto px-4 lg:px-8 mt-3">
             <NeonFooterBar inline height={22} className="rounded-full overflow-hidden" />
+          </div>
+        </div>
+
+        {/* ANIME MOMENTS title + mini carousel — moved below the neon bar */}
+        <div className="container mx-auto px-4 lg:px-8 pt-8 pb-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
+            <div className="space-y-2">
+              <a
+                href="https://www.youtube.com/channel/UC0T9pcWA9_lpdB6-ZucZYmw"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium text-fuchsia-200 ring-1 ring-fuchsia-400/40 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 transition-colors"
+              >
+                <span className="w-1 h-1 rounded-full bg-fuchsia-400 animate-pulse" />
+                AnimemomentsAnimeofficiel
+              </a>
+              <h1
+                className="neon-rgb-text-mini font-display text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black leading-[0.9] tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
+                style={{ letterSpacing: "-0.02em" }}
+              >
+                ANIME<br />MOMENTS
+              </h1>
+            </div>
+            <div className="relative">
+              <MiniCatalogOrb size={140} cardW={26} cardH={38} />
+            </div>
           </div>
         </div>
 
