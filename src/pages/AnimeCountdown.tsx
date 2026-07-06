@@ -7,6 +7,7 @@ type Media = {
   id: number;
   title: { romaji?: string; english?: string };
   coverImage: { extraLarge?: string; large?: string; color?: string };
+  bannerImage?: string;
   nextAiringEpisode?: { airingAt: number; episode: number; timeUntilAiring: number };
   genres?: string[];
   format?: string;
@@ -14,7 +15,10 @@ type Media = {
   averageScore?: number;
   description?: string;
   studios?: { nodes?: { name?: string }[] };
-  siteUrl?: string;
+  duration?: number;
+  season?: string;
+  seasonYear?: number;
+  trailer?: { id?: string; site?: string } | null;
 };
 
 const QUERY = `
@@ -24,14 +28,18 @@ query ($page: Int, $perPage: Int) {
       id
       title { romaji english }
       coverImage { extraLarge large color }
+      bannerImage
       nextAiringEpisode { airingAt episode timeUntilAiring }
       genres
       format
       episodes
+      duration
+      season
+      seasonYear
       averageScore
       description(asHtml: false)
       studios(isMain: true) { nodes { name } }
-      siteUrl
+      trailer { id site }
     }
   }
 }`;
@@ -88,7 +96,10 @@ export default function AnimeCountdown() {
       );
       if (list.length) {
         setItems(list);
-        try { localStorage.setItem("lovanet.cache.countdown", JSON.stringify(list)); } catch {}
+        try {
+          localStorage.setItem("lovanet.cache.countdown.v2", JSON.stringify(list));
+          localStorage.removeItem("lovanet.cache.countdown");
+        } catch {}
       }
     } catch (e) {
       console.error("AniList fetch error", e);
@@ -99,7 +110,7 @@ export default function AnimeCountdown() {
 
   useEffect(() => {
     try {
-      const c = localStorage.getItem("lovanet.cache.countdown");
+      const c = localStorage.getItem("lovanet.cache.countdown.v2");
       if (c) { setItems(JSON.parse(c)); setLoading(false); }
     } catch {}
     try {
@@ -229,9 +240,8 @@ export default function AnimeCountdown() {
                     ))}
                   </div>
 
-                  {/* Hidden description — expandable */}
-                  {(m.description || m.studios?.nodes?.length) && (
-                    <div className="mt-3">
+                  {/* Hidden description / full sheet — expandable, always available */}
+                  <div className="mt-3">
                       <button
                         onClick={() =>
                           setExpanded((s) => ({ ...s, [m.id]: !s[m.id] }))
@@ -244,7 +254,7 @@ export default function AnimeCountdown() {
                         }}
                         aria-expanded={!!expanded[m.id]}
                       >
-                        {expanded[m.id] ? "Masquer" : "Description"}
+                        {expanded[m.id] ? "Masquer la fiche" : "Fiche complète & trailer"}
                         <ChevronDown
                           className={`w-3.5 h-3.5 transition-transform ${expanded[m.id] ? "rotate-180" : ""}`}
                         />
@@ -258,6 +268,25 @@ export default function AnimeCountdown() {
                             border: `1px solid ${theme.border}`,
                           }}
                         >
+                          {m.trailer?.id && m.trailer?.site === "youtube" ? (
+                            <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
+                              <iframe
+                                src={`https://www.youtube-nocookie.com/embed/${m.trailer.id}?rel=0&modestbranding=1&playsinline=1`}
+                                title={`Trailer ${m.title.english || m.title.romaji || ""}`}
+                                className="absolute inset-0 w-full h-full"
+                                loading="lazy"
+                                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                                allowFullScreen
+                              />
+                            </div>
+                          ) : m.bannerImage ? (
+                            <img
+                              src={m.bannerImage}
+                              alt=""
+                              loading="lazy"
+                              className="w-full h-32 object-cover rounded-lg"
+                            />
+                          ) : null}
                           {m.studios?.nodes?.[0]?.name && (
                             <div className="text-[10px] uppercase tracking-widest" style={{ color: theme.muted }}>
                               Studio · {m.studios.nodes.map((n) => n?.name).filter(Boolean).join(", ")}
@@ -282,16 +311,33 @@ export default function AnimeCountdown() {
                                 <div className="font-bold" style={{ color: theme.text }}>{m.episodes}</div>
                               </div>
                             )}
+                            {m.duration && (
+                              <div>
+                                <div style={{ color: theme.muted }}>Durée</div>
+                                <div className="font-bold" style={{ color: theme.text }}>{m.duration} min</div>
+                              </div>
+                            )}
+                            {(m.season || m.seasonYear) && (
+                              <div>
+                                <div style={{ color: theme.muted }}>Saison</div>
+                                <div className="font-bold" style={{ color: theme.text }}>
+                                  {[m.season, m.seasonYear].filter(Boolean).join(" ")}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          {m.description && (
+                          {m.description ? (
                             <p className="whitespace-pre-line" style={{ color: theme.text }}>
                               {stripHtml(m.description)}
+                            </p>
+                          ) : (
+                            <p className="italic" style={{ color: theme.muted }}>
+                              Synopsis en cours d'importation… actualisation automatique.
                             </p>
                           )}
                         </div>
                       )}
                     </div>
-                  )}
                 </div>
               </article>
             );
