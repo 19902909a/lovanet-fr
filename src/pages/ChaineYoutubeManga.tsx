@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { PageShell } from "@/components/PageShell";
 import { Link } from "react-router-dom";
-import { EyeOff, Eye, Play, RefreshCw, ArrowLeft } from "lucide-react";
+import { EyeOff, Eye, Play, RefreshCw, ArrowLeft, X, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Video = {
@@ -17,6 +17,7 @@ type Video = {
 
 const CACHE_KEY = "lovanet.cache.yt.manga.v1";
 const BANNER_KEY = "lovanet.yt.manga.banner.hidden";
+const HIDDEN_IDS_KEY = "lovanet.yt.manga.hidden.ids";
 
 function fmtDuration(s: number) {
   const h = Math.floor(s / 3600);
@@ -40,6 +41,24 @@ export default function ChaineYoutubeManga() {
   const [bannerHidden, setBannerHidden] = useState<boolean>(() => {
     try { return localStorage.getItem(BANNER_KEY) === "1"; } catch { return false; }
   });
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(HIDDEN_IDS_KEY);
+      return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+    } catch { return new Set(); }
+  });
+
+  const hideVideo = (id: string) => {
+    setHiddenIds((prev) => {
+      const next = new Set(prev); next.add(id);
+      try { localStorage.setItem(HIDDEN_IDS_KEY, JSON.stringify([...next])); } catch {}
+      return next;
+    });
+  };
+  const resetHidden = () => {
+    setHiddenIds(new Set());
+    try { localStorage.removeItem(HIDDEN_IDS_KEY); } catch {}
+  };
 
   const toggleBanner = () => {
     setBannerHidden((v) => {
@@ -96,7 +115,9 @@ export default function ChaineYoutubeManga() {
     };
   }, []);
 
-  const activeVideo = videos.find((v) => v.id === active) ?? videos[0];
+  const visibleVideos = videos.filter((v) => !hiddenIds.has(v.id));
+  const activeVideo =
+    visibleVideos.find((v) => v.id === active) ?? visibleVideos[0];
 
   return (
     <PageShell>
@@ -109,6 +130,16 @@ export default function ChaineYoutubeManga() {
             <ArrowLeft className="w-3.5 h-3.5" /> Retour à la chaîne
           </Link>
           <div className="flex items-center gap-2">
+            {hiddenIds.size > 0 && (
+              <button
+                onClick={resetHidden}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-xs hover:border-primary/60"
+                title="Réafficher toutes les vidéos masquées"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Restaurer ({hiddenIds.size})
+              </button>
+            )}
             <button
               onClick={toggleBanner}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-xs hover:border-primary/60"
@@ -189,22 +220,40 @@ export default function ChaineYoutubeManga() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-xl font-bold">
             Vidéos manga & anime
-            <span className="text-muted-foreground font-normal"> · {videos.length} titres · Shorts exclus</span>
+            <span className="text-muted-foreground font-normal">
+              {" "}· {visibleVideos.length} titres · du plus ancien au plus récent · Shorts, streamers &amp; commentateurs exclus
+            </span>
           </h3>
           {loading && <span className="text-xs text-muted-foreground">Chargement…</span>}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {videos.map((v) => (
-            <button
+          {visibleVideos.map((v) => (
+            <div
               key={v.id}
-              onClick={() => {
-                setActive(v.id);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
-              className="group text-left rounded-2xl overflow-hidden bg-card border border-border hover:border-red-500/60 transition-all"
+              className="group relative text-left rounded-2xl overflow-hidden bg-card border border-border hover:border-red-500/60 transition-all"
             >
-              <div className="relative aspect-video overflow-hidden bg-black">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  hideVideo(v.id);
+                }}
+                className="absolute top-1.5 right-1.5 z-10 w-7 h-7 grid place-items-center rounded-full bg-black/70 text-white/90 hover:bg-red-600 hover:text-white transition-colors"
+                title="Retirer cette vidéo"
+                aria-label="Retirer cette vidéo"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActive(v.id);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                className="block w-full text-left"
+              >
+                <div className="relative aspect-video overflow-hidden bg-black">
                 <img
                   src={v.thumbnail}
                   alt={v.title}
@@ -217,18 +266,19 @@ export default function ChaineYoutubeManga() {
                 <span className="absolute inset-0 grid place-items-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
                   <Play className="w-10 h-10 text-white fill-white" />
                 </span>
-              </div>
-              <div className="p-3">
+                </div>
+                <div className="p-3">
                 <div className="text-sm font-semibold line-clamp-2 group-hover:text-red-400 transition-colors">
                   {v.title}
                 </div>
                 <div className="text-[10px] text-muted-foreground mt-1 line-clamp-1">
                   {v.channelTitle} · {fmtViews(v.viewCount)} vues
                 </div>
-              </div>
-            </button>
+                </div>
+              </button>
+            </div>
           ))}
-          {!loading && videos.length === 0 && (
+          {!loading && visibleVideos.length === 0 && (
             <div className="col-span-full text-center text-sm text-muted-foreground py-8">
               Aucune vidéo trouvée pour le moment.
             </div>
