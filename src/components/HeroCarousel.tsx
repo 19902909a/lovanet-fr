@@ -420,7 +420,7 @@ export const HeroCarousel = () => {
           top: geometry.centerY - geometry.radius * 0.95,
           clipPath: SHAPES[shapeIdx],
           WebkitClipPath: SHAPES[shapeIdx],
-          opacity: isConstrained ? 0.4 : 0.72,
+          opacity: isConstrained ? 0.12 : 0.22,
         }}
       />
 
@@ -432,8 +432,8 @@ export const HeroCarousel = () => {
           height: geometry.radius * 2,
           left: geometry.centerX - geometry.radius,
           top: geometry.centerY - geometry.radius,
-          border: "1px solid hsl(var(--neon-cyan) / 0.55)",
-          boxShadow: "inset 0 0 22px hsl(var(--neon-magenta) / 0.22), 0 0 24px hsl(var(--neon-cyan) / 0.22)",
+          border: "1px solid hsl(var(--neon-cyan) / 0.25)",
+          boxShadow: "inset 0 0 14px hsl(0 0% 100% / 0.08)",
         }}
       />
 
