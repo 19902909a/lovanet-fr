@@ -563,7 +563,9 @@ export const HologramOverlay = () => {
         frameloop={visible ? "always" : "never"}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
         camera={{ position: [0, 0.4, 6], fov: 45 }}
-        style={{ width: "100vw", height: "100vh", background: "transparent", pointerEvents: "auto" }}
+        eventSource={typeof document !== "undefined" ? document.body : undefined}
+        eventPrefix="client"
+        style={{ width: "100vw", height: "100vh", background: "transparent", pointerEvents: "none" }}
       >
         <Stage
           figures={figures}
