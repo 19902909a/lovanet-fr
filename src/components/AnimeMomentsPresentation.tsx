@@ -449,14 +449,8 @@ export const AnimeMomentsPresentation = () => {
             </div>
           </div>
 
-          {/* Right: orb + quick services */}
+          {/* Right: quick services */}
           <div className="col-span-12 lg:col-span-5 flex flex-col gap-5 justify-center">
-            <div className="relative mx-auto lg:mx-0 w-full max-w-sm aspect-square flex items-center justify-center">
-              <div className="absolute inset-0 bg-fuchsia-500/10 blur-[100px] rounded-full pointer-events-none" />
-              <MiniCatalogOrb size={260} cardW={44} cardH={64} />
-            </div>
-
-            {/* Quick service widgets */}
             <div className="grid grid-cols-2 gap-3">
               {services.map((s) => (
                 <Link
