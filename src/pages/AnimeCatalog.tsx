@@ -17,25 +17,6 @@ type Media = {
   trailer?: { id?: string; site?: string } | null;
 };
 
-const QUERY_LIST = `
-query ($page: Int, $perPage: Int, $sort: [MediaSort]) {
-  Page(page: $page, perPage: $perPage) {
-    media(type: ANIME, sort: TRENDING_DESC, isAdult: false) {
-      id
-      title { romaji english native }
-      coverImage { extraLarge large color }
-      bannerImage
-      averageScore
-      episodes
-      genres
-      format
-      seasonYear
-      description(asHtml: false)
-      trailer { id site }
-    }
-  }
-}`;
-
 const QUERY_SORTED = `
 query ($page: Int, $perPage: Int, $sort: [MediaSort]) {
   Page(page: $page, perPage: $perPage) {
