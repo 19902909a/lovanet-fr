@@ -79,11 +79,20 @@ export default function ChaineYoutubeManga() {
   const sync = async () => {
     setSyncing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("youtube-anime-sync", {
-        body: null,
-      });
-      if (error) throw error;
-      const list: Video[] = data?.videos ?? [];
+      // Boucle d'exploration automatique : on relance la sync tant que le backend
+      // insère de nouvelles vidéos (nouvelle fenêtre historique / nouveaux résultats).
+      // Sécurité : maximum 8 passes par clic pour rester sous le quota YouTube.
+      let list: Video[] = [];
+      let lastInserted = 0;
+      for (let pass = 0; pass < 8; pass++) {
+        const { data, error } = await supabase.functions.invoke("youtube-anime-sync", {
+          body: null,
+        });
+        if (error) throw error;
+        list = data?.videos ?? list;
+        lastInserted = Number(data?.inserted ?? 0);
+        if (lastInserted === 0) break; // plus rien de neuf, on s'arrête
+      }
       if (list.length) {
         // Merge with local cache — the catalogue must only grow, never shrink,
         // even if the backend returns a smaller list on a given run.
