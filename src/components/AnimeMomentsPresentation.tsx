@@ -78,19 +78,28 @@ const services = [
   },
 ];
 
-// Lazy YT IFrame API loader (shared with other components).
-let ytApiPromise: Promise<any> | null = null;
+// Lazy YT IFrame API loader — SHARED across every component on the page.
+// Stored on window so multiple components mounting on the same page don't
+// overwrite each other's onYouTubeIframeAPIReady callback (which would leave
+// one of the players waiting forever with no iframe rendered).
 const loadYTApi = (): Promise<any> => {
   if (typeof window === "undefined") return Promise.reject();
-  if ((window as any).YT?.Player) return Promise.resolve((window as any).YT);
-  if (ytApiPromise) return ytApiPromise;
-  ytApiPromise = new Promise((resolve) => {
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
-    (window as any).onYouTubeIframeAPIReady = () => resolve((window as any).YT);
+  const w = window as any;
+  if (w.YT?.Player) return Promise.resolve(w.YT);
+  if (w.__ytApiPromise) return w.__ytApiPromise;
+  w.__ytApiPromise = new Promise((resolve) => {
+    const prev = w.onYouTubeIframeAPIReady;
+    w.onYouTubeIframeAPIReady = () => {
+      try { prev?.(); } catch {}
+      resolve(w.YT);
+    };
+    if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    }
   });
-  return ytApiPromise;
+  return w.__ytApiPromise;
 };
 
 export const AnimeMomentsPresentation = () => {
