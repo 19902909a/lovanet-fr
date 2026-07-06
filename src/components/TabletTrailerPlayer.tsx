@@ -167,31 +167,33 @@ export default function TabletTrailerPlayer() {
     return n;
   };
 
-  // Instantiate YT player once
+  // Instantiate YT player once we have a host + first item
   useEffect(() => {
-    if (!current || !playerHostRef.current) return;
+    if (!current) return;
+    if (!playerHostRef.current) return;
+    if (playerRef.current) {
+      try { playerRef.current.loadVideoById(current.ytId); } catch {}
+      return;
+    }
     let disposed = false;
     loadYTApi().then((YT) => {
-      if (disposed) return;
-      if (playerRef.current) {
-        playerRef.current.loadVideoById(current.ytId);
-        return;
-      }
+      if (disposed || !playerHostRef.current || playerRef.current) return;
       playerRef.current = new YT.Player(playerHostRef.current, {
+        host: "https://www.youtube-nocookie.com",
         videoId: current.ytId,
+        width: "100%",
+        height: "100%",
         playerVars: {
           autoplay: 1,
           mute: 1,
           rel: 0,
           modestbranding: 1,
           playsinline: 1,
+          origin: window.location.origin,
         },
         events: {
-          onReady: (e: any) => {
-            try { e.target.playVideo(); } catch {}
-          },
+          onReady: (e: any) => { try { e.target.playVideo(); } catch {} },
           onStateChange: (e: any) => {
-            // 0 = ended → go next
             if (e.data === 0) {
               const next = pickNext();
               if (next) setCurrent(next);
@@ -204,19 +206,9 @@ export default function TabletTrailerPlayer() {
         },
       });
     });
-    return () => {
-      disposed = true;
-    };
+    return () => { disposed = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playerHostRef.current]);
-
-  // Whenever current changes, load in existing player
-  useEffect(() => {
-    if (!current || !playerRef.current) return;
-    try {
-      playerRef.current.loadVideoById(current.ytId);
-    } catch {}
-  }, [current]);
+  }, [current?.ytId]);
 
   // Auto-rotate the circular carousel
   useEffect(() => {
@@ -248,9 +240,9 @@ export default function TabletTrailerPlayer() {
         className="tablet-frame relative mx-auto"
         style={{
           width: "min(100%, 980px)",
-          height: 620,
+          height: 520,
           minWidth: 320,
-          minHeight: 380,
+          minHeight: 300,
           maxWidth: "100%",
           maxHeight: "90vh",
           resize: "both",
@@ -270,47 +262,44 @@ export default function TabletTrailerPlayer() {
           className="mx-auto mb-2 rounded-full"
           style={{ width: 60, height: 5, background: "rgba(255,255,255,0.15)" }}
         />
-        {/* Screen */}
+        {/* Screen — full video area */}
         <div
-          className="relative w-full h-full rounded-2xl overflow-hidden bg-black"
+          className="relative w-full rounded-2xl overflow-hidden bg-black"
           style={{ height: "calc(100% - 26px)" }}
         >
-          {/* Video area */}
-          <div className="relative w-full" style={{ height: "62%" }}>
-            <div ref={playerHostRef} className="absolute inset-0 w-full h-full" />
-            {!current && (
-              <div className="absolute inset-0 grid place-items-center text-white/50 text-sm">
-                Chargement des bandes-annonces…
-              </div>
-            )}
-            {current && (
-              <div className="absolute bottom-2 left-3 right-3 flex items-center gap-2 text-[11px] text-white/80 pointer-events-none">
-                <span className="px-1.5 py-0.5 rounded-full bg-black/60 uppercase tracking-widest text-[9px]">
-                  {current.source === "catalog" ? "Catalogue" : "Site"}
-                </span>
-                <span className="truncate">{current.title}</span>
-              </div>
-            )}
-          </div>
+          <div ref={playerHostRef} className="absolute inset-0 w-full h-full" />
+          {!current && (
+            <div className="absolute inset-0 grid place-items-center text-white/50 text-sm">
+              Chargement des bandes-annonces…
+            </div>
+          )}
+          {current && (
+            <div className="absolute bottom-2 left-3 right-3 flex items-center gap-2 text-[11px] text-white/80 pointer-events-none z-10">
+              <span className="px-1.5 py-0.5 rounded-full bg-black/60 uppercase tracking-widest text-[9px]">
+                {current.source === "catalog" ? "Catalogue" : "Site"}
+              </span>
+              <span className="truncate">{current.title}</span>
+            </div>
+          )}
+        </div>
+      </div>
 
-          {/* Circular carousel of trailers inside the tablet */}
-          <div
-            className="relative w-full select-none"
-            style={{ height: "38%", perspective: "1200px" }}
-            onPointerDown={(e) => {
-              draggingRef.current = { x: e.clientX, a: angle };
-              (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-            }}
-            onPointerMove={(e) => {
-              if (!draggingRef.current) return;
-              const dx = e.clientX - draggingRef.current.x;
-              setAngle(draggingRef.current.a + dx * 0.3);
-            }}
-            onPointerUp={() => {
-              draggingRef.current = null;
-            }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center">
+      {/* Circular carousel BELOW the tablet */}
+      <div
+        className="relative w-full select-none mt-4"
+        style={{ height: 260, perspective: "1200px" }}
+        onPointerDown={(e) => {
+          draggingRef.current = { x: e.clientX, a: angle };
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        }}
+        onPointerMove={(e) => {
+          if (!draggingRef.current) return;
+          const dx = e.clientX - draggingRef.current.x;
+          setAngle(draggingRef.current.a + dx * 0.3);
+        }}
+        onPointerUp={() => { draggingRef.current = null; }}
+      >
+        <div className="absolute inset-0 flex items-center justify-center">
               <div
                 className="relative"
                 style={{
@@ -330,8 +319,8 @@ export default function TabletTrailerPlayer() {
                       title={m.title}
                       className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                       style={{
-                        width: 60,
-                        height: 88,
+                        width: 70,
+                        height: 100,
                         transform: `rotateY(${theta}deg) translateZ(${radius}px)`,
                       }}
                     >
@@ -362,14 +351,11 @@ export default function TabletTrailerPlayer() {
               </div>
             </div>
 
-            {/* Count + hint */}
-            <div className="absolute top-2 left-3 text-[10px] uppercase tracking-widest text-white/60">
-              {items.length} bandes-annonces · aléatoire non-répété
-            </div>
-            <div className="absolute top-2 right-3 text-[10px] uppercase tracking-widest text-white/40">
-              glisser pour tourner · coin bas-droit pour redimensionner
-            </div>
-          </div>
+        <div className="absolute top-1 left-3 text-[10px] uppercase tracking-widest text-white/60">
+          {items.length} bandes-annonces · aléatoire non-répété
+        </div>
+        <div className="absolute top-1 right-3 text-[10px] uppercase tracking-widest text-white/40">
+          glisser pour tourner · tablette redimensionnable (coin bas-droit)
         </div>
       </div>
     </div>
