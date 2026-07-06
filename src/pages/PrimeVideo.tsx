@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { HoverPreview } from "@/components/HoverPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminRemoveVideo } from "@/components/AdminRemoveVideo";
+import { MangaUniverseBanner } from "@/components/MangaUniverseBanner";
 
 type Item = {
   id: string;
@@ -480,6 +481,7 @@ const PrimeVideo = () => {
             ))}
         </div>
       </section>
+      <MangaUniverseBanner />
     </PageShell>
   );
 };
