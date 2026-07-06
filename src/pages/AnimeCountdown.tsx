@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Palette } from "lucide-react";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import { Navbar } from "@/components/Navbar";
 
@@ -46,6 +47,15 @@ export default function AnimeCountdown() {
   const [items, setItems] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(Math.floor(Date.now() / 1000));
+  const themes = [
+    { key: "light", label: "Clair", bg: "#f5f3ee", surface: "rgba(0,0,0,0.04)", text: "#1a1a1a", muted: "rgba(0,0,0,0.55)", border: "rgba(0,0,0,0.08)", titleColor: "#e11d48" },
+    { key: "cream", label: "Crème", bg: "#faf6ef", surface: "rgba(0,0,0,0.03)", text: "#2d2416", muted: "rgba(45,36,22,0.6)", border: "rgba(45,36,22,0.1)", titleColor: "#b45309" },
+    { key: "sky", label: "Ciel", bg: "#eaf4fb", surface: "rgba(0,0,0,0.03)", text: "#0c2340", muted: "rgba(12,35,64,0.6)", border: "rgba(12,35,64,0.1)", titleColor: "#2563eb" },
+    { key: "sakura", label: "Sakura", bg: "#fdeef2", surface: "rgba(0,0,0,0.03)", text: "#4a1d2b", muted: "rgba(74,29,43,0.6)", border: "rgba(74,29,43,0.1)", titleColor: "#be185d" },
+    { key: "dark", label: "Nuit", bg: "#05040b", surface: "rgba(255,255,255,0.04)", text: "#ffffff", muted: "rgba(255,255,255,0.6)", border: "rgba(255,255,255,0.1)", titleColor: "#22d3ee" },
+  ] as const;
+  const [themeIdx, setThemeIdx] = useState(0);
+  const theme = themes[themeIdx];
 
   const fetchData = async () => {
     try {
@@ -92,27 +102,47 @@ export default function AnimeCountdown() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#05040b] text-white pb-20 relative overflow-hidden">
+    <main
+      className="min-h-screen pb-20 relative overflow-hidden transition-colors"
+      style={{ backgroundColor: theme.bg, color: theme.text }}
+    >
       <Navbar />
       <div className="h-12" />
-      <div
-        className="absolute inset-0 opacity-50 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(50% 50% at 20% 10%, rgba(255,43,214,0.18), transparent 70%), radial-gradient(40% 40% at 80% 30%, rgba(43,214,255,0.18), transparent 70%)",
-        }}
-      />
 
       <header className="relative px-4 md:px-10 pt-10 pb-6 text-center">
-        <h1 className="text-3xl md:text-5xl font-bold tracking-wide">
-          <span className="bg-gradient-to-r from-fuchsia-400 via-cyan-300 to-violet-400 bg-clip-text text-transparent">
-            Animés à venir — Compte à rebours
-          </span>
+        <h1
+          className="text-3xl md:text-5xl font-black tracking-wide"
+          style={{ color: theme.titleColor }}
+        >
+          Animés à venir — Compte à rebours
         </h1>
+
+        {/* Theme picker */}
+        <div className="mt-5 inline-flex items-center gap-2 rounded-full p-1.5"
+          style={{ backgroundColor: theme.surface, border: `1px solid ${theme.border}` }}>
+          <Palette className="w-4 h-4 mx-2" style={{ color: theme.muted }} />
+          {themes.map((t, i) => (
+            <button
+              key={t.key}
+              onClick={() => setThemeIdx(i)}
+              aria-label={`Thème ${t.label}`}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                i === themeIdx ? "scale-105" : "opacity-70 hover:opacity-100"
+              }`}
+              style={{
+                backgroundColor: i === themeIdx ? t.titleColor : "transparent",
+                color: i === themeIdx ? (t.key === "dark" ? "#000" : "#fff") : theme.text,
+                border: `1px solid ${i === themeIdx ? t.titleColor : theme.border}`,
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </header>
 
       <section className="relative px-4 md:px-10">
-        {loading && <p className="text-center text-white/60">Chargement…</p>}
+        {loading && <p className="text-center" style={{ color: theme.muted }}>Chargement…</p>}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {items.map((m) => {
             const airingAt = m.nextAiringEpisode!.airingAt;
@@ -121,59 +151,57 @@ export default function AnimeCountdown() {
             return (
               <article
                 key={m.id}
-                className="relative rounded-2xl overflow-hidden border border-white/10 bg-white/[0.03] backdrop-blur-sm transition-transform hover:-translate-y-1"
-                style={{ boxShadow: `0 10px 40px ${color}33` }}
+                className="relative rounded-2xl overflow-hidden transition-transform hover:-translate-y-1"
+                style={{
+                  backgroundColor: theme.surface,
+                  border: `1px solid ${theme.border}`,
+                  boxShadow: `0 10px 40px ${color}33`,
+                }}
               >
-                <div className="aspect-[16/9] overflow-hidden relative">
+                {/* Full poster fully visible — no crop, no overlay */}
+                <div
+                  className="relative flex items-center justify-center p-3"
+                  style={{ backgroundColor: `${color}22` }}
+                >
                   {m.coverImage.extraLarge && (
                     <img
                       src={m.coverImage.extraLarge}
                       alt={m.title.romaji || ""}
                       loading="lazy"
-                      className="w-full h-full object-cover"
+                      className="w-full h-auto max-h-[360px] object-contain rounded-xl"
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                  <div className="absolute bottom-2 left-3 right-3">
-                    <div className="text-xs text-white/60">
-                      Épisode {m.nextAiringEpisode!.episode}
-                      {m.episodes ? ` / ${m.episodes}` : ""}
-                    </div>
-                    <h2 className="text-base font-semibold line-clamp-2">
-                      {m.title.english || m.title.romaji}
-                    </h2>
-                  </div>
                 </div>
 
                 <div className="p-4">
+                  <div className="text-xs mb-1" style={{ color: theme.muted }}>
+                    Épisode {m.nextAiringEpisode!.episode}
+                    {m.episodes ? ` / ${m.episodes}` : ""}
+                  </div>
+                  <h2 className="text-base font-bold line-clamp-2 mb-3" style={{ color: theme.text }}>
+                    {m.title.english || m.title.romaji}
+                  </h2>
                   <div
                     className="text-center font-mono text-lg tracking-wider"
                     style={{ color }}
                   >
                     {formatCountdown(remaining)}
                   </div>
-                  <div className="text-center text-[11px] text-white/50 mt-1">
+                  <div className="text-center text-[11px] mt-1" style={{ color: theme.muted }}>
                     {new Date(airingAt * 1000).toLocaleString("fr-FR")}
                   </div>
                   <div className="flex flex-wrap gap-1.5 justify-center mt-3">
                     {m.genres?.slice(0, 3).map((g) => (
                       <span
                         key={g}
-                        className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/80"
+                        className="text-[10px] px-2 py-0.5 rounded-full"
+                        style={{ backgroundColor: theme.surface, color: theme.muted, border: `1px solid ${theme.border}` }}
                       >
                         {g}
                       </span>
                     ))}
                   </div>
                 </div>
-
-                {/* animated edge glow */}
-                <span
-                  className="pointer-events-none absolute inset-0 rounded-2xl"
-                  style={{
-                    boxShadow: `inset 0 0 30px ${color}55`,
-                  }}
-                />
               </article>
             );
           })}

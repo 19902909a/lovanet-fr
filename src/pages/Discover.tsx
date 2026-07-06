@@ -14,7 +14,7 @@ import { ShoppingBag, Youtube, Music2, Play, Film, Calendar, Sparkles } from "lu
  */
 const Discover = () => {
   useEffect(() => {
-    document.title = "Découvrir AnimemomentsAnimeofficiel — Vidéos, shorts, boutique, animés";
+    document.title = "Univers Lovanet — Vidéos, shorts, boutique, animés";
     const meta = (name: string, value: string, prop = false) => {
       const sel = prop ? `meta[property="${name}"]` : `meta[name="${name}"]`;
       let el = document.querySelector(sel) as HTMLMetaElement | null;
@@ -22,7 +22,7 @@ const Discover = () => {
       el.content = value;
     };
     meta("description", "Index complet AnimemomentsAnimeofficiel : vidéos YouTube, shorts TikTok, Prime Video, boutique 360°, animés à venir et catalogue.");
-    meta("og:title", "Découvrir AnimemomentsAnimeofficiel — Lovanet", true);
+    meta("og:title", "Univers Lovanet — AnimemomentsAnimeofficiel", true);
     meta("og:url", "https://lovanet.fr/decouvrir", true);
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
@@ -78,7 +78,7 @@ const Discover = () => {
 
       <section className="container mx-auto px-4 py-10">
         <h1 className="text-3xl md:text-5xl font-display font-bold gradient-text mb-2">
-          AnimemomentsAnimeofficiel — Découvrir Lovanet
+          Univers Lovanet — AnimemomentsAnimeofficiel
         </h1>
         <p className="text-sm text-muted-foreground mb-8">
           Vidéos · Shorts · Boutique · Animés · Catalogue
