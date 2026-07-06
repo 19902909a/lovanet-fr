@@ -179,6 +179,30 @@ export type Database = {
         }
         Relationships: []
       }
+      youtube_blacklist: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          reason: string | null
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          reason?: string | null
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          reason?: string | null
+          value?: string
+        }
+        Relationships: []
+      }
       youtube_manga_videos: {
         Row: {
           channel_title: string | null
@@ -192,6 +216,8 @@ export type Database = {
           updated_at: string
           video_id: string
           view_count: number
+          vision_checked: boolean
+          vision_verdict: string | null
         }
         Insert: {
           channel_title?: string | null
@@ -205,6 +231,8 @@ export type Database = {
           updated_at?: string
           video_id: string
           view_count?: number
+          vision_checked?: boolean
+          vision_verdict?: string | null
         }
         Update: {
           channel_title?: string | null
@@ -218,6 +246,8 @@ export type Database = {
           updated_at?: string
           video_id?: string
           view_count?: number
+          vision_checked?: boolean
+          vision_verdict?: string | null
         }
         Relationships: []
       }
