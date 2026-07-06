@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Tablet-shaped video player with an integrated 3D circular carousel of up to
@@ -79,27 +78,7 @@ export default function TabletTrailerPlayer() {
 
     // 2) Site videos from Supabase (YouTube imports)
     (async () => {
-      try {
-        const { data } = await supabase
-          .from("imported_videos")
-          .select("external_id, title, thumbnail_url")
-          .eq("source", "youtube")
-          .limit(500);
-        if (cancelled || !data) return;
-        const siteItems: Media[] = data
-          .filter((r: any) => r.external_id)
-          .map((r: any) => ({
-            id: `s-${r.external_id}`,
-            title: r.title || "Vidéo",
-            cover: r.thumbnail_url || `https://i.ytimg.com/vi/${r.external_id}/hqdefault.jpg`,
-            ytId: r.external_id,
-            source: "site" as const,
-          }));
-        // Dedup by ytId
-        const seen = new Set(merged.map((m) => m.ytId));
-        for (const s of siteItems) if (!seen.has(s.ytId)) merged.push(s);
-        if (!cancelled) setItems([...merged].slice(0, 1500));
-      } catch {}
+      if (!cancelled && merged.length) setItems([...merged].slice(0, 1500));
     })();
 
     // 3) If catalog cache missing → fetch enough pages to reach 1500 trailers
@@ -217,7 +196,8 @@ export default function TabletTrailerPlayer() {
     const tick = (t: number) => {
       const dt = (t - last) / 1000;
       last = t;
-      if (!draggingRef.current) setAngle((a) => a + dt * 10);
+      // Slow drift so cards stay readable/selectable.
+      if (!draggingRef.current) setAngle((a) => a + dt * 2);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -225,8 +205,8 @@ export default function TabletTrailerPlayer() {
   }, []);
 
   // Cap visible cards for performance (1500 in 3D would kill perf).
-  const visible = useMemo(() => items.slice(0, 120), [items]);
-  const radius = useMemo(() => Math.max(320, visible.length * 10), [visible.length]);
+  const visible = useMemo(() => items.slice(0, 80), [items]);
+  const radius = useMemo(() => Math.max(180, Math.min(240, visible.length * 4)), [visible.length]);
 
   const onSelect = (m: Media) => {
     playedRef.current.add(m.ytId);
@@ -287,7 +267,7 @@ export default function TabletTrailerPlayer() {
       {/* Circular carousel BELOW the tablet */}
       <div
         className="relative w-full select-none mt-4"
-        style={{ height: 260, perspective: "1200px" }}
+        style={{ height: 220, perspective: "1400px", overflow: "visible" }}
         onPointerDown={(e) => {
           draggingRef.current = { x: e.clientX, a: angle };
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -295,7 +275,7 @@ export default function TabletTrailerPlayer() {
         onPointerMove={(e) => {
           if (!draggingRef.current) return;
           const dx = e.clientX - draggingRef.current.x;
-          setAngle(draggingRef.current.a + dx * 0.3);
+          setAngle(draggingRef.current.a + dx * 0.15);
         }}
         onPointerUp={() => { draggingRef.current = null; }}
       >
@@ -317,16 +297,17 @@ export default function TabletTrailerPlayer() {
                       key={String(m.id) + i}
                       onClick={() => onSelect(m)}
                       title={m.title}
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
                       style={{
-                        width: 70,
-                        height: 100,
+                        width: 54,
+                        height: 80,
                         transform: `rotateY(${theta}deg) translateZ(${radius}px)`,
                       }}
                     >
                       <div
                         className="w-full h-full rounded-md overflow-hidden border transition-transform hover:scale-110"
                         style={{
+                          transform: `rotateY(${-theta - angle}deg)`,
                           borderColor: isActive ? "#f0abfc" : "rgba(255,255,255,0.15)",
                           boxShadow: isActive
                             ? "0 0 18px rgba(240,171,252,0.9)"
