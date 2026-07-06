@@ -18,7 +18,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MiniCatalogOrb from "@/components/MiniCatalogOrb";
 import heroBg from "@/assets/anime-moments-hero.jpg";
 import { videos } from "@/data/videos";
@@ -77,10 +77,123 @@ const services = [
   },
 ];
 
+// Lazy YT IFrame API loader (shared with other components).
+let ytApiPromise: Promise<any> | null = null;
+const loadYTApi = (): Promise<any> => {
+  if (typeof window === "undefined") return Promise.reject();
+  if ((window as any).YT?.Player) return Promise.resolve((window as any).YT);
+  if (ytApiPromise) return ytApiPromise;
+  ytApiPromise = new Promise((resolve) => {
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+    (window as any).onYouTubeIframeAPIReady = () => resolve((window as any).YT);
+  });
+  return ytApiPromise;
+};
+
 export const AnimeMomentsPresentation = () => {
   const [copied, setCopied] = useState(false);
   const [muted, setMuted] = useState(true);
-  const bannerId = videos[0]?.id ?? "bGFUthZjGd4";
+
+  // Rotating banner playlist: AnimeMomentsOfficiel site videos + catalogue trailers.
+  const [pool, setPool] = useState<string[]>(() => videos.map((v) => v.id));
+  const [bannerId, setBannerId] = useState<string>(videos[0]?.id ?? "bGFUthZjGd4");
+  const playedRef = useRef<Set<string>>(new Set([videos[0]?.id ?? "bGFUthZjGd4"]));
+  const playerHostRef = useRef<HTMLDivElement | null>(null);
+  const playerRef = useRef<any>(null);
+
+  // Spotlights + customizable background on the banner
+  const [spots, setSpots] = useState<boolean[]>([true, true, true]);
+  const toggleSpot = (i: number) =>
+    setSpots((s) => s.map((v, idx) => (idx === i ? !v : v)));
+  type BgMode = "video" | "color" | "media";
+  const [bgMode, setBgMode] = useState<BgMode>("video");
+  const [bgColor, setBgColor] = useState("#0b0b16");
+  const [bgMedia, setBgMedia] = useState("");
+  const [mediaKind, setMediaKind] = useState<"image" | "video">("image");
+  const [showBgPanel, setShowBgPanel] = useState(false);
+  const onPickMedia = (file: File) => {
+    const url = URL.createObjectURL(file);
+    setBgMedia(url);
+    setMediaKind(file.type.startsWith("video") ? "video" : "image");
+    setBgMode("media");
+  };
+
+  // Load catalogue trailers from cache and merge with site videos.
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem("lovanet.cache.catalog.grid");
+      if (!cached) return;
+      const list = JSON.parse(cached) as any[];
+      const ids = new Set(pool);
+      for (const m of list) {
+        if (m?.trailer?.id && m?.trailer?.site === "youtube") ids.add(m.trailer.id);
+      }
+      setPool(Array.from(ids));
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const pickNext = () => {
+    if (!pool.length) return bannerId;
+    const remaining = pool.filter((id) => !playedRef.current.has(id));
+    const source = remaining.length ? remaining : (playedRef.current.clear(), pool);
+    const n = source[Math.floor(Math.random() * source.length)];
+    playedRef.current.add(n);
+    return n;
+  };
+
+  // Instantiate the YT player once — auto-advance on end.
+  useEffect(() => {
+    if (!playerHostRef.current || playerRef.current) return;
+    let disposed = false;
+    loadYTApi().then((YT) => {
+      if (disposed || !playerHostRef.current || playerRef.current) return;
+      playerRef.current = new YT.Player(playerHostRef.current, {
+        host: "https://www.youtube-nocookie.com",
+        videoId: bannerId,
+        width: "100%",
+        height: "100%",
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          controls: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          rel: 0,
+          origin: window.location.origin,
+        },
+        events: {
+          onReady: (e: any) => { try { muted ? e.target.mute() : e.target.unMute(); e.target.playVideo(); } catch {} },
+          onStateChange: (e: any) => {
+            if (e.data === 0) {
+              const nxt = pickNext();
+              setBannerId(nxt);
+              try { playerRef.current?.loadVideoById(nxt); } catch {}
+            }
+          },
+          onError: () => {
+            const nxt = pickNext();
+            setBannerId(nxt);
+            try { playerRef.current?.loadVideoById(nxt); } catch {}
+          },
+        },
+      });
+    });
+    return () => { disposed = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync mute changes to the live player.
+  useEffect(() => {
+    try {
+      if (!playerRef.current) return;
+      muted ? playerRef.current.mute() : playerRef.current.unMute();
+    } catch {}
+  }, [muted]);
+
+  const activeVideo = videos.find((v) => v.id === bannerId) ?? videos[0];
 
   const shareUrl =
     typeof window !== "undefined" ? window.location.href : "https://lovanet.fr";
@@ -99,16 +212,104 @@ export const AnimeMomentsPresentation = () => {
       <div className="relative w-full rounded-[2rem] overflow-hidden border border-white/10 bg-zinc-950/80 shadow-[0_0_80px_-20px_hsl(var(--neon-magenta)/0.35)]">
         {/* PRO VIDEO BANNER */}
         <div className="relative w-full aspect-[21/9] sm:aspect-[21/8] overflow-hidden border-b border-white/10">
-          <iframe
-            key={`${bannerId}-${muted ? "m" : "s"}`}
-            className="absolute inset-0 w-full h-full scale-[1.35] pointer-events-none"
-            src={`https://www.youtube-nocookie.com/embed/${bannerId}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&loop=1&playlist=${bannerId}&modestbranding=1&playsinline=1&rel=0&showinfo=0`}
-            title="Anime Moments — bande-annonce"
-            allow="autoplay; encrypted-media; picture-in-picture"
-            referrerPolicy="strict-origin-when-cross-origin"
-          />
+          {/* Custom background layer (color / user image / user video) */}
+          {bgMode === "color" && (
+            <div className="absolute inset-0" style={{ background: bgColor }} />
+          )}
+          {bgMode === "media" && bgMedia && (
+            mediaKind === "video" ? (
+              <video src={bgMedia} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+              <img src={bgMedia} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            )
+          )}
+
+          {/* YT player host — controlled via IFrame API */}
+          <div className="absolute inset-0 w-full h-full scale-[1.35] pointer-events-none">
+            <div ref={playerHostRef} className="w-full h-full" />
+          </div>
+
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-zinc-950/60" />
           <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/90 via-transparent to-zinc-950/40" />
+
+          {/* Interactive spotlights */}
+          {[
+            { left: "20%", color: "255,80,220" },
+            { left: "50%", color: "120,200,255" },
+            { left: "80%", color: "255,220,120" },
+          ].map((s, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => toggleSpot(i)}
+              aria-label={`Spot ${i + 1} ${spots[i] ? "allumé" : "éteint"}`}
+              className="absolute top-0 z-20"
+              style={{ left: s.left, transform: "translateX(-50%)" }}
+            >
+              <span
+                className="block w-5 h-5 rounded-full border border-white/40"
+                style={{
+                  background: spots[i]
+                    ? `radial-gradient(circle, rgb(${s.color}) 0%, rgba(${s.color},0.4) 70%)`
+                    : "rgba(255,255,255,0.15)",
+                  boxShadow: spots[i] ? `0 0 18px rgba(${s.color},0.9)` : "none",
+                }}
+              />
+              {spots[i] && (
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2"
+                  style={{
+                    width: 280,
+                    height: 320,
+                    background: `radial-gradient(ellipse at top, rgba(${s.color},0.55) 0%, rgba(${s.color},0.15) 40%, transparent 70%)`,
+                    clipPath: "polygon(45% 0%, 55% 0%, 100% 100%, 0% 100%)",
+                    filter: "blur(2px)",
+                  }}
+                />
+              )}
+            </button>
+          ))}
+
+          {/* Background customization panel */}
+          <div className="absolute bottom-16 right-4 sm:right-6 z-30 flex flex-col items-end gap-2">
+            {showBgPanel && (
+              <div className="rounded-xl bg-black/70 backdrop-blur border border-white/15 p-3 flex flex-col gap-2 text-white text-xs">
+                <div className="flex items-center gap-2">
+                  <label className="uppercase tracking-widest text-[10px] text-white/70">Couleur</label>
+                  <input
+                    type="color"
+                    value={bgColor}
+                    onChange={(e) => { setBgColor(e.target.value); setBgMode("color"); }}
+                    className="w-8 h-8 rounded cursor-pointer bg-transparent"
+                  />
+                </div>
+                <label className="inline-flex items-center gap-2 cursor-pointer">
+                  <span className="uppercase tracking-widest text-[10px] text-white/70">Image / Vidéo</span>
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={(e) => e.target.files?.[0] && onPickMedia(e.target.files[0])}
+                    className="text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-white/10 file:text-white"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => { setBgMedia(""); setBgMode("video"); }}
+                  className="text-[10px] underline text-white/70 self-start"
+                >
+                  Réactiver la vidéo
+                </button>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowBgPanel((v) => !v)}
+              className="px-3 py-1.5 rounded-full text-[10px] uppercase tracking-widest bg-white/10 hover:bg-white/20 text-white border border-white/15 backdrop-blur"
+            >
+              {showBgPanel ? "Fermer" : "Fond"}
+            </button>
+          </div>
 
           {/* Banner overlays */}
           <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2">
@@ -138,11 +339,11 @@ export const AnimeMomentsPresentation = () => {
                 Épisode à la une
               </div>
               <h2 className="text-white font-display font-black text-xl sm:text-3xl lg:text-4xl leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
-                {videos[0]?.title ?? "Anime Moments"} <span className="text-fuchsia-300">— {videos[0]?.series}</span>
+                {activeVideo?.title ?? "Anime Moments"} <span className="text-fuchsia-300">— {activeVideo?.series}</span>
               </h2>
             </div>
             <Link
-              to="/lecteurs-video"
+              to={`/lecteurs-video?video=${bannerId}`}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black font-bold text-sm hover:bg-fuchsia-300 transition-colors shadow-xl"
             >
               <Play className="w-4 h-4 fill-current" /> Voir l'épisode
