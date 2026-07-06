@@ -232,8 +232,6 @@ const Index = () => {
 
   return (
     <PageShell>
-      {/* Holograms drifting across the homepage from time to time */}
-      <HologramOverlay />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />

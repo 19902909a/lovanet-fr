@@ -21,6 +21,7 @@ import { CartProvider } from "./context/CartContext";
 import { CartDrawer } from "./components/CartDrawer";
 import GoogleTranslate from "./components/GoogleTranslate";
 import YoutubeBrandSettings from "./components/YoutubeBrandSettings";
+import { HologramOverlay } from "./components/HologramOverlay";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
         <CartDrawer />
         <GoogleTranslate />
         <YoutubeBrandSettings />
+        <HologramOverlay />
         </CartProvider>
       </BrowserRouter>
     </TooltipProvider>
