@@ -20,7 +20,45 @@ const SHAPES = [
   "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
   "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
   "polygon(50% 2%, 95% 18%, 90% 65%, 50% 98%, 10% 65%, 5% 18%)",
+  // Square
+  "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+  // Triangle
+  "polygon(50% 0%, 100% 100%, 0% 100%)",
+  // Pentagon
+  "polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)",
+  // Octagon
+  "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)",
+  // 6-branch star
+  "polygon(50% 0%, 60% 35%, 98% 35%, 68% 57%, 80% 100%, 50% 75%, 20% 100%, 32% 57%, 2% 35%, 40% 35%)",
+  // Cross / plus
+  "polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%)",
+  // Chevron / arrow
+  "polygon(50% 0%, 100% 50%, 75% 100%, 50% 55%, 25% 100%, 0% 50%)",
 ];
+
+// Strong / RGB palette for the shape fill
+const STRONG_COLORS = [
+  "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF",
+  "#000000", "#FFFFFF", "#FF7A00", "#7A00FF", "#00FF7A", "#FF0077",
+  "#0077FF", "#77FF00", "#FF3D00", "#3D00FF", "#00E5FF", "#E5FF00",
+  "#111111", "#0044FF",
+];
+
+// Background colors cycling behind the wheel
+const BG_COLORS = [
+  "#FFFFFF", "#0A0A0F", "#001133", "#330011", "#113300", "#001A1A",
+  "#1A0033", "#331A00", "#050510", "#F5F5FA", "#0F1E33", "#2D0F33",
+  "#0F332D", "#33200F", "#000814", "#140014", "#080814", "#EAF4FF",
+  "#FFEEF6", "#F0FFEE",
+];
+
+// 200 unique visual variations (bg × shape × color)
+const VARIANTS = Array.from({ length: 200 }, (_, i) => ({
+  bg: BG_COLORS[i % BG_COLORS.length],
+  shape: SHAPES[Math.floor(i / 4) % SHAPES.length],
+  color: STRONG_COLORS[(i * 3 + 1) % STRONG_COLORS.length],
+  accent: STRONG_COLORS[(i * 7 + 5) % STRONG_COLORS.length],
+}));
 
 const isConstrainedDevice = () => {
   if (typeof window === "undefined") return false;
