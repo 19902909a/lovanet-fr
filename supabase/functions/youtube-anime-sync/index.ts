@@ -216,39 +216,28 @@ Deno.serve(async (req) => {
     const pages = customQ
       ? Math.min(Math.max(requestedPages, 1), 5)
       : Math.min(Math.max(requestedPages, 1), 1);
-    const order = url.searchParams.get('order') ?? 'date';
+    const orderParam = url.searchParams.get('order');
     const queries = customQ ? [customQ] : DEFAULT_QUERIES;
     const reset = url.searchParams.get('reset') === '1';
-    const incremental = url.searchParams.get('incremental') === '1';
 
-    // Historical sweep: crawl YouTube from 2007-01-01 forward, one year window
-    // per run. The cursor in youtube_sync_state stores the START of the next
-    // window. When we reach "now", wrap around to 2007 so the catalogue keeps
-    // growing (YouTube exposes different results run-to-run).
-    const EPOCH_START = '2007-01-01T00:00:00Z';
-    let cursorIso: string | null = null;
+    // Rotation d'ordre de tri pour maximiser la couverture sans filtre de date :
+    // YouTube renvoie ~500 résultats max par requête, mais le classement change
+    // selon `order`. En alternant, on découvre en continu de nouvelles vidéos.
+    const ORDER_ROTATION = ['date', 'viewCount', 'rating', 'relevance'];
+    // Cursor = index de rotation (stocké dans last_published_at faute de colonne dédiée).
+    let rotationIdx = 0;
     {
       const { data: state } = await admin
         .from('youtube_sync_state')
         .select('last_published_at')
         .eq('key', SYNC_KEY)
         .maybeSingle();
-      cursorIso = (state?.last_published_at as string | null) ?? null;
+      const raw = (state?.last_published_at as string | null) ?? '0';
+      const parsed = Number.parseInt(raw, 10);
+      rotationIdx = Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
     }
-    if (reset || !cursorIso) cursorIso = EPOCH_START;
-
-    // Compute the [windowStart, windowEnd] for this run (1 year wide).
-    let windowStart = new Date(cursorIso);
-    if (Number.isNaN(windowStart.getTime())) windowStart = new Date(EPOCH_START);
-    const now = new Date();
-    if (windowStart >= now) windowStart = new Date(EPOCH_START); // wrap
-    const windowEnd = new Date(windowStart);
-    windowEnd.setUTCFullYear(windowEnd.getUTCFullYear() + 1);
-    if (windowEnd > now) windowEnd.setTime(now.getTime());
-    const publishedAfter = windowStart.toISOString();
-    const publishedBefore = windowEnd.toISOString();
-    // The custom `q` search bypasses the sweep and behaves like a free-form query.
-    const useSweep = !customQ;
+    if (reset) rotationIdx = 0;
+    const order = orderParam ?? ORDER_ROTATION[rotationIdx % ORDER_ROTATION.length];
 
     // 1) Collect candidate video IDs via search.list
     const ids = new Set<string>();
@@ -266,13 +255,8 @@ Deno.serve(async (req) => {
           safeSearch: 'moderate',
           relevanceLanguage: 'fr',
         });
-        // Historical window — oldest → newest sweep.
-        if (useSweep) {
-          params.set('publishedAfter', publishedAfter);
-          params.set('publishedBefore', publishedBefore);
-        } else if (incremental && cursorIso) {
-          params.set('publishedAfter', cursorIso);
-        }
+        // Pas de filtre de date : on veut TOUTES les vidéos anime/manga de YouTube,
+        // peu importe l'année de publication.
         if (pageToken) params.set('pageToken', pageToken);
         const r = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
         if (!r.ok) break;
@@ -289,7 +273,18 @@ Deno.serve(async (req) => {
     if (ids.size === 0) {
       // Return whatever is already stored (oldest → newest).
       const storedVideos = await loadStoredVideos(admin);
-      return new Response(JSON.stringify({ videos: storedVideos, inserted: 0, cursor: cursorIso }), {
+      // Avance quand même la rotation pour ne pas rester bloqué.
+      await admin
+        .from('youtube_sync_state')
+        .upsert(
+          {
+            key: SYNC_KEY,
+            last_published_at: String((rotationIdx + 1) % ORDER_ROTATION.length),
+            last_run_at: new Date().toISOString(),
+          },
+          { onConflict: 'key' },
+        );
+      return new Response(JSON.stringify({ videos: storedVideos, inserted: 0, order }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -400,31 +395,19 @@ Deno.serve(async (req) => {
           .from('youtube_manga_videos')
           .upsert(rows.slice(i, i + 500), { onConflict: 'video_id', ignoreDuplicates: false });
       }
-
-      // Advance the sweep cursor to the next window start (windowEnd), so the
-      // next run picks up the following year. For non-sweep runs, keep the
-      // classic behaviour: track the newest publishedAt observed.
-      const nextCursor = useSweep
-        ? publishedBefore
-        : (videos[videos.length - 1].publishedAt > (cursorIso ?? '')
-            ? videos[videos.length - 1].publishedAt
-            : cursorIso);
-      await admin
-        .from('youtube_sync_state')
-        .upsert(
-          { key: SYNC_KEY, last_published_at: nextCursor, last_run_at: new Date().toISOString() },
-          { onConflict: 'key' },
-        );
-    } else {
-      // No new videos this run — still advance the sweep so we don't loop.
-      const nextCursor = useSweep ? publishedBefore : cursorIso;
-      await admin
-        .from('youtube_sync_state')
-        .upsert(
-          { key: SYNC_KEY, last_published_at: nextCursor, last_run_at: new Date().toISOString() },
-          { onConflict: 'key' },
-        );
     }
+
+    // Fait tourner l'ordre de tri pour la prochaine exécution.
+    await admin
+      .from('youtube_sync_state')
+      .upsert(
+        {
+          key: SYNC_KEY,
+          last_published_at: String((rotationIdx + 1) % ORDER_ROTATION.length),
+          last_run_at: new Date().toISOString(),
+        },
+        { onConflict: 'key' },
+      );
 
     // Return the full stored list. Storage/order stays oldest → newest;
     // the UI reverses to newest → oldest for display.
@@ -435,8 +418,8 @@ Deno.serve(async (req) => {
         videos: storedVideos,
         inserted: videos.length,
         visionBlocked: visionBlacklistAdds.length,
-        cursor: cursorIso,
-        window: { publishedAfter, publishedBefore, useSweep },
+        order,
+        rotationIdx,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
