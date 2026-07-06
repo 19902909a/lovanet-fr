@@ -188,9 +188,9 @@ export default function MiniCatalogOrb({
         >
           <defs>
             <linearGradient id={`ring-g-${i}`} x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stopColor={`hsl(${i * 120} 100% 65%)`} />
-              <stop offset="50%" stopColor={`hsl(${(i * 120 + 120) % 360} 100% 60%)`} />
-              <stop offset="100%" stopColor={`hsl(${(i * 120 + 240) % 360} 100% 60%)`} />
+              <stop offset="0%" stopColor={`hsl(${160 + i * 30} 70% 65%)`} />
+              <stop offset="50%" stopColor={`hsl(${190 + i * 20} 70% 60%)`} />
+              <stop offset="100%" stopColor={`hsl(${210 + i * 15} 70% 60%)`} />
             </linearGradient>
           </defs>
           <circle
