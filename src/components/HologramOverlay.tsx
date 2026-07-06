@@ -195,7 +195,7 @@ const buildVariants = (): Variant[] => {
         label,
         glbIndex: i % GLBS.length,
         tint: TINTS[(i * 3 + k) % TINTS.length],
-        scaleMul: 0.85 + Math.random() * 0.35,
+        scaleMul: 0.55 + Math.random() * 0.25,
         preferredAction:
           label === "dancer" ? "dance"
           : label === "young" ? "run"
