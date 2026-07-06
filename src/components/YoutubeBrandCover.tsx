@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 /**
  * Overlay placed inside a `relative` container that also holds a YouTube iframe.
@@ -58,14 +58,7 @@ export default function YoutubeBrandCover() {
 
   if (!cfg.enabled) return null;
 
-  const pos: Record<string, string> = {
-    br: "bottom: 8px; right: 8px;",
-    bl: "bottom: 8px; left: 8px;",
-    tr: "top: 8px; right: 8px;",
-    tl: "top: 8px; left: 8px;",
-  };
-
-  const style: React.CSSProperties = {
+  const style: CSSProperties = {
     position: "absolute",
     width: cfg.width,
     height: cfg.height,
@@ -82,8 +75,6 @@ export default function YoutubeBrandCover() {
     ...(cfg.position === "tr" ? { top: 8, right: 8 } : {}),
     ...(cfg.position === "tl" ? { top: 8, left: 8 } : {}),
   };
-
-  void pos;
 
   return (
     <div style={style} aria-hidden>
