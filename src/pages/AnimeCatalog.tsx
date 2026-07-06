@@ -51,6 +51,11 @@ export default function AnimeCatalog() {
   const [promoted, setPromoted] = useState<Media[]>([]);
   const [promotedAngle, setPromotedAngle] = useState(0);
   const [trailerMedia, setTrailerMedia] = useState<Media | null>(null);
+  // Quick filters + sort for the grid
+  const [filterGenre, setFilterGenre] = useState<string>("all");
+  const [minScore, setMinScore] = useState<number>(0);
+  const [minYear, setMinYear] = useState<number>(0);
+  const [sortBy, setSortBy] = useState<"default" | "newest" | "score" | "alpha">("default");
   const rafRef = useRef<number>();
   const draggingRef = useRef<{ x: number; a: number } | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -261,13 +266,40 @@ export default function AnimeCatalog() {
 
   // Chunk grid into rows
   const rowSize = 10;
+  const allGenres = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of gridItems) (m.genres ?? []).forEach((g) => set.add(g));
+    return Array.from(set).sort();
+  }, [gridItems]);
+
+  const filteredSorted = useMemo(() => {
+    let list = gridItems.filter((m) => {
+      if (filterGenre !== "all" && !(m.genres ?? []).includes(filterGenre)) return false;
+      if (minScore > 0 && (m.averageScore ?? 0) < minScore) return false;
+      if (minYear > 0 && (m.seasonYear ?? 0) < minYear) return false;
+      return true;
+    });
+    if (sortBy === "newest") {
+      list = [...list].sort((a, b) => (b.seasonYear ?? 0) - (a.seasonYear ?? 0));
+    } else if (sortBy === "score") {
+      list = [...list].sort((a, b) => (b.averageScore ?? 0) - (a.averageScore ?? 0));
+    } else if (sortBy === "alpha") {
+      list = [...list].sort((a, b) => {
+        const ta = (a.title.english || a.title.romaji || "").toLowerCase();
+        const tb = (b.title.english || b.title.romaji || "").toLowerCase();
+        return ta.localeCompare(tb);
+      });
+    }
+    return list;
+  }, [gridItems, filterGenre, minScore, minYear, sortBy]);
+
   const rows = useMemo(() => {
     const out: Media[][] = [];
-    for (let i = 0; i < gridItems.length; i += rowSize) {
-      out.push(gridItems.slice(i, i + rowSize));
+    for (let i = 0; i < filteredSorted.length; i += rowSize) {
+      out.push(filteredSorted.slice(i, i + rowSize));
     }
     return out;
-  }, [gridItems]);
+  }, [filteredSorted]);
 
   const promoteRow = (rowItems: Media[]) => {
     setPromoted((prev) => {
@@ -491,10 +523,73 @@ export default function AnimeCatalog() {
       <section className="px-4 md:px-10 py-10">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg md:text-xl font-semibold text-white/80">
-            Tout le catalogue · {gridItems.length} titres
+            Tout le catalogue · {filteredSorted.length} / {gridItems.length} titres
           </h2>
           {gridLoading && (
             <span className="text-xs text-white/50">Chargement en cours…</span>
+          )}
+        </div>
+        {/* Quick filters + sort */}
+        <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
+          <select
+            value={filterGenre}
+            onChange={(e) => setFilterGenre(e.target.value)}
+            className="bg-black/40 border border-white/15 rounded-full px-3 py-1.5 text-white/80"
+            aria-label="Filtrer par genre"
+          >
+            <option value="all">Tous les genres</option>
+            {allGenres.map((g) => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
+          <select
+            value={minScore}
+            onChange={(e) => setMinScore(Number(e.target.value))}
+            className="bg-black/40 border border-white/15 rounded-full px-3 py-1.5 text-white/80"
+            aria-label="Score minimum"
+          >
+            <option value={0}>Score : tous</option>
+            <option value={60}>≥ 60</option>
+            <option value={70}>≥ 70</option>
+            <option value={80}>≥ 80</option>
+            <option value={85}>≥ 85</option>
+            <option value={90}>≥ 90</option>
+          </select>
+          <select
+            value={minYear}
+            onChange={(e) => setMinYear(Number(e.target.value))}
+            className="bg-black/40 border border-white/15 rounded-full px-3 py-1.5 text-white/80"
+            aria-label="Année minimale"
+          >
+            <option value={0}>Année : toutes</option>
+            <option value={2026}>Depuis 2026</option>
+            <option value={2025}>Depuis 2025</option>
+            <option value={2024}>Depuis 2024</option>
+            <option value={2023}>Depuis 2023</option>
+            <option value={2020}>Depuis 2020</option>
+            <option value={2015}>Depuis 2015</option>
+            <option value={2010}>Depuis 2010</option>
+            <option value={2000}>Depuis 2000</option>
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="bg-black/40 border border-fuchsia-400/40 rounded-full px-3 py-1.5 text-fuchsia-200"
+            aria-label="Trier"
+          >
+            <option value="default">Tri : Tendances</option>
+            <option value="newest">Nouveaux ajouts</option>
+            <option value="score">Meilleur score</option>
+            <option value="alpha">A → Z</option>
+          </select>
+          {(filterGenre !== "all" || minScore > 0 || minYear > 0 || sortBy !== "default") && (
+            <button
+              type="button"
+              onClick={() => { setFilterGenre("all"); setMinScore(0); setMinYear(0); setSortBy("default"); }}
+              className="text-white/60 hover:text-white underline"
+            >
+              Réinitialiser
+            </button>
           )}
         </div>
         <div className="space-y-2">
