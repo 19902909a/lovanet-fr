@@ -288,17 +288,6 @@ export default function AnimeCountdown() {
                               {stripHtml(m.description)}
                             </p>
                           )}
-                          {m.siteUrl && (
-                            <a
-                              href={m.siteUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex text-[11px] font-bold underline"
-                              style={{ color: theme.titleColor }}
-                            >
-                              Fiche complète →
-                            </a>
-                          )}
                         </div>
                       )}
                     </div>
