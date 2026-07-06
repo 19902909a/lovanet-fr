@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import ChaineYoutube from "./pages/ChaineYoutube";
+import ChaineYoutubeManga from "./pages/ChaineYoutubeManga";
 import LecteursVideo from "./pages/LecteursVideo";
 import PrimeVideo from "./pages/PrimeVideo";
 import Tiktok from "./pages/Tiktok";
@@ -33,6 +34,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/chaine-youtube" element={<ChaineYoutube />} />
+          <Route path="/chaine-youtube/manga" element={<ChaineYoutubeManga />} />
           <Route path="/lecteurs-video" element={<LecteursVideo />} />
           <Route path="/prime-video" element={<PrimeVideo />} />
           <Route path="/tiktok" element={<Tiktok />} />
