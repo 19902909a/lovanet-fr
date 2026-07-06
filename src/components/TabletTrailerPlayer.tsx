@@ -267,7 +267,7 @@ export default function TabletTrailerPlayer() {
       {/* Circular carousel BELOW the tablet */}
       <div
         className="relative w-full select-none mt-4"
-        style={{ height: 260, perspective: "1200px" }}
+        style={{ height: 220, perspective: "1400px", overflow: "visible" }}
         onPointerDown={(e) => {
           draggingRef.current = { x: e.clientX, a: angle };
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -275,7 +275,7 @@ export default function TabletTrailerPlayer() {
         onPointerMove={(e) => {
           if (!draggingRef.current) return;
           const dx = e.clientX - draggingRef.current.x;
-          setAngle(draggingRef.current.a + dx * 0.3);
+          setAngle(draggingRef.current.a + dx * 0.15);
         }}
         onPointerUp={() => { draggingRef.current = null; }}
       >
@@ -297,16 +297,17 @@ export default function TabletTrailerPlayer() {
                       key={String(m.id) + i}
                       onClick={() => onSelect(m)}
                       title={m.title}
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
                       style={{
-                        width: 70,
-                        height: 100,
+                        width: 54,
+                        height: 80,
                         transform: `rotateY(${theta}deg) translateZ(${radius}px)`,
                       }}
                     >
                       <div
                         className="w-full h-full rounded-md overflow-hidden border transition-transform hover:scale-110"
                         style={{
+                          transform: `rotateY(${-theta - angle}deg)`,
                           borderColor: isActive ? "#f0abfc" : "rgba(255,255,255,0.15)",
                           boxShadow: isActive
                             ? "0 0 18px rgba(240,171,252,0.9)"
