@@ -449,6 +449,16 @@ export const HeroCarousel = () => {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
+      {/* Background color cycling behind the roulette (changes every 10s) */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundColor: VARIANTS[variantIdx].bg,
+          transition: "background-color 1.2s ease",
+          zIndex: 0,
+        }}
+      />
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {allVideos[baseSlot % N]?.title
           ? `Vidéo active : ${allVideos[baseSlot % N].title}`
@@ -465,9 +475,12 @@ export const HeroCarousel = () => {
           height: geometry.radius * 1.9,
           left: geometry.centerX - geometry.radius * 0.95,
           top: geometry.centerY - geometry.radius * 0.95,
-          clipPath: SHAPES[shapeIdx],
-          WebkitClipPath: SHAPES[shapeIdx],
-          opacity: isConstrained ? 0.12 : 0.22,
+          clipPath: VARIANTS[variantIdx].shape,
+          WebkitClipPath: VARIANTS[variantIdx].shape,
+          background: `radial-gradient(circle at 32% 28%, ${VARIANTS[variantIdx].accent} 0%, ${VARIANTS[variantIdx].color} 55%, ${VARIANTS[variantIdx].color} 100%)`,
+          opacity: isConstrained ? 0.85 : 0.92,
+          transition: "clip-path 0.8s ease, background 1.2s ease, opacity 0.6s ease",
+          zIndex: 1,
         }}
       />
 
