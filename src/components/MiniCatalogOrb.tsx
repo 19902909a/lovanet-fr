@@ -103,8 +103,10 @@ export default function MiniCatalogOrb({
       const pulseScale = 1 + Math.sin((pulse * Math.PI) / 180) * 0.04;
       const wobble = Math.sin((pulse * Math.PI) / 90) * 6;
 
+      // Constrain palette to blue→cyan→green (140°–240°) — no pink/magenta bleed
+      const safeHue = 140 + ((Math.sin((hue * Math.PI) / 180) + 1) / 2) * 100;
       if (glowRef.current) {
-        glowRef.current.style.background = `radial-gradient(circle at 50% 50%, hsl(${hue} 100% 65% / ${isConstrained ? 0.26 : 0.55}), hsl(${(hue + 120) % 360} 100% 55% / ${isConstrained ? 0.18 : 0.35}) 40%, transparent 70%)`;
+        glowRef.current.style.background = `radial-gradient(circle at 50% 50%, hsl(${safeHue} 70% 60% / ${isConstrained ? 0.14 : 0.22}), hsl(${(safeHue + 40) % 360} 70% 55% / ${isConstrained ? 0.08 : 0.14}) 40%, transparent 70%)`;
         glowRef.current.style.transform = `scale(${isConstrained ? 1 : pulseScale})`;
       }
       const ringMeta = [
@@ -116,7 +118,8 @@ export default function MiniCatalogOrb({
         if (!el) return;
         const r = ringMeta[i];
         el.style.transform = `rotateX(${r.tiltX + morph * 8}deg) rotateY(${r.tiltY + morph * 12}deg) rotateZ(${angle * r.spin}deg)`;
-        el.style.filter = isConstrained ? "none" : `drop-shadow(0 0 6px hsl(${(hue + i * 90) % 360} 100% 65% / 0.9))`;
+        const rh = 160 + i * 40;
+        el.style.filter = isConstrained ? "none" : `drop-shadow(0 0 4px hsl(${rh} 70% 60% / 0.55))`;
       });
       particleRefs.current.forEach((el, i) => {
         if (!el) return;
@@ -124,7 +127,8 @@ export default function MiniCatalogOrb({
         const r = radius + 14;
         const x = Math.cos((th * Math.PI) / 180) * r;
         const y = Math.sin(((th * Math.PI) / 180) * 1.6) * (r * 0.4);
-        const c = `hsl(${(hue + i * 30) % 360} 100% 70%)`;
+        const ph = 160 + ((i * 37) % 90);
+        const c = `hsl(${ph} 70% 70%)`;
         el.style.transform = `translate(${x}px, ${y}px)`;
         el.style.background = c;
         el.style.boxShadow = `0 0 10px ${c}`;
