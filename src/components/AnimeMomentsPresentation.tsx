@@ -224,37 +224,34 @@ export const AnimeMomentsPresentation = () => {
         <div className="relative w-full aspect-[21/9] sm:aspect-[21/8] overflow-hidden border-b border-white/10">
           {/* Custom background layer (color / user image / user video) */}
           {bgMode === "color" && (
-            <div className="absolute inset-0" style={{ background: bgColor }} />
+            <div className="absolute inset-0 z-0" style={{ background: bgColor }} />
           )}
           {bgMode === "media" && bgMedia && (
             mediaKind === "video" ? (
-              <video src={bgMedia} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+              <video src={bgMedia} autoPlay loop muted playsInline className="absolute inset-0 z-0 w-full h-full object-cover" />
             ) : (
-              <img src={bgMedia} alt="" className="absolute inset-0 w-full h-full object-cover" />
+              <img src={bgMedia} alt="" className="absolute inset-0 z-0 w-full h-full object-cover" />
             )
           )}
 
           {dimOverlay && (
             <>
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-transparent to-zinc-950 pointer-events-none" />
-              <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-transparent to-zinc-950 pointer-events-none" />
+              <div className="absolute inset-0 z-0 bg-black/40 pointer-events-none" />
+              <div className="absolute inset-0 z-0 bg-gradient-to-b from-zinc-950 via-transparent to-zinc-950 pointer-events-none" />
+              <div className="absolute inset-0 z-0 bg-gradient-to-r from-zinc-950 via-transparent to-zinc-950 pointer-events-none" />
+              <img
+                src={blingBling.url}
+                alt=""
+                aria-hidden
+                className="absolute inset-0 z-0 w-full h-full object-cover opacity-40 pointer-events-none mix-blend-screen"
+              />
             </>
           )}
 
           {/* YT player host — controlled via IFrame API */}
-          <div className="absolute inset-0 w-full h-full scale-[1.35] pointer-events-none">
+          <div className="absolute inset-0 z-20 w-full h-full scale-[1.35] pointer-events-none">
             <div ref={playerHostRef} className="w-full h-full" />
           </div>
-
-          {dimOverlay && (
-            <img
-              src={blingBling.url}
-              alt=""
-              aria-hidden
-              className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none mix-blend-screen"
-            />
-          )}
 
           {/* Interactive spotlights */}
           {[
@@ -267,7 +264,7 @@ export const AnimeMomentsPresentation = () => {
               type="button"
               onClick={() => toggleSpot(i)}
               aria-label={`Spot ${i + 1} ${spots[i] ? "allumé" : "éteint"}`}
-              className="absolute top-0 z-20"
+              className="absolute top-0 z-30"
               style={{ left: s.left, transform: "translateX(-50%)" }}
             >
               <span
@@ -344,7 +341,7 @@ export const AnimeMomentsPresentation = () => {
           </div>
 
           {/* Banner overlays */}
-          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2">
+          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-30 flex items-center gap-2">
             <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-600 text-white text-[10px] font-black tracking-widest uppercase shadow-lg">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-70 animate-ping" />
@@ -359,13 +356,13 @@ export const AnimeMomentsPresentation = () => {
 
           <button
             onClick={() => setMuted((m) => !m)}
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur border border-white/15 flex items-center justify-center text-white transition-colors z-10"
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur border border-white/15 flex items-center justify-center text-white transition-colors"
             aria-label={muted ? "Activer le son" : "Couper le son"}
           >
             {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
-          <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 flex flex-wrap items-end justify-between gap-3">
+          <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 z-30 flex flex-wrap items-end justify-between gap-3">
             <div className="max-w-2xl">
               <div className="text-[10px] uppercase tracking-[0.3em] text-fuchsia-300 font-bold mb-1">
                 Épisode à la une
