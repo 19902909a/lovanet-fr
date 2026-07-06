@@ -204,9 +204,15 @@ export default function TabletTrailerPlayer() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // Cap visible cards for performance (1500 in 3D would kill perf).
-  const visible = useMemo(() => items.slice(0, 80), [items]);
-  const radius = useMemo(() => Math.max(180, Math.min(240, visible.length * 4)), [visible.length]);
+  // Cylinder layout — all trailers packed in multiple rings so 1500 fit.
+  const visible = useMemo(() => items.slice(0, 1500), [items]);
+  const RINGS = 12;
+  const perRing = Math.max(1, Math.ceil(visible.length / RINGS));
+  const radius = useMemo(
+    () => Math.min(560, Math.max(260, perRing * 12)),
+    [perRing],
+  );
+  const ringGapY = 18;
 
   const onSelect = (m: Media) => {
     playedRef.current.add(m.ytId);
@@ -267,15 +273,17 @@ export default function TabletTrailerPlayer() {
       {/* Circular carousel BELOW the tablet */}
       <div
         className="relative w-full select-none mt-4"
-        style={{ height: 220, perspective: "1400px", overflow: "visible" }}
+        style={{ height: 320, perspective: "1600px", overflow: "visible" }}
         onPointerDown={(e) => {
-          draggingRef.current = { x: e.clientX, a: angle };
-          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+          draggingRef.current = { x: e.clientX, a: angle, moved: false } as any;
         }}
         onPointerMove={(e) => {
           if (!draggingRef.current) return;
           const dx = e.clientX - draggingRef.current.x;
-          setAngle(draggingRef.current.a + dx * 0.15);
+          if (Math.abs(dx) > 4) {
+            (draggingRef.current as any).moved = true;
+            setAngle(draggingRef.current.a + dx * 0.15);
+          }
         }}
         onPointerUp={() => { draggingRef.current = null; }}
       >
@@ -290,18 +298,26 @@ export default function TabletTrailerPlayer() {
                 }}
               >
                 {visible.map((m, i) => {
-                  const theta = (360 / Math.max(visible.length, 1)) * i;
+                  const ring = i % RINGS;
+                  const idxInRing = Math.floor(i / RINGS);
+                  const theta = (360 / perRing) * idxInRing;
+                  const y = (ring - (RINGS - 1) / 2) * ringGapY;
                   const isActive = current?.ytId === m.ytId;
                   return (
                     <button
                       key={String(m.id) + i}
-                      onClick={() => onSelect(m)}
+                      onClick={(e) => {
+                        // Ignore accidental clicks after a drag.
+                        if ((draggingRef.current as any)?.moved) return;
+                        e.stopPropagation();
+                        onSelect(m);
+                      }}
                       title={m.title}
                       className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
                       style={{
-                        width: 54,
-                        height: 80,
-                        transform: `rotateY(${theta}deg) translateZ(${radius}px)`,
+                        width: 44,
+                        height: 64,
+                        transform: `rotateY(${theta}deg) translateZ(${radius}px) translateY(${y}px)`,
                       }}
                     >
                       <div
