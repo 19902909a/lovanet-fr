@@ -49,12 +49,14 @@ export const HeroCarousel = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const constrainedRef = useRef(false);
   const pausedRef = useRef(false);
-  const dragRef = useRef<{ id: number; lastY: number } | null>(null);
+  const dragRef = useRef<{ id: number; startX: number; startY: number; lastX: number; lastY: number; axis: "x" | "y" | null; moved: boolean } | null>(null);
 
   const [isConstrained, setIsConstrained] = useState(false);
   const [paused, setPaused] = useState(false);
   const [shapeIdx, setShapeIdx] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [size, setSize] = useState({ w: 520, h: 540 });
   const [allVideos, setAllVideos] = useState<WheelVideo[]>(() =>
     videos.map((v) => ({
@@ -232,18 +234,37 @@ export const HeroCarousel = () => {
     const target = e.target as HTMLElement | null;
     if (target?.closest("a,button")) return;
     e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = { id: e.pointerId, lastY: e.clientY };
+    dragRef.current = {
+      id: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      lastX: e.clientX,
+      lastY: e.clientY,
+      axis: null,
+      moved: false,
+    };
     setPaused(true);
+    setDragging(true);
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
     const d = dragRef.current;
     if (!d || d.id !== e.pointerId) return;
+    const dxTotal = e.clientX - d.startX;
+    const dyTotal = e.clientY - d.startY;
+    if (d.axis === null) {
+      if (Math.abs(dxTotal) < 6 && Math.abs(dyTotal) < 6) return;
+      d.axis = Math.abs(dxTotal) > Math.abs(dyTotal) ? "x" : "y";
+    }
     const dy = e.clientY - d.lastY;
-    if (Math.abs(dy) < 2) return;
+    const dx = e.clientX - d.lastX;
     d.lastY = e.clientY;
+    d.lastX = e.clientX;
+    d.moved = true;
+    const delta = d.axis === "x" ? dx : dy;
+    if (Math.abs(delta) < 1) return;
     setProgress((p) => {
-      const next = (p - dy / (N * 48)) % 1;
+      const next = (p - delta / (N * 48)) % 1;
       return next < 0 ? next + 1 : next;
     });
   };
@@ -251,18 +272,43 @@ export const HeroCarousel = () => {
   const onPointerUp = (e: React.PointerEvent) => {
     if (dragRef.current?.id === e.pointerId) dragRef.current = null;
     setPaused(false);
+    setDragging(false);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      shiftCards(-1);
+    } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      shiftCards(1);
+    } else if (e.key === " " || e.key === "Spacebar") {
+      e.preventDefault();
+      setPaused((p) => !p);
+    }
   };
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[380px] sm:h-[560px] lg:h-[640px] overflow-hidden touch-pan-y cursor-grab active:cursor-grabbing"
+      className={`relative w-full h-[380px] sm:h-[560px] lg:h-[640px] overflow-hidden touch-pan-y select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 rounded-xl ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
       style={{ perspective: isConstrained ? 900 : 1400, perspectiveOrigin: "50% 50%" }}
+      role="region"
+      aria-roledescription="carrousel"
+      aria-label="Carrousel de vidéos anime — glissez ou utilisez les flèches pour naviguer"
+      tabIndex={0}
+      onKeyDown={onKeyDown}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {allVideos[baseSlot % N]?.title
+          ? `Vidéo active : ${allVideos[baseSlot % N].title}`
+          : ""}
+      </div>
+
       <button
         type="button"
         aria-label="Changer la forme du halo"
@@ -299,12 +345,15 @@ export const HeroCarousel = () => {
             : c.v.source === "prime"
               ? `/prime-video?video=${encodeURIComponent(c.v.id)}`
               : `/lecteurs-video?video=${encodeURIComponent(c.v.id)}&service=youtube`;
+        const isCenter = Math.abs(c.offset) < 0.5;
+        const isActive = activeSlot === c.slotIdx;
         return (
           <Link
             key={`${c.v.id}-${c.slotIdx}`}
             to={internalHref}
             aria-label={`Ouvrir la vidéo : ${c.v.title}`}
-            className="card-3d group absolute rounded-xl ring-1 ring-white/10 hover:z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+            aria-current={isCenter ? "true" : undefined}
+            className={`card-3d group absolute rounded-xl ring-1 ring-white/10 hover:z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-150 ${isActive ? "scale-[0.97]" : ""}`}
             style={{
               ...styleFor(c.offset),
               transition: isConstrained ? "opacity 0.12s linear" : "opacity 0.12s linear, filter 0.25s ease",
@@ -316,7 +365,18 @@ export const HeroCarousel = () => {
             }}
             onPointerEnter={() => { if (!isConstrained) setPaused(true); }}
             onPointerLeave={() => { if (!isConstrained) setPaused(false); }}
-            onClick={(e) => e.stopPropagation()}
+            onPointerDownCapture={() => setActiveSlot(c.slotIdx)}
+            onPointerUpCapture={() => setActiveSlot(null)}
+            onPointerCancel={() => setActiveSlot(null)}
+            onClick={(e) => {
+              const d = dragRef.current;
+              if (d?.moved) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+              }
+              e.stopPropagation();
+            }}
           >
             <div
               className="card-3d-front rgb-frame relative w-full aspect-video overflow-hidden rounded-xl bg-card"
