@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Palette } from "lucide-react";
+import { Palette, ChevronDown } from "lucide-react";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import { Navbar } from "@/components/Navbar";
 
@@ -12,6 +12,9 @@ type Media = {
   format?: string;
   episodes?: number;
   averageScore?: number;
+  description?: string;
+  studios?: { nodes?: { name?: string }[] };
+  siteUrl?: string;
 };
 
 const QUERY = `
@@ -26,6 +29,9 @@ query ($page: Int, $perPage: Int) {
       format
       episodes
       averageScore
+      description(asHtml: false)
+      studios(isMain: true) { nodes { name } }
+      siteUrl
     }
   }
 }`;
@@ -56,6 +62,10 @@ export default function AnimeCountdown() {
   ] as const;
   const [themeIdx, setThemeIdx] = useState(0);
   const theme = themes[themeIdx];
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+
+  const stripHtml = (s?: string) =>
+    (s || "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").trim();
 
   const fetchData = async () => {
     try {
@@ -92,6 +102,12 @@ export default function AnimeCountdown() {
       const c = localStorage.getItem("lovanet.cache.countdown");
       if (c) { setItems(JSON.parse(c)); setLoading(false); }
     } catch {}
+    try {
+      const e = localStorage.getItem("lovanet.cache.countdown.expanded");
+      if (e) setExpanded(JSON.parse(e));
+      const t = localStorage.getItem("lovanet.cache.countdown.theme");
+      if (t) setThemeIdx(Number(t) || 0);
+    } catch {}
     fetchData();
     const sync = setInterval(fetchData, 1000 * 60 * 10); // auto-sync every 10 min
     const tick = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
@@ -100,6 +116,17 @@ export default function AnimeCountdown() {
       clearInterval(tick);
     };
   }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("lovanet.cache.countdown.expanded", JSON.stringify(expanded));
+    } catch {}
+  }, [expanded]);
+  useEffect(() => {
+    try {
+      localStorage.setItem("lovanet.cache.countdown.theme", String(themeIdx));
+    } catch {}
+  }, [themeIdx]);
 
   return (
     <main
@@ -201,6 +228,81 @@ export default function AnimeCountdown() {
                       </span>
                     ))}
                   </div>
+
+                  {/* Hidden description — expandable */}
+                  {(m.description || m.studios?.nodes?.length) && (
+                    <div className="mt-3">
+                      <button
+                        onClick={() =>
+                          setExpanded((s) => ({ ...s, [m.id]: !s[m.id] }))
+                        }
+                        className="w-full inline-flex items-center justify-center gap-1 text-[11px] font-bold uppercase tracking-widest py-1.5 rounded-lg transition-colors"
+                        style={{
+                          backgroundColor: theme.surface,
+                          color: theme.titleColor,
+                          border: `1px solid ${theme.border}`,
+                        }}
+                        aria-expanded={!!expanded[m.id]}
+                      >
+                        {expanded[m.id] ? "Masquer" : "Description"}
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform ${expanded[m.id] ? "rotate-180" : ""}`}
+                        />
+                      </button>
+
+                      {expanded[m.id] && (
+                        <div
+                          className="mt-3 space-y-2 text-[12px] leading-relaxed rounded-lg p-3"
+                          style={{
+                            backgroundColor: theme.surface,
+                            border: `1px solid ${theme.border}`,
+                          }}
+                        >
+                          {m.studios?.nodes?.[0]?.name && (
+                            <div className="text-[10px] uppercase tracking-widest" style={{ color: theme.muted }}>
+                              Studio · {m.studios.nodes.map((n) => n?.name).filter(Boolean).join(", ")}
+                            </div>
+                          )}
+                          <div className="grid grid-cols-3 gap-2 text-[11px]">
+                            {typeof m.averageScore === "number" && (
+                              <div>
+                                <div style={{ color: theme.muted }}>Score</div>
+                                <div className="font-bold" style={{ color: theme.text }}>{m.averageScore}/100</div>
+                              </div>
+                            )}
+                            {m.format && (
+                              <div>
+                                <div style={{ color: theme.muted }}>Format</div>
+                                <div className="font-bold" style={{ color: theme.text }}>{m.format}</div>
+                              </div>
+                            )}
+                            {m.episodes && (
+                              <div>
+                                <div style={{ color: theme.muted }}>Épisodes</div>
+                                <div className="font-bold" style={{ color: theme.text }}>{m.episodes}</div>
+                              </div>
+                            )}
+                          </div>
+                          {m.description && (
+                            <p className="whitespace-pre-line" style={{ color: theme.text }}>
+                              {stripHtml(m.description)}
+                            </p>
+                          )}
+                          {m.siteUrl && (
+                            <a
+                              href={m.siteUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex text-[11px] font-bold underline"
+                              style={{ color: theme.titleColor }}
+                            >
+                              Fiche complète →
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </article>
             );
