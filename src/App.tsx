@@ -18,6 +18,8 @@ import Discover from "./pages/Discover";
 import { ThemeBubble } from "./components/ThemeBubble";
 import { CartProvider } from "./context/CartContext";
 import { CartDrawer } from "./components/CartDrawer";
+import GoogleTranslate from "./components/GoogleTranslate";
+import YoutubeBrandSettings from "./components/YoutubeBrandSettings";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +47,8 @@ const App = () => (
         </Routes>
         <ThemeBubble />
         <CartDrawer />
+        <GoogleTranslate />
+        <YoutubeBrandSettings />
         </CartProvider>
       </BrowserRouter>
     </TooltipProvider>
