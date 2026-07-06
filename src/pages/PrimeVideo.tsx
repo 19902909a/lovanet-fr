@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PageShell } from "@/components/PageShell";
 import { videos as fallbackVideos, thumb as ytThumb } from "@/data/videos";
-import { Play, Volume2, VolumeX, SkipForward } from "lucide-react";
+import { Play, Volume2, VolumeX, SkipForward, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HoverPreview } from "@/components/HoverPreview";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,12 +15,51 @@ type Item = {
   thumbnail: string;
 };
 
+type PrimeAnime = {
+  id: number;
+  title: string;
+  cover?: string;
+  banner?: string;
+  color?: string;
+  score?: number;
+  year?: number;
+  format?: string;
+  episodes?: number;
+  genres: string[];
+  description: string;
+  primeUrl?: string;
+};
+
+const PRIME_QUERY = `
+query ($page: Int, $perPage: Int, $sort: [MediaSort]) {
+  Page(page: $page, perPage: $perPage) {
+    media(type: ANIME, sort: $sort, isAdult: false) {
+      id
+      title { romaji english native }
+      coverImage { extraLarge large color }
+      bannerImage
+      averageScore
+      seasonYear
+      format
+      episodes
+      genres
+      description(asHtml: false)
+      externalLinks { site url }
+    }
+  }
+}`;
+
+const PRIME_CACHE = "lovanet.cache.prime.anime.v1";
+
 const PrimeVideo = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [active, setActive] = useState<string>("");
   const [muted, setMuted] = useState(true);
   const [autoplayNext, setAutoplayNext] = useState(true);
   const [orientation, setOrientation] = useState<"cinema" | "vertical">("cinema");
+  const [primeAnime, setPrimeAnime] = useState<PrimeAnime[]>([]);
+  const [primeLoading, setPrimeLoading] = useState(true);
+  const [primeGenre, setPrimeGenre] = useState<string>("all");
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Fallback list from static data (Ruri no Houseki + others)
@@ -103,6 +142,99 @@ const PrimeVideo = () => {
     }, 600);
     return () => clearTimeout(t);
   }, [v?.videoId, muted]);
+
+  // ---- Prime Video anime library (via AniList externalLinks) ----
+  useEffect(() => {
+    // Hydrate cache
+    try {
+      const raw = localStorage.getItem(PRIME_CACHE);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr) && arr.length) {
+          setPrimeAnime(arr);
+          setPrimeLoading(false);
+        }
+      }
+    } catch {}
+
+    const fetchPrime = async () => {
+      const dedup = new Map<number, PrimeAnime>();
+      const sorts: string[][] = [
+        ["POPULARITY_DESC"],
+        ["TRENDING_DESC"],
+        ["SCORE_DESC"],
+        ["START_DATE_DESC"],
+      ];
+      try {
+        for (const sort of sorts) {
+          for (let p = 1; p <= 25; p++) {
+            const res = await fetch("https://graphql.anilist.co", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Accept: "application/json" },
+              body: JSON.stringify({ query: PRIME_QUERY, variables: { page: p, perPage: 50, sort } }),
+            }).catch(() => null);
+            if (!res || !res.ok) break;
+            const json = await res.json().catch(() => null);
+            const list = json?.data?.Page?.media ?? [];
+            if (!list.length) break;
+            for (const m of list) {
+              if (dedup.has(m.id)) continue;
+              const links: any[] = m.externalLinks ?? [];
+              const prime = links.find((l) =>
+                (l?.site || "").toLowerCase().includes("amazon prime") ||
+                (l?.site || "").toLowerCase() === "prime video" ||
+                ((l?.url || "").toLowerCase().includes("primevideo.com") ||
+                  (l?.url || "").toLowerCase().includes("amazon.") && (l?.url || "").toLowerCase().includes("/prime"))
+              );
+              if (!prime) continue;
+              dedup.set(m.id, {
+                id: m.id,
+                title: m.title?.english || m.title?.romaji || m.title?.native || "—",
+                cover: m.coverImage?.large || m.coverImage?.extraLarge,
+                banner: m.bannerImage,
+                color: m.coverImage?.color,
+                score: m.averageScore ?? undefined,
+                year: m.seasonYear ?? undefined,
+                format: m.format ?? undefined,
+                episodes: m.episodes ?? undefined,
+                genres: m.genres ?? [],
+                description: (m.description ?? "").replace(/<[^>]+>/g, ""),
+                primeUrl: prime.url,
+              });
+            }
+            const snap = Array.from(dedup.values());
+            setPrimeAnime(snap);
+            setPrimeLoading(false);
+            try { localStorage.setItem(PRIME_CACHE, JSON.stringify(snap.slice(0, 2000))); } catch {}
+            await new Promise((r) => setTimeout(r, 120));
+          }
+        }
+      } catch (e) {
+        console.error("Prime AniList sync error", e);
+      } finally {
+        setPrimeLoading(false);
+      }
+    };
+
+    fetchPrime();
+    const id = setInterval(fetchPrime, 1000 * 60 * 10); // auto-sync every 10 min
+    const onFocus = () => fetchPrime();
+    const onVis = () => { if (document.visibilityState === "visible") fetchPrime(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
+
+  const primeGenres = Array.from(
+    new Set(primeAnime.flatMap((a) => a.genres))
+  ).sort();
+  const filteredPrime = primeGenre === "all"
+    ? primeAnime
+    : primeAnime.filter((a) => a.genres.includes(primeGenre));
 
   if (!v) {
     return (
