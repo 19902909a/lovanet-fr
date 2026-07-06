@@ -600,32 +600,44 @@ export const HeroCarousel = () => {
         );
       })}
 
-      <div className="absolute inset-x-0 bottom-3 z-[120] flex justify-center gap-3 pointer-events-none">
+      {/* Interactive spotlights — click to toggle on/off */}
+      {[
+        { left: "22%", color: "255,80,220" },
+        { left: "50%", color: "120,200,255" },
+        { left: "78%", color: "255,220,120" },
+      ].map((s, i) => (
         <button
+          key={i}
           type="button"
-          aria-label="Carte précédente"
-          onClick={() => shiftCards(-1)}
-          className="pointer-events-auto h-11 w-11 rounded-full bg-card/80 border border-border text-foreground shadow-lg backdrop-blur-md touch-manipulation"
+          onClick={(e) => { e.stopPropagation(); toggleSpot(i); }}
+          aria-label={`Spot ${i + 1} ${spots[i] ? "allumé" : "éteint"}`}
+          className="absolute top-2 z-[130]"
+          style={{ left: s.left, transform: "translateX(-50%)" }}
         >
-          ‹
+          <span
+            className="block w-5 h-5 rounded-full border border-white/40"
+            style={{
+              background: spots[i]
+                ? `radial-gradient(circle, rgb(${s.color}) 0%, rgba(${s.color},0.4) 70%)`
+                : "rgba(255,255,255,0.15)",
+              boxShadow: spots[i] ? `0 0 18px rgba(${s.color},0.9)` : "none",
+            }}
+          />
+          {spots[i] && (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2"
+              style={{
+                width: 320,
+                height: 380,
+                background: `radial-gradient(ellipse at top, rgba(${s.color},0.55) 0%, rgba(${s.color},0.15) 40%, transparent 70%)`,
+                clipPath: "polygon(45% 0%, 55% 0%, 100% 100%, 0% 100%)",
+                filter: "blur(2px)",
+              }}
+            />
+          )}
         </button>
-        <button
-          type="button"
-          aria-label={paused ? "Reprendre le défilement" : "Mettre en pause le défilement"}
-          onClick={() => setPaused((p) => !p)}
-          className="pointer-events-auto h-11 min-w-11 rounded-full px-4 bg-card/80 border border-border text-foreground text-sm font-semibold shadow-lg backdrop-blur-md touch-manipulation"
-        >
-          {paused ? "▶" : "❚❚"}
-        </button>
-        <button
-          type="button"
-          aria-label="Carte suivante"
-          onClick={() => shiftCards(1)}
-          className="pointer-events-auto h-11 w-11 rounded-full bg-card/80 border border-border text-foreground shadow-lg backdrop-blur-md touch-manipulation"
-        >
-          ›
-        </button>
-      </div>
+      ))}
     </div>
   );
 };
