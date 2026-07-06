@@ -20,15 +20,48 @@ type Video = {
 };
 
 const DEFAULT_QUERIES = [
-  'anime',
-  'manga',
+  'anime episode',
+  'anime full episode',
+  'manga anime scene',
   'anime opening',
+  'anime ending',
   'anime AMV',
-  'anime review',
-  'manga review',
   'anime trailer',
-  'anime analysis',
+  'anime clip',
+  'anime moment',
+  'anime fight scene',
+  'shonen anime',
+  'seinen anime',
 ];
+
+// Words that strongly indicate commentator / streamer / reaction content — NOT anime footage.
+const BLOCK_WORDS = [
+  'reaction', 'reacts', 'react to', 'reacting',
+  'commentary', 'commentator', 'commenting',
+  'podcast', 'talk show', 'interview',
+  'stream', 'streamer', 'streaming', 'livestream', 'live stream',
+  'twitch', 'vlog', 'q&a', 'q and a',
+  'tier list', 'tierlist', 'ranking', 'ranks',
+  'top 10', 'top10', 'top 5', 'top5',
+  'discussion', 'debate', 'rant',
+  'face cam', 'facecam', 'webcam',
+  'gameplay', "let's play", 'lets play', 'walkthrough',
+  'analysis by', 'explained by', 'react ',
+ ];
+
+// Words that confirm the video is anime / manga animated content.
+const REQUIRE_ANY = [
+  'anime', 'manga', 'アニメ', 'マンガ', 'opening', 'ending', 'op ', 'ed ',
+  'amv', 'trailer', 'pv', 'episode', 'ep.', 'ep ', 'scene', 'fight',
+  'sub', 'dub', 'vostfr', 'vf', 'shonen', 'seinen', 'shojo', 'isekai',
+];
+
+function isAnimeVideo(title: string, desc: string, channel: string, tags: string[] = []): boolean {
+  const hay = `${title}\n${desc}\n${channel}\n${tags.join(' ')}`.toLowerCase();
+  for (const b of BLOCK_WORDS) if (hay.includes(b)) return false;
+  for (const r of REQUIRE_ANY) if (hay.includes(r)) return true;
+  return false;
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -43,9 +76,10 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const pages = Math.min(Number(url.searchParams.get('pages') ?? 2), 5);
+    const pages = Math.min(Number(url.searchParams.get('pages') ?? 8), 20);
     const customQ = url.searchParams.get('q');
-    const order = url.searchParams.get('order') ?? 'date'; // 'date' | 'viewCount' | 'relevance'
+    // 'date' returns newest first; we sort ascending (oldest → newest) after fetch.
+    const order = url.searchParams.get('order') ?? 'date';
     const queries = customQ ? [customQ] : DEFAULT_QUERIES;
 
     // 1) Collect candidate video IDs via search.list
@@ -98,15 +132,20 @@ Deno.serve(async (req) => {
       for (const it of j.items ?? []) {
         const durationSec = isoToSeconds(it.contentDetails?.duration ?? '');
         if (durationSec < 61) continue; // exclude Shorts + < 1 min
+        const title = it.snippet?.title ?? '';
+        const description = it.snippet?.description ?? '';
+        const channelTitle = it.snippet?.channelTitle ?? '';
+        const tags: string[] = it.snippet?.tags ?? [];
+        if (!isAnimeVideo(title, description, channelTitle, tags)) continue;
         const thumbs = it.snippet?.thumbnails ?? {};
         videos.push({
           id: it.id,
-          title: it.snippet?.title ?? '',
-          description: it.snippet?.description ?? '',
+          title,
+          description,
           thumbnail:
             thumbs.maxres?.url || thumbs.standard?.url || thumbs.high?.url || thumbs.medium?.url ||
             thumbs.default?.url || `https://i.ytimg.com/vi/${it.id}/hqdefault.jpg`,
-          channelTitle: it.snippet?.channelTitle ?? '',
+          channelTitle,
           publishedAt: it.snippet?.publishedAt ?? '',
           durationSec,
           viewCount: Number(it.statistics?.viewCount ?? 0),
@@ -114,8 +153,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Sort by publishedAt desc
-    videos.sort((a, b) => (b.publishedAt < a.publishedAt ? -1 : 1));
+    // Sort by publishedAt ASC — oldest → newest (as requested).
+    videos.sort((a, b) => (a.publishedAt < b.publishedAt ? -1 : 1));
 
     return new Response(JSON.stringify({ videos, count: videos.length }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
