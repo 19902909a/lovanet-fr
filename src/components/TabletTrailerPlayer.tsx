@@ -78,27 +78,7 @@ export default function TabletTrailerPlayer() {
 
     // 2) Site videos from Supabase (YouTube imports)
     (async () => {
-      try {
-        const { data } = await supabase
-          .from("imported_videos")
-          .select("external_id, title, thumbnail_url")
-          .eq("source", "youtube")
-          .limit(500);
-        if (cancelled || !data) return;
-        const siteItems: Media[] = data
-          .filter((r: any) => r.external_id)
-          .map((r: any) => ({
-            id: `s-${r.external_id}`,
-            title: r.title || "Vidéo",
-            cover: r.thumbnail_url || `https://i.ytimg.com/vi/${r.external_id}/hqdefault.jpg`,
-            ytId: r.external_id,
-            source: "site" as const,
-          }));
-        // Dedup by ytId
-        const seen = new Set(merged.map((m) => m.ytId));
-        for (const s of siteItems) if (!seen.has(s.ytId)) merged.push(s);
-        if (!cancelled) setItems([...merged].slice(0, 1500));
-      } catch {}
+      if (!cancelled && merged.length) setItems([...merged].slice(0, 1500));
     })();
 
     // 3) If catalog cache missing → fetch enough pages to reach 1500 trailers
