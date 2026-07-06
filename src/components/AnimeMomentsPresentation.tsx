@@ -21,6 +21,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import MiniCatalogOrb from "@/components/MiniCatalogOrb";
 import heroBg from "@/assets/anime-moments-hero.jpg";
+import blingBling from "@/assets/bling-bling.jpg.asset.json";
 import { videos } from "@/data/videos";
 
 const tags = [
@@ -241,6 +242,14 @@ export const AnimeMomentsPresentation = () => {
           {dimOverlay && (
             <>
               <div className="absolute inset-0 bg-black/40" />
+              <img
+                src={blingBling.url}
+                alt=""
+                aria-hidden
+                className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none mix-blend-screen"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-transparent to-zinc-950 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-transparent to-zinc-950 pointer-events-none" />
             </>
           )}
 
