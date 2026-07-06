@@ -92,7 +92,7 @@ export default function ChaineYoutubeManga() {
           for (const v of prev) byId.set(v.id, v);
           for (const v of list) byId.set(v.id, v); // fresh data wins on overlap
           const merged = Array.from(byId.values()).sort((a, b) =>
-            (a as any).publishedAt < (b as any).publishedAt ? -1 : 1,
+            a.publishedAt < b.publishedAt ? -1 : 1,
           );
           try { localStorage.setItem(CACHE_KEY, JSON.stringify(merged)); } catch {}
           return merged;
