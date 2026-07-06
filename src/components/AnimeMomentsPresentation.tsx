@@ -113,6 +113,7 @@ export const AnimeMomentsPresentation = () => {
   const [bgMedia, setBgMedia] = useState("");
   const [mediaKind, setMediaKind] = useState<"image" | "video">("image");
   const [showBgPanel, setShowBgPanel] = useState(false);
+  const [dimOverlay, setDimOverlay] = useState(true);
   const onPickMedia = (file: File) => {
     const url = URL.createObjectURL(file);
     setBgMedia(url);
@@ -167,6 +168,14 @@ export const AnimeMomentsPresentation = () => {
         events: {
           onReady: (e: any) => { try { muted ? e.target.mute() : e.target.unMute(); e.target.playVideo(); } catch {} },
           onStateChange: (e: any) => {
+            // Keep bannerId in sync with the actually playing video (so the
+            // "Voir l'épisode" link always points to what's on screen).
+            try {
+              const vid = e.target?.getVideoData?.()?.video_id;
+              if (vid && vid !== bannerId) setBannerId(vid);
+            } catch {}
+            // If the player gets paused by the browser, resume it.
+            if (e.data === 2) { try { e.target.playVideo(); } catch {} }
             if (e.data === 0) {
               const nxt = pickNext();
               setBannerId(nxt);
@@ -229,8 +238,12 @@ export const AnimeMomentsPresentation = () => {
             <div ref={playerHostRef} className="w-full h-full" />
           </div>
 
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-zinc-950/60" />
-          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/90 via-transparent to-zinc-950/40" />
+          {dimOverlay && (
+            <>
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/70 via-zinc-950/10 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/50 via-transparent to-transparent" />
+            </>
+          )}
 
           {/* Interactive spotlights */}
           {[
@@ -292,6 +305,14 @@ export const AnimeMomentsPresentation = () => {
                     onChange={(e) => e.target.files?.[0] && onPickMedia(e.target.files[0])}
                     className="text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-white/10 file:text-white"
                   />
+                </label>
+                <label className="inline-flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={dimOverlay}
+                    onChange={(e) => setDimOverlay(e.target.checked)}
+                  />
+                  <span className="uppercase tracking-widest text-[10px] text-white/70">Voile sombre</span>
                 </label>
                 <button
                   type="button"
