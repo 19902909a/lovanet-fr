@@ -656,6 +656,53 @@
     will-change: background-position;
   }
 
+  /* Smaller RGB variant with cool cyan/lime/amber/rose palette */
+  .neon-rgb-text-mini {
+    background: linear-gradient(
+      110deg,
+      #00f0ff 0%,
+      #7dff9a 22%,
+      #ffe94a 44%,
+      #ff7ac6 66%,
+      #a06bff 88%,
+      #00f0ff 100%
+    );
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow:
+      0 1px 0 hsl(0 0% 100% / 0.06),
+      0 2px 0 hsl(0 0% 0% / 0.4),
+      0 4px 12px hsl(180 100% 60% / 0.35);
+    animation: neon-rainbow-shift 12s ease-in-out infinite;
+    will-change: background-position;
+  }
+
+  /* Real 3D card thickness — back panel and edge highlights */
+  .card-3d-thickness {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    transform: translateZ(-14px);
+    background: linear-gradient(180deg, hsl(280 45% 14%), hsl(220 55% 6%));
+    box-shadow:
+      0 0 0 1px hsl(var(--neon-cyan) / 0.4),
+      0 0 22px -6px hsl(var(--neon-magenta) / 0.55),
+      inset 0 0 18px hsl(0 0% 0% / 0.6);
+  }
+  .card-3d-edge {
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, hsl(0 0% 100% / 0.5) 0%, transparent 8%, transparent 92%, hsl(0 0% 0% / 0.6) 100%),
+      linear-gradient(90deg, hsl(0 0% 100% / 0.15) 0%, transparent 12%, transparent 88%, hsl(0 0% 0% / 0.25) 100%);
+    mix-blend-mode: screen;
+  }
+
   .hero-wheel-halo {
     padding: 0;
     border: 0;
