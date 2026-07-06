@@ -5,6 +5,7 @@ import { Music2, Heart, MessageCircle, Share2, ArrowUp, ArrowDown, ExternalLink,
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminRemoveVideo } from "@/components/AdminRemoveVideo";
+import { MangaUniverseBanner } from "@/components/MangaUniverseBanner";
 
 type TTItem = {
   id: string;
@@ -324,6 +325,7 @@ const Tiktok = () => {
         </div>
         </>)}
       </section>
+      <MangaUniverseBanner />
     </PageShell>
   );
 };
