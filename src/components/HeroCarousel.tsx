@@ -157,6 +157,7 @@ export const HeroCarousel = () => {
   const [isConstrained, setIsConstrained] = useState(false);
   const [paused, setPaused] = useState(false);
   const [shapeIdx, setShapeIdx] = useState(0);
+  const [variantIdx, setVariantIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const [flowIdx, setFlowIdx] = useState(0);
   const [flowBlend, setFlowBlend] = useState(1); // 1 = fully on flowIdx, 0 = fully on prev
@@ -196,6 +197,14 @@ export const HeroCarousel = () => {
     const timer = window.setInterval(() => setShapeIdx((i) => (i + 1) % SHAPES.length), isConstrained ? 18000 : 12000);
     return () => window.clearInterval(timer);
   }, [isConstrained]);
+
+  // Rotate through 200 visual variations every 10 seconds
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setVariantIdx((i) => (i + 1) % VARIANTS.length);
+    }, 10000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const el = containerRef.current;
