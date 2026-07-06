@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Tablet-shaped video player with an integrated 3D circular carousel of up to
