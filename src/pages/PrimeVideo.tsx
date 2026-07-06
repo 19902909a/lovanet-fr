@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PageShell } from "@/components/PageShell";
 import { videos as fallbackVideos, thumb as ytThumb } from "@/data/videos";
-import { Play, Volume2, VolumeX, SkipForward } from "lucide-react";
+import { Play, Volume2, VolumeX, SkipForward, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HoverPreview } from "@/components/HoverPreview";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,12 +15,51 @@ type Item = {
   thumbnail: string;
 };
 
+type PrimeAnime = {
+  id: number;
+  title: string;
+  cover?: string;
+  banner?: string;
+  color?: string;
+  score?: number;
+  year?: number;
+  format?: string;
+  episodes?: number;
+  genres: string[];
+  description: string;
+  primeUrl?: string;
+};
+
+const PRIME_QUERY = `
+query ($page: Int, $perPage: Int, $sort: [MediaSort]) {
+  Page(page: $page, perPage: $perPage) {
+    media(type: ANIME, sort: $sort, isAdult: false) {
+      id
+      title { romaji english native }
+      coverImage { extraLarge large color }
+      bannerImage
+      averageScore
+      seasonYear
+      format
+      episodes
+      genres
+      description(asHtml: false)
+      externalLinks { site url }
+    }
+  }
+}`;
+
+const PRIME_CACHE = "lovanet.cache.prime.anime.v1";
+
 const PrimeVideo = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [active, setActive] = useState<string>("");
   const [muted, setMuted] = useState(true);
   const [autoplayNext, setAutoplayNext] = useState(true);
   const [orientation, setOrientation] = useState<"cinema" | "vertical">("cinema");
+  const [primeAnime, setPrimeAnime] = useState<PrimeAnime[]>([]);
+  const [primeLoading, setPrimeLoading] = useState(true);
+  const [primeGenre, setPrimeGenre] = useState<string>("all");
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Fallback list from static data (Ruri no Houseki + others)
@@ -103,6 +142,99 @@ const PrimeVideo = () => {
     }, 600);
     return () => clearTimeout(t);
   }, [v?.videoId, muted]);
+
+  // ---- Prime Video anime library (via AniList externalLinks) ----
+  useEffect(() => {
+    // Hydrate cache
+    try {
+      const raw = localStorage.getItem(PRIME_CACHE);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr) && arr.length) {
+          setPrimeAnime(arr);
+          setPrimeLoading(false);
+        }
+      }
+    } catch {}
+
+    const fetchPrime = async () => {
+      const dedup = new Map<number, PrimeAnime>();
+      const sorts: string[][] = [
+        ["POPULARITY_DESC"],
+        ["TRENDING_DESC"],
+        ["SCORE_DESC"],
+        ["START_DATE_DESC"],
+      ];
+      try {
+        for (const sort of sorts) {
+          for (let p = 1; p <= 25; p++) {
+            const res = await fetch("https://graphql.anilist.co", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Accept: "application/json" },
+              body: JSON.stringify({ query: PRIME_QUERY, variables: { page: p, perPage: 50, sort } }),
+            }).catch(() => null);
+            if (!res || !res.ok) break;
+            const json = await res.json().catch(() => null);
+            const list = json?.data?.Page?.media ?? [];
+            if (!list.length) break;
+            for (const m of list) {
+              if (dedup.has(m.id)) continue;
+              const links: any[] = m.externalLinks ?? [];
+              const prime = links.find((l) =>
+                (l?.site || "").toLowerCase().includes("amazon prime") ||
+                (l?.site || "").toLowerCase() === "prime video" ||
+                ((l?.url || "").toLowerCase().includes("primevideo.com") ||
+                  (l?.url || "").toLowerCase().includes("amazon.") && (l?.url || "").toLowerCase().includes("/prime"))
+              );
+              if (!prime) continue;
+              dedup.set(m.id, {
+                id: m.id,
+                title: m.title?.english || m.title?.romaji || m.title?.native || "—",
+                cover: m.coverImage?.large || m.coverImage?.extraLarge,
+                banner: m.bannerImage,
+                color: m.coverImage?.color,
+                score: m.averageScore ?? undefined,
+                year: m.seasonYear ?? undefined,
+                format: m.format ?? undefined,
+                episodes: m.episodes ?? undefined,
+                genres: m.genres ?? [],
+                description: (m.description ?? "").replace(/<[^>]+>/g, ""),
+                primeUrl: prime.url,
+              });
+            }
+            const snap = Array.from(dedup.values());
+            setPrimeAnime(snap);
+            setPrimeLoading(false);
+            try { localStorage.setItem(PRIME_CACHE, JSON.stringify(snap.slice(0, 2000))); } catch {}
+            await new Promise((r) => setTimeout(r, 120));
+          }
+        }
+      } catch (e) {
+        console.error("Prime AniList sync error", e);
+      } finally {
+        setPrimeLoading(false);
+      }
+    };
+
+    fetchPrime();
+    const id = setInterval(fetchPrime, 1000 * 60 * 10); // auto-sync every 10 min
+    const onFocus = () => fetchPrime();
+    const onVis = () => { if (document.visibilityState === "visible") fetchPrime(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
+
+  const primeGenres = Array.from(
+    new Set(primeAnime.flatMap((a) => a.genres))
+  ).sort();
+  const filteredPrime = primeGenre === "all"
+    ? primeAnime
+    : primeAnime.filter((a) => a.genres.includes(primeGenre));
 
   if (!v) {
     return (
@@ -220,6 +352,93 @@ const PrimeVideo = () => {
       </section>
 
       <section className="container mx-auto px-4 lg:px-8 pb-16">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h3 className="font-display text-xl font-bold">
+            Animés disponibles sur Prime Video
+            <span className="text-muted-foreground font-normal"> · {filteredPrime.length}/{primeAnime.length} titres</span>
+          </h3>
+          <div className="flex items-center gap-2 text-xs">
+            {primeLoading && <span className="text-muted-foreground">Synchronisation…</span>}
+            <select
+              value={primeGenre}
+              onChange={(e) => setPrimeGenre(e.target.value)}
+              className="bg-secondary border border-border rounded-full px-3 py-1.5"
+              aria-label="Filtrer par genre"
+            >
+              <option value="all">Tous les genres</option>
+              {primeGenres.map((g) => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-12">
+          {filteredPrime.map((a) => (
+            <article
+              key={`prime-${a.id}`}
+              className="group rounded-2xl overflow-hidden bg-card border border-border hover:border-sky-500/60 transition-all flex flex-col"
+            >
+              <div
+                className="relative aspect-[2/3] overflow-hidden"
+                style={{ background: a.color || "#0a1428" }}
+              >
+                {a.cover && (
+                  <img
+                    src={a.cover}
+                    alt={a.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                )}
+                <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow">
+                  ◆ PRIME
+                </span>
+                {typeof a.score === "number" && (
+                  <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-black/70 text-cyan-300 text-[10px] font-semibold">
+                    {a.score}
+                  </span>
+                )}
+              </div>
+              <div className="p-3 flex flex-col gap-2 flex-1">
+                <h4 className="text-sm font-semibold line-clamp-2 group-hover:text-sky-400 transition-colors">
+                  {a.title}
+                </h4>
+                <div className="text-[10px] text-muted-foreground">
+                  {a.format ?? "—"} · {a.year ?? "—"} {a.episodes ? `· ${a.episodes} ép.` : ""}
+                </div>
+                {a.genres.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {a.genres.slice(0, 3).map((g) => (
+                      <span key={g} className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">
+                        {g}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-[11px] text-muted-foreground line-clamp-4 leading-snug flex-1">
+                  {a.description || "Aucune description disponible."}
+                </p>
+                {a.primeUrl && (
+                  <a
+                    href={a.primeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:opacity-90"
+                  >
+                    Voir sur Prime Video <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            </article>
+          ))}
+          {!primeLoading && filteredPrime.length === 0 && (
+            <div className="col-span-full text-center text-sm text-muted-foreground py-8">
+              Aucun titre disponible pour ce filtre.
+            </div>
+          )}
+        </div>
+
         <h3 className="font-display text-xl font-bold mb-4">
           Bibliothèque Prime <span className="text-muted-foreground font-normal">· {items.length} vidéos</span>
         </h3>
