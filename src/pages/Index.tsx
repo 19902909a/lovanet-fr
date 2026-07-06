@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import MiniCatalogOrb from "@/components/MiniCatalogOrb";
-import AnimeMomentsOrb from "@/components/AnimeMomentsOrb";
+import AnimeMomentsPresentation from "@/components/AnimeMomentsPresentation";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import TabletTrailerPlayer from "@/components/TabletTrailerPlayer";
 
@@ -295,7 +295,7 @@ const Index = () => {
 
       {/* Anime Moments — quick access to countdown & catalog */}
       <section className="container mx-auto px-4 lg:px-8 pt-4 pb-2">
-        <AnimeMomentsOrb />
+        <AnimeMomentsPresentation />
         <div className="grid sm:grid-cols-2 gap-4">
           <Link
             to="/anime-countdown"
