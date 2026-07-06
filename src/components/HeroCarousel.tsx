@@ -28,6 +28,71 @@ const isConstrainedDevice = () => {
   return window.matchMedia("(pointer: coarse), (max-width: 767px), (prefers-reduced-motion: reduce)").matches || memory < 4;
 };
 
+type FlowMode = "wheel" | "disc" | "sinuous" | "helix";
+const FLOW_MODES: FlowMode[] = ["wheel", "disc", "sinuous", "helix"];
+
+type Xform = { x: number; y: number; z: number; rotX: number; rotY: number; rotZ: number; scale: number };
+
+const flowTransform = (
+  mode: FlowMode,
+  offset: number,
+  geom: { radius: number; cardW: number; cardH: number },
+  isConstrained: boolean,
+  visibleRadius: number,
+): Xform => {
+  const absO = Math.abs(offset);
+  const sign = offset === 0 ? 0 : offset < 0 ? -1 : 1;
+  if (mode === "wheel") {
+    // Vertical Ferris-wheel arc — cards curve top/bottom, rotateX in and out.
+    const maxAng = isConstrained ? 52 : 60;
+    const clamped = Math.max(-visibleRadius, Math.min(visibleRadius, offset));
+    const ang = (clamped / visibleRadius) * maxAng;
+    const rad = (ang * Math.PI) / 180;
+    const R = Math.max(geom.radius * 1.28, geom.cardH * 1.75);
+    const y = Math.sin(rad) * R;
+    const depth = Math.cos(rad);
+    const z = (depth - 1) * 80;
+    const scale = isConstrained ? 0.9 + depth * 0.1 : 0.85 + depth * 0.15;
+    return { x: 0, y, z, rotX: -ang, rotY: 0, rotZ: 0, scale };
+  }
+  if (mode === "disc") {
+    // Kinetic orbital disc — horizontal fan, center pops on Z, sides tilt inward.
+    const spacingX = geom.cardW * (isConstrained ? 0.42 : 0.55);
+    const x = offset * spacingX;
+    const zA = 320, zB = 40, zC = -260;
+    let z = absO <= 1 ? zA + (zB - zA) * absO : zB + (zC - zB) * Math.min(1, absO - 1);
+    if (isConstrained) z *= 0.35;
+    const rotYRaw = absO <= 1 ? -sign * absO * 25 : -sign * (25 + Math.min(1, absO - 1) * 20);
+    const rotY = isConstrained ? rotYRaw * 0.5 : rotYRaw;
+    const y = isConstrained ? 0 : Math.sin(offset * 0.55) * 14;
+    const scale = isConstrained ? Math.max(0.88, 1 - absO * 0.04) : Math.max(0.82, 1 - absO * 0.08);
+    return { x, y, z, rotX: isConstrained ? 6 : 12, rotY, rotZ: 0, scale };
+  }
+  if (mode === "sinuous") {
+    // S-curve — horizontal flow with pronounced vertical sinewave.
+    const spacingX = geom.cardW * (isConstrained ? 0.45 : 0.6);
+    const x = offset * spacingX;
+    const y = Math.sin(offset * 1.1) * (isConstrained ? 60 : 110);
+    const z = Math.cos(offset * 0.5) * 80 - absO * 30;
+    const rotZ = Math.sin(offset * 1.1) * (isConstrained ? 6 : 10);
+    const rotY = -sign * Math.min(30, absO * 15);
+    const scale = Math.max(isConstrained ? 0.85 : 0.78, 1 - absO * 0.08);
+    return { x, y, z, rotX: 6, rotY, rotZ, scale };
+  }
+  // helix — DNA spiral: cards revolve around a vertical column.
+  const R = geom.cardW * (isConstrained ? 0.55 : 0.8);
+  const theta = offset * (Math.PI / 3); // 60° per slot
+  const x = Math.sin(theta) * R;
+  const z = Math.cos(theta) * R - 40;
+  const y = offset * (isConstrained ? 18 : 28);
+  const rotY = -theta * (180 / Math.PI);
+  const scale = 0.78 + Math.max(0, Math.cos(theta)) * 0.22;
+  return { x, y, z, rotX: 8, rotY, rotZ: 0, scale };
+};
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
 const placeholderThumb = (id: string, title: string) => {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
@@ -55,6 +120,10 @@ export const HeroCarousel = () => {
   const [paused, setPaused] = useState(false);
   const [shapeIdx, setShapeIdx] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [flowIdx, setFlowIdx] = useState(0);
+  const [flowBlend, setFlowBlend] = useState(1); // 1 = fully on flowIdx, 0 = fully on prev
+  const prevFlowRef = useRef<FlowMode>(FLOW_MODES[0]);
+  const flowSwitchRef = useRef(0); // performance.now() of last mode switch
   const [dragging, setDragging] = useState(false);
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [size, setSize] = useState({ w: 520, h: 540 });
@@ -147,6 +216,9 @@ export const HeroCarousel = () => {
     let raf = 0;
     let last = performance.now();
     let lastPaint = last;
+    const MODE_HOLD_MS = 14000; // hold each pattern ~14s
+    const MODE_BLEND_MS = 1400; // ease over 1.4s when switching
+    flowSwitchRef.current = last;
     const tick = (t: number) => {
       const minFrameMs = constrainedRef.current ? 34 : 17;
       if (t - lastPaint < minFrameMs) {
@@ -157,7 +229,21 @@ export const HeroCarousel = () => {
       last = t;
       lastPaint = t;
       if (!pausedRef.current) {
-        setProgress((p) => (p + dt / Math.max(22, allVideos.length * 0.85)) % 1);
+        // Much slower: ~3× the previous duration so cards drift, not spin.
+        setProgress((p) => (p + dt / Math.max(70, allVideos.length * 2.6)) % 1);
+      }
+      // Advance mode blend towards 1
+      const sinceSwitch = t - flowSwitchRef.current;
+      const blend = Math.min(1, sinceSwitch / MODE_BLEND_MS);
+      setFlowBlend((b) => (Math.abs(b - blend) > 0.005 ? blend : b));
+      // Trigger next mode after the hold window
+      if (!pausedRef.current && sinceSwitch > MODE_HOLD_MS + MODE_BLEND_MS) {
+        flowSwitchRef.current = t;
+        setFlowIdx((i) => {
+          prevFlowRef.current = FLOW_MODES[i];
+          return (i + 1) % FLOW_MODES.length;
+        });
+        setFlowBlend(0);
       }
       raf = requestAnimationFrame(tick);
     };
@@ -196,58 +282,43 @@ export const HeroCarousel = () => {
   }, [N, allVideos, baseSlot, fractional, renderedSlots]);
 
   const styleFor = useCallback((offset: number): React.CSSProperties => {
-    // Kinetic Orbital Disc — horizontal fan, center pops forward on Z,
-    // neighbours tilt inward with rotateY, distants recede + desaturate.
     const absO = Math.abs(offset);
-    const sign = offset === 0 ? 0 : offset < 0 ? -1 : 1;
-    // Horizontal spacing between slots (tighter on mobile).
-    const spacingX = geometry.cardW * (isConstrained ? 0.42 : 0.55);
-    const x = offset * spacingX;
-    // Z depth: piecewise lerp mimicking the prototype (0→+320, 1→+40, 2→-260).
-    const zA = 320, zB = 40, zC = -260;
-    let z: number;
-    if (absO <= 1) z = zA + (zB - zA) * absO;
-    else z = zB + (zC - zB) * Math.min(1, absO - 1);
-    if (isConstrained) z *= 0.35;
-    // rotateY fanning inward: 0° center, 25° at offset ±1, 45° at offset ≥ ±2.
-    let rotY: number;
-    if (absO <= 1) rotY = -sign * (absO * 25);
-    else rotY = -sign * (25 + Math.min(1, absO - 1) * 20);
-    if (isConstrained) rotY *= 0.5;
-    // Slight vertical drift so the fan feels like a tilted disc, not a flat rail.
-    const y = isConstrained ? 0 : Math.sin(offset * 0.55) * 14;
-    // Scale: center largest, distants shrink slightly.
-    const scale = isConstrained
-      ? Math.max(0.88, 1 - absO * 0.04)
-      : Math.max(0.82, 1 - absO * 0.08);
-    // Opacity + grayscale for distants.
+    const currentMode = FLOW_MODES[flowIdx];
+    const prevMode = prevFlowRef.current;
+    const t = easeInOut(Math.max(0, Math.min(1, flowBlend)));
+    const A = flowTransform(prevMode, offset, geometry, isConstrained, visibleRadius);
+    const B = flowTransform(currentMode, offset, geometry, isConstrained, visibleRadius);
+    const x = lerp(A.x, B.x, t);
+    const y = lerp(A.y, B.y, t);
+    const z = lerp(A.z, B.z, t);
+    const rotX = lerp(A.rotX, B.rotX, t);
+    const rotY = lerp(A.rotY, B.rotY, t);
+    const rotZ = lerp(A.rotZ, B.rotZ, t);
+    const scale = lerp(A.scale, B.scale, t);
+    // Opacity + saturate — same rule across modes.
     const edgeFade = Math.max(0, 1 - Math.max(0, absO - (visibleRadius - 0.4)) / 1.4);
-    const opacity = absO <= visibleRadius + 0.6
-      ? Math.max(0.15, (absO <= 1 ? 1 : absO <= 2 ? 0.7 : 0.35) * edgeFade)
-      : 0;
-    const saturate = absO <= 1 ? 1 : Math.max(0.35, 1 - (absO - 1) * 0.4);
-    // Subtle overall disc tilt applied per-card (persistent rotateX + rotateY-Y).
-    const discTiltX = isConstrained ? 6 : 12;
-    const discTiltY = isConstrained ? 0 : -3;
+    const nearWeight = absO <= 1 ? 1 : absO <= 2 ? 0.72 : 0.4;
+    const opacity = absO <= visibleRadius + 0.6 ? Math.max(0.15, nearWeight * edgeFade) : 0;
+    const saturate = absO <= 1 ? 1 : Math.max(0.4, 1 - (absO - 1) * 0.35);
     return {
       left: geometry.centerX - geometry.cardW / 2,
       top: geometry.centerY - geometry.cardH / 2,
       width: geometry.cardW,
       aspectRatio: "16 / 9",
       transform:
-        `rotateX(${discTiltX}deg) rotateY(${discTiltY}deg) ` +
         `translate3d(${x}px, ${y}px, ${z}px) ` +
-        `rotateY(${rotY}deg) scale(${scale})`,
+        `rotateX(${rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg) ` +
+        `scale(${scale})`,
       transformStyle: "preserve-3d",
       transformOrigin: "center center",
       opacity,
-      zIndex: Math.round(200 - absO * 20),
+      zIndex: Math.round(200 - absO * 20 + (currentMode === "wheel" ? Math.cos((offset / visibleRadius) * Math.PI * 0.5) * 30 : 0)),
       pointerEvents: opacity > 0.6 ? "auto" : "none",
       filter: isConstrained
         ? (saturate < 1 ? `saturate(${saturate})` : "none")
         : `saturate(${saturate}) drop-shadow(0 22px 40px hsl(var(--neon-purple) / ${absO <= 1 ? 0.55 : 0.25}))`,
     };
-  }, [geometry, isConstrained, visibleRadius]);
+  }, [flowBlend, flowIdx, geometry, isConstrained, visibleRadius]);
 
   const shiftCards = useCallback((direction: 1 | -1) => {
     setProgress((p) => {
