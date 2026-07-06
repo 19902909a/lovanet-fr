@@ -188,7 +188,7 @@ const buildVariants = (): Variant[] => {
   const out: Variant[] = [];
   const labels = ["dancer", "young", "man", "woman", "robot"];
   labels.forEach((label, i) => {
-    for (let k = 0; k < 6; k++) {
+    for (let k = 0; k < 14; k++) {
       out.push({
         id: `${label}-${k}`,
         category: "human",
@@ -205,7 +205,7 @@ const buildVariants = (): Variant[] => {
     }
   });
   (Object.keys(OBJECT_BUILDERS) as ObjectKey[]).forEach((key) => {
-    for (let k = 0; k < 3; k++) {
+    for (let k = 0; k < 4; k++) {
       out.push({
         id: `${key}-${k}`,
         category: "object",
@@ -504,17 +504,46 @@ const Stage = ({
   );
 };
 
+// Concurrency caps: strict, per-category. New spawn only when a slot is free.
+const MAX_HUMANS = 2;
+const MAX_OBJECTS = 1;
+
+const spawnHuman = (): Spawn => {
+  // Force a human variant.
+  let v: Variant;
+  do { v = VARIANTS[Math.floor(Math.random() * VARIANTS.length)]; } while (v.category !== "human");
+  return spawnFromVariant(v);
+};
+const spawnObject = (): Spawn => {
+  let v: Variant;
+  do { v = VARIANTS[Math.floor(Math.random() * VARIANTS.length)]; } while (v.category !== "object");
+  return spawnFromVariant(v);
+};
+const spawnFromVariant = (v: Variant): Spawn => {
+  const { action, speed, spin } = pickAction(v);
+  const glb = v.glbIndex != null ? GLBS[v.glbIndex] : null;
+  const baseY = glb ? glb.y : -0.6;
+  const dir: 1 | -1 = Math.random() < 0.5 ? 1 : -1;
+  const stationary = speed === 0;
+  return {
+    id: uid++,
+    variant: v,
+    dir,
+    x: stationary ? (Math.random() - 0.5) * 8 : dir === 1 ? -8.5 : 8.5,
+    y: baseY + Math.random() * 0.25,
+    z: -1.4 + Math.random() * 2.6,
+    scale: (glb ? glb.scale : 0.7) * v.scaleMul,
+    action,
+    speed,
+    spin,
+    bornAt: performance.now(),
+  };
+};
+
 export const HologramOverlay = () => {
   const [figures, setFigures] = useState<Spawn[]>([]);
   const [bursts, setBursts] = useState<Burst[]>([]);
   const [visible, setVisible] = useState<boolean>(typeof document === "undefined" ? true : !document.hidden);
-
-  const maxFigures = useMemo(() => {
-    if (typeof window === "undefined") return 6;
-    if (window.innerWidth < 768) return 5;
-    if (window.innerWidth < 1280) return 9;
-    return 15;
-  }, []);
 
   useEffect(() => {
     const onVis = () => setVisible(!document.hidden);
@@ -522,22 +551,26 @@ export const HologramOverlay = () => {
     return () => document.removeEventListener("visibilitychange", onVis);
   }, []);
 
+  // Polling loop: every ~1.5s, if a category slot is free, spawn one there.
   useEffect(() => {
     let cancelled = false;
-    const seed: Spawn[] = [];
-    for (let i = 0; i < Math.min(4, maxFigures); i++) seed.push(spawnOne());
-    setFigures(seed);
     const tick = () => {
       if (cancelled) return;
       setFigures((arr) => {
-        const next = [...arr, spawnOne()];
-        return next.length > maxFigures ? next.slice(next.length - maxFigures) : next;
+        const humans = arr.filter((f) => f.variant.category === "human").length;
+        const objects = arr.filter((f) => f.variant.category === "object").length;
+        let next = arr;
+        if (humans < MAX_HUMANS && Math.random() < 0.7) next = [...next, spawnHuman()];
+        if (objects < MAX_OBJECTS && Math.random() < 0.5) next = [...next, spawnObject()];
+        return next;
       });
-      window.setTimeout(tick, 1600 + Math.random() * 2600);
+      window.setTimeout(tick, 1400 + Math.random() * 1800);
     };
+    // Seed: one human, then wait.
+    setFigures([spawnHuman()]);
     const first = window.setTimeout(tick, 1200);
     return () => { cancelled = true; window.clearTimeout(first); };
-  }, [maxFigures]);
+  }, []);
 
   const removeFigure = useCallback(
     (id: number) => setFigures((arr) => arr.filter((f) => f.id !== id)),
