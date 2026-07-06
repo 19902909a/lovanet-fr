@@ -1,0 +1,377 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+/**
+ * Tablet-shaped video player with an integrated 3D circular carousel of up to
+ * 1500 anime trailers from the catalog page + site videos. Auto-plays each
+ * trailer to completion and jumps to the next random, non-repeating item.
+ * The tablet frame is resizable (drag bottom-right corner).
+ */
+
+type Media = {
+  id: number | string;
+  title: string;
+  cover: string;
+  ytId: string;
+  source: "catalog" | "site";
+};
+
+const CATALOG_QUERY = `
+query ($page: Int, $perPage: Int) {
+  Page(page: $page, perPage: $perPage) {
+    media(type: ANIME, sort: TRENDING_DESC, isAdult: false) {
+      id
+      title { romaji english }
+      coverImage { large }
+      trailer { id site }
+    }
+  }
+}`;
+
+// Lazy-load the YouTube IFrame API once for the whole page.
+let ytApiPromise: Promise<any> | null = null;
+const loadYTApi = (): Promise<any> => {
+  if (typeof window === "undefined") return Promise.reject();
+  if ((window as any).YT?.Player) return Promise.resolve((window as any).YT);
+  if (ytApiPromise) return ytApiPromise;
+  ytApiPromise = new Promise((resolve) => {
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+    (window as any).onYouTubeIframeAPIReady = () => resolve((window as any).YT);
+  });
+  return ytApiPromise;
+};
+
+export default function TabletTrailerPlayer() {
+  const [items, setItems] = useState<Media[]>([]);
+  const [current, setCurrent] = useState<Media | null>(null);
+  const playedRef = useRef<Set<string>>(new Set());
+  const [angle, setAngle] = useState(0);
+  const draggingRef = useRef<{ x: number; a: number } | null>(null);
+  const playerHostRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
+
+  // Load catalog cache + site videos
+  useEffect(() => {
+    let cancelled = false;
+
+    const merged: Media[] = [];
+
+    // 1) Cached catalog (from AnimeCatalog page) — up to 1500
+    try {
+      const cached = localStorage.getItem("lovanet.cache.catalog.grid");
+      if (cached) {
+        const list = JSON.parse(cached) as any[];
+        for (const m of list) {
+          if (m?.trailer?.id && m?.trailer?.site === "youtube") {
+            merged.push({
+              id: `c-${m.id}`,
+              title: m.title?.english || m.title?.romaji || "Anime",
+              cover: m.coverImage?.large || m.coverImage?.extraLarge || "",
+              ytId: m.trailer.id,
+              source: "catalog",
+            });
+          }
+        }
+      }
+    } catch {}
+
+    // 2) Site videos from Supabase (YouTube imports)
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("imported_videos")
+          .select("external_id, title, thumbnail_url")
+          .eq("source", "youtube")
+          .limit(500);
+        if (cancelled || !data) return;
+        const siteItems: Media[] = data
+          .filter((r: any) => r.external_id)
+          .map((r: any) => ({
+            id: `s-${r.external_id}`,
+            title: r.title || "Vidéo",
+            cover: r.thumbnail_url || `https://i.ytimg.com/vi/${r.external_id}/hqdefault.jpg`,
+            ytId: r.external_id,
+            source: "site" as const,
+          }));
+        // Dedup by ytId
+        const seen = new Set(merged.map((m) => m.ytId));
+        for (const s of siteItems) if (!seen.has(s.ytId)) merged.push(s);
+        if (!cancelled) setItems([...merged].slice(0, 1500));
+      } catch {}
+    })();
+
+    // 3) If catalog cache missing → fetch enough pages to reach 1500 trailers
+    (async () => {
+      if (merged.length >= 100) {
+        setItems([...merged].slice(0, 1500));
+        return;
+      }
+      try {
+        const dedup = new Map<string, Media>();
+        for (const m of merged) dedup.set(m.ytId, m);
+        for (let p = 1; p <= 30 && dedup.size < 1500; p++) {
+          const res = await fetch("https://graphql.anilist.co", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: CATALOG_QUERY, variables: { page: p, perPage: 50 } }),
+          });
+          const j = await res.json();
+          const list = j?.data?.Page?.media ?? [];
+          if (!list.length) break;
+          for (const m of list) {
+            if (m?.trailer?.id && m?.trailer?.site === "youtube" && !dedup.has(m.trailer.id)) {
+              dedup.set(m.trailer.id, {
+                id: `c-${m.id}`,
+                title: m.title?.english || m.title?.romaji || "Anime",
+                cover: m.coverImage?.large || "",
+                ytId: m.trailer.id,
+                source: "catalog",
+              });
+            }
+          }
+          if (cancelled) return;
+          setItems(Array.from(dedup.values()).slice(0, 1500));
+          await new Promise((r) => setTimeout(r, 150));
+        }
+      } catch {}
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Pick first item once loaded
+  useEffect(() => {
+    if (!current && items.length) {
+      const first = items[Math.floor(Math.random() * items.length)];
+      setCurrent(first);
+      playedRef.current.add(first.ytId);
+    }
+  }, [items, current]);
+
+  // Pick random non-repeating next
+  const pickNext = (): Media | null => {
+    if (!items.length) return null;
+    const remaining = items.filter((m) => !playedRef.current.has(m.ytId));
+    if (!remaining.length) {
+      playedRef.current.clear();
+      const n = items[Math.floor(Math.random() * items.length)];
+      playedRef.current.add(n.ytId);
+      return n;
+    }
+    const n = remaining[Math.floor(Math.random() * remaining.length)];
+    playedRef.current.add(n.ytId);
+    return n;
+  };
+
+  // Instantiate YT player once
+  useEffect(() => {
+    if (!current || !playerHostRef.current) return;
+    let disposed = false;
+    loadYTApi().then((YT) => {
+      if (disposed) return;
+      if (playerRef.current) {
+        playerRef.current.loadVideoById(current.ytId);
+        return;
+      }
+      playerRef.current = new YT.Player(playerHostRef.current, {
+        videoId: current.ytId,
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+        },
+        events: {
+          onReady: (e: any) => {
+            try { e.target.playVideo(); } catch {}
+          },
+          onStateChange: (e: any) => {
+            // 0 = ended → go next
+            if (e.data === 0) {
+              const next = pickNext();
+              if (next) setCurrent(next);
+            }
+          },
+          onError: () => {
+            const next = pickNext();
+            if (next) setCurrent(next);
+          },
+        },
+      });
+    });
+    return () => {
+      disposed = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerHostRef.current]);
+
+  // Whenever current changes, load in existing player
+  useEffect(() => {
+    if (!current || !playerRef.current) return;
+    try {
+      playerRef.current.loadVideoById(current.ytId);
+    } catch {}
+  }, [current]);
+
+  // Auto-rotate the circular carousel
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    const tick = (t: number) => {
+      const dt = (t - last) / 1000;
+      last = t;
+      if (!draggingRef.current) setAngle((a) => a + dt * 10);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  // Cap visible cards for performance (1500 in 3D would kill perf).
+  const visible = useMemo(() => items.slice(0, 120), [items]);
+  const radius = useMemo(() => Math.max(320, visible.length * 10), [visible.length]);
+
+  const onSelect = (m: Media) => {
+    playedRef.current.add(m.ytId);
+    setCurrent(m);
+  };
+
+  return (
+    <div className="container mx-auto px-4 lg:px-8 pt-6 pb-4">
+      {/* Resizable tablet frame */}
+      <div
+        className="tablet-frame relative mx-auto"
+        style={{
+          width: "min(100%, 980px)",
+          height: 620,
+          minWidth: 320,
+          minHeight: 380,
+          maxWidth: "100%",
+          maxHeight: "90vh",
+          resize: "both",
+          overflow: "hidden",
+          borderRadius: 32,
+          padding: 14,
+          background:
+            "linear-gradient(145deg, #1a1a24 0%, #0b0b12 50%, #1a1a24 100%)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          boxShadow:
+            "0 30px 80px -20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 40px rgba(217,70,239,0.25)",
+        }}
+      >
+        {/* Speaker slit */}
+        <div
+          aria-hidden
+          className="mx-auto mb-2 rounded-full"
+          style={{ width: 60, height: 5, background: "rgba(255,255,255,0.15)" }}
+        />
+        {/* Screen */}
+        <div
+          className="relative w-full h-full rounded-2xl overflow-hidden bg-black"
+          style={{ height: "calc(100% - 26px)" }}
+        >
+          {/* Video area */}
+          <div className="relative w-full" style={{ height: "62%" }}>
+            <div ref={playerHostRef} className="absolute inset-0 w-full h-full" />
+            {!current && (
+              <div className="absolute inset-0 grid place-items-center text-white/50 text-sm">
+                Chargement des bandes-annonces…
+              </div>
+            )}
+            {current && (
+              <div className="absolute bottom-2 left-3 right-3 flex items-center gap-2 text-[11px] text-white/80 pointer-events-none">
+                <span className="px-1.5 py-0.5 rounded-full bg-black/60 uppercase tracking-widest text-[9px]">
+                  {current.source === "catalog" ? "Catalogue" : "Site"}
+                </span>
+                <span className="truncate">{current.title}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Circular carousel of trailers inside the tablet */}
+          <div
+            className="relative w-full select-none"
+            style={{ height: "38%", perspective: "1200px" }}
+            onPointerDown={(e) => {
+              draggingRef.current = { x: e.clientX, a: angle };
+              (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+            }}
+            onPointerMove={(e) => {
+              if (!draggingRef.current) return;
+              const dx = e.clientX - draggingRef.current.x;
+              setAngle(draggingRef.current.a + dx * 0.3);
+            }}
+            onPointerUp={() => {
+              draggingRef.current = null;
+            }}
+          >
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div
+                className="relative"
+                style={{
+                  width: 1,
+                  height: 1,
+                  transformStyle: "preserve-3d",
+                  transform: `rotateX(-10deg) rotateY(${angle}deg)`,
+                }}
+              >
+                {visible.map((m, i) => {
+                  const theta = (360 / Math.max(visible.length, 1)) * i;
+                  const isActive = current?.ytId === m.ytId;
+                  return (
+                    <button
+                      key={String(m.id) + i}
+                      onClick={() => onSelect(m)}
+                      title={m.title}
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                      style={{
+                        width: 60,
+                        height: 88,
+                        transform: `rotateY(${theta}deg) translateZ(${radius}px)`,
+                      }}
+                    >
+                      <div
+                        className="w-full h-full rounded-md overflow-hidden border transition-transform hover:scale-110"
+                        style={{
+                          borderColor: isActive ? "#f0abfc" : "rgba(255,255,255,0.15)",
+                          boxShadow: isActive
+                            ? "0 0 18px rgba(240,171,252,0.9)"
+                            : "0 4px 12px rgba(0,0,0,0.6)",
+                        }}
+                      >
+                        {m.cover ? (
+                          <img
+                            src={m.cover}
+                            alt=""
+                            loading="lazy"
+                            draggable={false}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-white/5" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Count + hint */}
+            <div className="absolute top-2 left-3 text-[10px] uppercase tracking-widest text-white/60">
+              {items.length} bandes-annonces · aléatoire non-répété
+            </div>
+            <div className="absolute top-2 right-3 text-[10px] uppercase tracking-widest text-white/40">
+              glisser pour tourner · coin bas-droit pour redimensionner
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

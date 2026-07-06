@@ -7,6 +7,7 @@ import { HeroCarousel } from "@/components/HeroCarousel";
 import MiniCatalogOrb from "@/components/MiniCatalogOrb";
 import AnimeMomentsOrb from "@/components/AnimeMomentsOrb";
 import NeonFooterBar from "@/components/NeonFooterBar";
+import TabletTrailerPlayer from "@/components/TabletTrailerPlayer";
 import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
 import { ProductArtwork } from "@/components/ProductArtwork";
@@ -282,6 +283,8 @@ const Index = () => {
 
           </div>
           {/* Barre RGB fluo sous le carrousel */}
+          {/* Tablette lecteur — 1500 bandes-annonces catalogue + site, lecture aléatoire non-répétée */}
+          <TabletTrailerPlayer />
           <div className="container mx-auto px-4 lg:px-8 mt-3">
             <NeonFooterBar inline height={22} className="rounded-full overflow-hidden" />
           </div>
