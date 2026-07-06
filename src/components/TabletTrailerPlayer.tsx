@@ -47,7 +47,7 @@ export default function TabletTrailerPlayer() {
   const [current, setCurrent] = useState<Media | null>(null);
   const playedRef = useRef<Set<string>>(new Set());
   const [angle, setAngle] = useState(0);
-  const draggingRef = useRef<{ x: number; a: number } | null>(null);
+  const draggingRef = useRef<{ x: number; a: number; moved?: boolean } | null>(null);
   const playerHostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
 
