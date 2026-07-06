@@ -28,6 +28,71 @@ const isConstrainedDevice = () => {
   return window.matchMedia("(pointer: coarse), (max-width: 767px), (prefers-reduced-motion: reduce)").matches || memory < 4;
 };
 
+type FlowMode = "wheel" | "disc" | "sinuous" | "helix";
+const FLOW_MODES: FlowMode[] = ["wheel", "disc", "sinuous", "helix"];
+
+type Xform = { x: number; y: number; z: number; rotX: number; rotY: number; rotZ: number; scale: number };
+
+const flowTransform = (
+  mode: FlowMode,
+  offset: number,
+  geom: { radius: number; cardW: number; cardH: number },
+  isConstrained: boolean,
+  visibleRadius: number,
+): Xform => {
+  const absO = Math.abs(offset);
+  const sign = offset === 0 ? 0 : offset < 0 ? -1 : 1;
+  if (mode === "wheel") {
+    // Vertical Ferris-wheel arc — cards curve top/bottom, rotateX in and out.
+    const maxAng = isConstrained ? 52 : 60;
+    const clamped = Math.max(-visibleRadius, Math.min(visibleRadius, offset));
+    const ang = (clamped / visibleRadius) * maxAng;
+    const rad = (ang * Math.PI) / 180;
+    const R = Math.max(geom.radius * 1.28, geom.cardH * 1.75);
+    const y = Math.sin(rad) * R;
+    const depth = Math.cos(rad);
+    const z = (depth - 1) * 80;
+    const scale = isConstrained ? 0.9 + depth * 0.1 : 0.85 + depth * 0.15;
+    return { x: 0, y, z, rotX: -ang, rotY: 0, rotZ: 0, scale };
+  }
+  if (mode === "disc") {
+    // Kinetic orbital disc — horizontal fan, center pops on Z, sides tilt inward.
+    const spacingX = geom.cardW * (isConstrained ? 0.42 : 0.55);
+    const x = offset * spacingX;
+    const zA = 320, zB = 40, zC = -260;
+    let z = absO <= 1 ? zA + (zB - zA) * absO : zB + (zC - zB) * Math.min(1, absO - 1);
+    if (isConstrained) z *= 0.35;
+    const rotYRaw = absO <= 1 ? -sign * absO * 25 : -sign * (25 + Math.min(1, absO - 1) * 20);
+    const rotY = isConstrained ? rotYRaw * 0.5 : rotYRaw;
+    const y = isConstrained ? 0 : Math.sin(offset * 0.55) * 14;
+    const scale = isConstrained ? Math.max(0.88, 1 - absO * 0.04) : Math.max(0.82, 1 - absO * 0.08);
+    return { x, y, z, rotX: isConstrained ? 6 : 12, rotY, rotZ: 0, scale };
+  }
+  if (mode === "sinuous") {
+    // S-curve — horizontal flow with pronounced vertical sinewave.
+    const spacingX = geom.cardW * (isConstrained ? 0.45 : 0.6);
+    const x = offset * spacingX;
+    const y = Math.sin(offset * 1.1) * (isConstrained ? 60 : 110);
+    const z = Math.cos(offset * 0.5) * 80 - absO * 30;
+    const rotZ = Math.sin(offset * 1.1) * (isConstrained ? 6 : 10);
+    const rotY = -sign * Math.min(30, absO * 15);
+    const scale = Math.max(isConstrained ? 0.85 : 0.78, 1 - absO * 0.08);
+    return { x, y, z, rotX: 6, rotY, rotZ, scale };
+  }
+  // helix — DNA spiral: cards revolve around a vertical column.
+  const R = geom.cardW * (isConstrained ? 0.55 : 0.8);
+  const theta = offset * (Math.PI / 3); // 60° per slot
+  const x = Math.sin(theta) * R;
+  const z = Math.cos(theta) * R - 40;
+  const y = offset * (isConstrained ? 18 : 28);
+  const rotY = -theta * (180 / Math.PI);
+  const scale = 0.78 + Math.max(0, Math.cos(theta)) * 0.22;
+  return { x, y, z, rotX: 8, rotY, rotZ: 0, scale };
+};
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
 const placeholderThumb = (id: string, title: string) => {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
@@ -55,6 +120,10 @@ export const HeroCarousel = () => {
   const [paused, setPaused] = useState(false);
   const [shapeIdx, setShapeIdx] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [flowIdx, setFlowIdx] = useState(0);
+  const [flowBlend, setFlowBlend] = useState(1); // 1 = fully on flowIdx, 0 = fully on prev
+  const prevFlowRef = useRef<FlowMode>(FLOW_MODES[0]);
+  const flowSwitchRef = useRef(0); // performance.now() of last mode switch
   const [dragging, setDragging] = useState(false);
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [size, setSize] = useState({ w: 520, h: 540 });
