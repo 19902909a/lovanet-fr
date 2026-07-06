@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import { Navbar } from "@/components/Navbar";
 import CardSkinBubble from "@/components/CardSkinBubble";
+import YoutubeBrandCover from "@/components/YoutubeBrandCover";
 
 type Media = {
   id: number;
@@ -331,6 +332,9 @@ export default function AnimeCatalog() {
                   allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                   allowFullScreen
                 />
+              ) : null}
+              {trailerMedia?.trailer?.id && trailerMedia.trailer.site === "youtube" ? (
+                <YoutubeBrandCover />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-white/40 text-sm">
                   Sélectionnez une carte pour lire le trailer
@@ -685,6 +689,7 @@ export default function AnimeCatalog() {
                   allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                   allowFullScreen
                 />
+                <YoutubeBrandCover />
               </div>
             ) : active.bannerImage ? (
               <img src={active.bannerImage} alt="" className="w-full h-40 object-cover" />

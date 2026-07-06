@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Palette, ChevronDown } from "lucide-react";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import { Navbar } from "@/components/Navbar";
+import YoutubeBrandCover from "@/components/YoutubeBrandCover";
 
 type Media = {
   id: number;
@@ -304,6 +305,7 @@ export default function AnimeCountdown() {
                                 allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                                 allowFullScreen
                               />
+                              <YoutubeBrandCover />
                             </div>
                           ) : m.bannerImage ? (
                             <img
