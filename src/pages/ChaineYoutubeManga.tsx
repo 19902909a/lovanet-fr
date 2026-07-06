@@ -133,7 +133,12 @@ export default function ChaineYoutubeManga() {
     };
   }, []);
 
-  const visibleVideos = videos.filter((v) => !hiddenIds.has(v.id));
+  // Ingestion order is oldest → newest (see edge function sweep from 2007).
+  // Display order is newest → oldest.
+  const visibleVideos = videos
+    .filter((v) => !hiddenIds.has(v.id))
+    .slice()
+    .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1));
   const activeVideo =
     visibleVideos.find((v) => v.id === active) ?? visibleVideos[0];
 
