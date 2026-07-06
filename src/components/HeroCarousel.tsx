@@ -484,13 +484,27 @@ export const HeroCarousel = () => {
                 boxShadow: "0 0 0 1px hsl(var(--neon-magenta) / 0.35), 0 18px 36px -18px hsl(var(--neon-purple) / 0.55)",
               }}
             >
+              {c.v.source === "tiktok" && (
+                <img
+                  src={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
+                  alt=""
+                  aria-hidden
+                  loading="lazy"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                  className="absolute inset-0 z-[0] w-full h-full object-cover"
+                  style={{ filter: "blur(24px) saturate(1.3)", transform: "scale(1.15)" }}
+                />
+              )}
               <img
                 src={c.v.thumb || placeholderThumb(c.v.id, c.v.title)}
                 alt={c.v.title}
                 loading={Math.abs(c.offset) <= 1 ? "eager" : "lazy"}
                 decoding="async"
                 referrerPolicy="no-referrer"
-                className="relative z-[1] w-full h-full object-cover opacity-100"
+                className={`relative z-[1] w-full h-full opacity-100 ${
+                  c.v.source === "tiktok" ? "object-contain" : "object-cover"
+                }`}
                 style={{ backgroundColor: "hsl(var(--card))" }}
                 onError={(e) => {
                   const img = e.currentTarget;
