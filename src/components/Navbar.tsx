@@ -13,7 +13,7 @@ const navItems = [
   { to: "/tiktok", label: "TikTok" },
   { to: "/anime-countdown", label: "À venir" },
   { to: "/anime-catalog", label: "Catalogue" },
-  { to: "/decouvrir", label: "Découvrir" },
+  { to: "/decouvrir", label: "Univers Lovanet" },
   { to: "/shop", label: "Shop" },
 ];
 
