@@ -33,8 +33,8 @@ const GLBS: GlbDef[] = [
   {
     url: "https://threejs.org/examples/models/gltf/Soldier.glb",
     kind: "soldier",
-    scale: 1.05,
-    y: -1.52,
+    scale: 0.6,
+    y: -1.35,
     facing: Math.PI / 2,
     loco: { walk: "Walk", run: "Run", idle: "Idle" },
     extra: [],
