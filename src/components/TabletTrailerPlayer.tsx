@@ -196,7 +196,8 @@ export default function TabletTrailerPlayer() {
     const tick = (t: number) => {
       const dt = (t - last) / 1000;
       last = t;
-      if (!draggingRef.current) setAngle((a) => a + dt * 10);
+      // Slow drift so cards stay readable/selectable.
+      if (!draggingRef.current) setAngle((a) => a + dt * 2);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -204,8 +205,8 @@ export default function TabletTrailerPlayer() {
   }, []);
 
   // Cap visible cards for performance (1500 in 3D would kill perf).
-  const visible = useMemo(() => items.slice(0, 120), [items]);
-  const radius = useMemo(() => Math.max(320, visible.length * 10), [visible.length]);
+  const visible = useMemo(() => items.slice(0, 80), [items]);
+  const radius = useMemo(() => Math.max(180, Math.min(240, visible.length * 4)), [visible.length]);
 
   const onSelect = (m: Media) => {
     playedRef.current.add(m.ytId);
