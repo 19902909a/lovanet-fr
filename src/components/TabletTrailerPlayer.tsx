@@ -189,7 +189,7 @@ export default function TabletTrailerPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current?.ytId]);
 
-  // Slowly advance the phase — cards drift rightward along a 3D helix.
+  // Slowly advance the phase — one whole item every ~4 s.
   useEffect(() => {
     let raf = 0;
     let last = performance.now();
@@ -197,7 +197,8 @@ export default function TabletTrailerPlayer() {
       const dt = (t - last) / 1000;
       last = t;
       if (!draggingRef.current) {
-        setPhase((p) => (p + dt * 0.01) % 1); // full loop ~= 100 s
+        // Speed in "items per second" — small so scroll is calm.
+        setPhase((p) => p + dt * 0.25);
       }
       raf = requestAnimationFrame(tick);
     };
@@ -205,12 +206,14 @@ export default function TabletTrailerPlayer() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
-  // Helix / spiral layout — all trailers strung along a horizontal 3D spiral.
-  const visible = useMemo(() => items.slice(0, 1500), [items]);
-  const count = Math.max(visible.length, 1);
-  const TURNS = Math.max(4, Math.round(count / 40)); // more items → more turns
-  const helixWidth = 1600; // total spread along X
-  const helixRadius = 70; // Y/Z amplitude
+  // Virtualized 3D spiral — only render a small window of cards so every card
+  // has its own screen slot (no stacking, no hidden cards behind others).
+  const catalogue = useMemo(() => items.slice(0, 1500), [items]);
+  const count = Math.max(catalogue.length, 1);
+  const VISIBLE_SLOTS = 13; // odd → nice symmetric center card
+  const helixWidth = 1400;
+  const helixRadius = 80;
+  const slotStep = helixWidth / VISIBLE_SLOTS;
 
   const onSelect = (m: Media) => {
     playedRef.current.add(m.ytId);
@@ -271,7 +274,7 @@ export default function TabletTrailerPlayer() {
       {/* 3D spiral trailer strip BELOW the tablet — drifts slowly to the right */}
       <div
         className="relative w-full select-none mt-4"
-        style={{ height: 260, perspective: "1400px", overflow: "hidden" }}
+        style={{ height: 240, perspective: "1400px", overflow: "hidden" }}
         onPointerDown={(e) => {
           draggingRef.current = { x: e.clientX, a: phase, moved: false };
         }}
@@ -280,9 +283,8 @@ export default function TabletTrailerPlayer() {
           const dx = e.clientX - draggingRef.current.x;
           if (Math.abs(dx) > 4) {
             draggingRef.current.moved = true;
-            // Dragging right pushes phase back (cards move with the finger).
-            const next = (draggingRef.current.a - dx / helixWidth) % 1;
-            setPhase(next < 0 ? next + 1 : next);
+            // Dragging right pushes phase back so cards move with the finger.
+            setPhase(draggingRef.current.a - dx / slotStep);
           }
         }}
         onPointerUp={() => { draggingRef.current = null; }}
@@ -308,61 +310,73 @@ export default function TabletTrailerPlayer() {
               transform: "rotateX(6deg)",
             }}
           >
-            {visible.map((m, i) => {
-              // u ∈ [0,1) is the card's position along the spiral, drifting right.
-              const u = ((i / count) + phase) % 1;
-              const x = (u - 0.5) * helixWidth;
-              const theta = u * TURNS * Math.PI * 2;
-              const y = Math.sin(theta) * helixRadius;
-              const z = Math.cos(theta) * helixRadius;
-              const isActive = current?.ytId === m.ytId;
-              // Depth-based scale so front cards are bigger, back cards smaller — real relief.
-              const depth = (z + helixRadius) / (helixRadius * 2); // 0..1
-              const scale = 0.75 + depth * 0.55; // 0.75 back → 1.3 front
-              const opacity = 0.35 + depth * 0.65;
-              return (
-                <button
-                  key={String(m.id)}
-                  onClick={(e) => {
+            {(() => {
+              const base = Math.floor(phase);
+              const frac = phase - base; // 0..1
+              const slots: JSX.Element[] = [];
+              // Render 2 extra slots outside on each side for smooth entry/exit.
+              for (let k = -2; k < VISIBLE_SLOTS + 2; k++) {
+                const idx = ((base + k) % count + count) % count;
+                const m = catalogue[idx];
+                if (!m) continue;
+                // localPos: continuous position 0..1 across the strip.
+                const localPos = (k - frac) / (VISIBLE_SLOTS - 1);
+                const x = (localPos - 0.5) * helixWidth;
+                // Two full spiral turns across the visible strip.
+                const theta = localPos * Math.PI * 4;
+                const y = Math.sin(theta) * helixRadius * 0.5;
+                const z = Math.cos(theta) * helixRadius;
+                const depth = (z + helixRadius) / (helixRadius * 2); // 0..1
+                const scale = 0.85 + depth * 0.35;
+                const opacity =
+                  localPos < 0 || localPos > 1
+                    ? Math.max(0, 1 - Math.min(Math.abs(localPos), Math.abs(localPos - 1)) * 3)
+                    : 1;
+                const isActive = current?.ytId === m.ytId;
+                slots.push(
+                  <button
+                    key={`slot-${k}-${m.ytId}`}
+                    onClick={(e) => {
                     if (draggingRef.current?.moved) return;
                     e.stopPropagation();
                     onSelect(m);
                   }}
-                  title={m.title}
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-                  style={{
-                    width: 68,
-                    height: 96,
-                    transform: `translate3d(${x}px, ${y}px, ${z}px) scale(${scale})`,
-                    opacity,
-                    zIndex: Math.round(depth * 1000),
-                    transition: "opacity 0.15s linear",
-                  }}
-                >
-                  <div
-                    className="w-full h-full rounded-md overflow-hidden border transition-transform group-hover:scale-125 group-hover:z-50"
+                    title={m.title}
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
                     style={{
-                      borderColor: isActive ? "#f0abfc" : "rgba(255,255,255,0.18)",
-                      boxShadow: isActive
-                        ? "0 0 22px rgba(240,171,252,0.95), 0 8px 20px rgba(0,0,0,0.7)"
-                        : "0 8px 18px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06) inset",
+                      width: 78,
+                      height: 112,
+                      transform: `translate3d(${x}px, ${y}px, ${z}px) scale(${scale})`,
+                      opacity,
+                      zIndex: Math.round(depth * 1000),
                     }}
                   >
-                    {m.cover ? (
-                      <img
-                        src={m.cover}
-                        alt=""
-                        loading="lazy"
-                        draggable={false}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-white/5" />
-                    )}
-                  </div>
-                </button>
-              );
-            })}
+                    <div
+                      className="w-full h-full rounded-md overflow-hidden border transition-transform group-hover:scale-125"
+                      style={{
+                        borderColor: isActive ? "#f0abfc" : "rgba(255,255,255,0.18)",
+                        boxShadow: isActive
+                          ? "0 0 22px rgba(240,171,252,0.95), 0 8px 20px rgba(0,0,0,0.7)"
+                          : "0 8px 18px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06) inset",
+                      }}
+                    >
+                      {m.cover ? (
+                        <img
+                          src={m.cover}
+                          alt=""
+                          loading="lazy"
+                          draggable={false}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-white/5" />
+                      )}
+                    </div>
+                  </button>,
+                );
+              }
+              return slots;
+            })()}
           </div>
         </div>
 
