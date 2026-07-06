@@ -1,4 +1,5 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 // Parses ISO-8601 duration (PT#H#M#S) to seconds.
 function isoToSeconds(iso: string): number {
@@ -73,14 +74,29 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+  const SYNC_KEY = 'youtube-manga';
 
   try {
     const url = new URL(req.url);
     const pages = Math.min(Number(url.searchParams.get('pages') ?? 8), 20);
     const customQ = url.searchParams.get('q');
-    // 'date' returns newest first; we sort ascending (oldest → newest) after fetch.
     const order = url.searchParams.get('order') ?? 'date';
     const queries = customQ ? [customQ] : DEFAULT_QUERIES;
+    const reset = url.searchParams.get('reset') === '1';
+
+    // Read cursor from DB (last processed publishedAt).
+    let cursorIso: string | null = null;
+    if (!reset) {
+      const { data: state } = await admin
+        .from('youtube_sync_state')
+        .select('last_published_at')
+        .eq('key', SYNC_KEY)
+        .maybeSingle();
+      cursorIso = (state?.last_published_at as string | null) ?? null;
+    }
 
     // 1) Collect candidate video IDs via search.list
     const ids = new Set<string>();
@@ -98,6 +114,8 @@ Deno.serve(async (req) => {
           safeSearch: 'moderate',
           relevanceLanguage: 'fr',
         });
+        // Only fetch videos published after the cursor to avoid duplicates.
+        if (cursorIso) params.set('publishedAfter', cursorIso);
         if (pageToken) params.set('pageToken', pageToken);
         const r = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
         if (!r.ok) break;
@@ -111,7 +129,14 @@ Deno.serve(async (req) => {
     }
 
     if (ids.size === 0) {
-      return new Response(JSON.stringify({ videos: [] }), {
+      // Return whatever is already stored (oldest → newest).
+      const { data: stored } = await admin
+        .from('youtube_manga_videos')
+        .select('*')
+        .eq('is_hidden', false)
+        .order('published_at', { ascending: true })
+        .limit(2000);
+      return new Response(JSON.stringify({ videos: mapRows(stored ?? []), inserted: 0, cursor: cursorIso }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -153,12 +178,63 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Sort by publishedAt ASC — oldest → newest (as requested).
+    // Sort by publishedAt ASC — oldest → newest.
     videos.sort((a, b) => (a.publishedAt < b.publishedAt ? -1 : 1));
 
-    return new Response(JSON.stringify({ videos, count: videos.length }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    // Upsert into DB (video_id is PK → no duplicates).
+    if (videos.length) {
+      const rows = videos.map((v) => ({
+        video_id: v.id,
+        title: v.title,
+        description: v.description,
+        thumbnail: v.thumbnail,
+        channel_title: v.channelTitle,
+        published_at: v.publishedAt,
+        duration_sec: v.durationSec,
+        view_count: v.viewCount,
+      }));
+      // Chunk upserts to stay safe.
+      for (let i = 0; i < rows.length; i += 500) {
+        await admin
+          .from('youtube_manga_videos')
+          .upsert(rows.slice(i, i + 500), { onConflict: 'video_id', ignoreDuplicates: false });
+      }
+
+      // Advance cursor to the newest publishedAt we just processed.
+      const newest = videos[videos.length - 1].publishedAt;
+      const prev = cursorIso ?? '';
+      const nextCursor = newest > prev ? newest : cursorIso;
+      await admin
+        .from('youtube_sync_state')
+        .upsert(
+          { key: SYNC_KEY, last_published_at: nextCursor, last_run_at: new Date().toISOString() },
+          { onConflict: 'key' },
+        );
+    } else {
+      await admin
+        .from('youtube_sync_state')
+        .upsert(
+          { key: SYNC_KEY, last_published_at: cursorIso, last_run_at: new Date().toISOString() },
+          { onConflict: 'key' },
+        );
+    }
+
+    // Return the full stored list (oldest → newest) so the UI is consistent.
+    const { data: stored } = await admin
+      .from('youtube_manga_videos')
+      .select('*')
+      .eq('is_hidden', false)
+      .order('published_at', { ascending: true })
+      .limit(2000);
+
+    return new Response(
+      JSON.stringify({
+        videos: mapRows(stored ?? []),
+        inserted: videos.length,
+        cursor: cursorIso,
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
   } catch (e) {
     return new Response(JSON.stringify({ error: (e as Error).message }), {
       status: 500,
@@ -166,3 +242,16 @@ Deno.serve(async (req) => {
     });
   }
 });
+
+function mapRows(rows: any[]): Video[] {
+  return rows.map((r) => ({
+    id: r.video_id,
+    title: r.title ?? '',
+    description: r.description ?? '',
+    thumbnail: r.thumbnail ?? `https://i.ytimg.com/vi/${r.video_id}/hqdefault.jpg`,
+    channelTitle: r.channel_title ?? '',
+    publishedAt: r.published_at ?? '',
+    durationSec: Number(r.duration_sec ?? 0),
+    viewCount: Number(r.view_count ?? 0),
+  }));
+}
