@@ -208,15 +208,22 @@ Deno.serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const pages = Math.min(Number(url.searchParams.get('pages') ?? 8), 20);
     const customQ = url.searchParams.get('q');
+    // YouTube search.list is expensive (100 quota units per page). For the full
+    // catalogue scan, process one page per query so a run stays below the daily
+    // 10k quota and can still add many validated videos quickly.
+    const requestedPages = Number(url.searchParams.get('pages') ?? 1);
+    const pages = customQ
+      ? Math.min(Math.max(requestedPages, 1), 5)
+      : Math.min(Math.max(requestedPages, 1), 1);
     const order = url.searchParams.get('order') ?? 'date';
     const queries = customQ ? [customQ] : DEFAULT_QUERIES;
     const reset = url.searchParams.get('reset') === '1';
+    const incremental = url.searchParams.get('incremental') === '1';
 
     // Read cursor from DB (last processed publishedAt).
     let cursorIso: string | null = null;
-    if (!reset) {
+    if (incremental && !reset) {
       const { data: state } = await admin
         .from('youtube_sync_state')
         .select('last_published_at')
@@ -237,12 +244,14 @@ Deno.serve(async (req) => {
           maxResults: '50',
           q,
           order,
-          videoDuration: 'medium', // 4-20 min — already excludes Shorts
+          videoDuration: 'any', // keep long valid anime videos; Shorts are filtered below
           safeSearch: 'moderate',
           relevanceLanguage: 'fr',
         });
-        // Only fetch videos published after the cursor to avoid duplicates.
-        if (cursorIso) params.set('publishedAfter', cursorIso);
+        // Only incremental runs use the cursor. Full scans intentionally revisit
+        // older results so the stored catalogue grows instead of getting stuck at
+        // the newest timestamp.
+        if (incremental && cursorIso) params.set('publishedAfter', cursorIso);
         if (pageToken) params.set('pageToken', pageToken);
         const r = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
         if (!r.ok) break;
@@ -258,13 +267,8 @@ Deno.serve(async (req) => {
 
     if (ids.size === 0) {
       // Return whatever is already stored (oldest → newest).
-      const { data: stored } = await admin
-        .from('youtube_manga_videos')
-        .select('*')
-        .eq('is_hidden', false)
-        .order('published_at', { ascending: true })
-        .limit(2000);
-      return new Response(JSON.stringify({ videos: mapRows(stored ?? []), inserted: 0, cursor: cursorIso }), {
+      const storedVideos = await loadStoredVideos(admin);
+      return new Response(JSON.stringify({ videos: storedVideos, inserted: 0, cursor: cursorIso }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -396,16 +400,11 @@ Deno.serve(async (req) => {
     }
 
     // Return the full stored list (oldest → newest) so the UI is consistent.
-    const { data: stored } = await admin
-      .from('youtube_manga_videos')
-      .select('*')
-      .eq('is_hidden', false)
-      .order('published_at', { ascending: true })
-      .limit(2000);
+    const storedVideos = await loadStoredVideos(admin);
 
     return new Response(
       JSON.stringify({
-        videos: mapRows(stored ?? []),
+        videos: storedVideos,
         inserted: videos.length,
         visionBlocked: visionBlacklistAdds.length,
         cursor: cursorIso,
@@ -419,6 +418,69 @@ Deno.serve(async (req) => {
     });
   }
 });
+
+async function loadStoredVideos(admin: any): Promise<Video[]> {
+  const [mangaRes, importedRes] = await Promise.all([
+    admin
+      .from('youtube_manga_videos')
+      .select('*')
+      .eq('is_hidden', false)
+      .order('published_at', { ascending: true })
+      .limit(5000),
+    admin
+      .from('imported_videos')
+      .select('external_id,title,description,thumbnail_url,video_url,published_at,created_at,episode')
+      .eq('source', 'youtube')
+      .order('published_at', { ascending: true, nullsFirst: false })
+      .limit(5000),
+  ]);
+
+  return mergeVideos([
+    ...mapRows(mangaRes.data ?? []),
+    ...mapImportedRows(importedRes.data ?? []),
+  ]);
+}
+
+function mergeVideos(rows: Video[]): Video[] {
+  const byId = new Map<string, Video>();
+  for (const v of rows) {
+    if (!v.id) continue;
+    const prev = byId.get(v.id);
+    byId.set(v.id, {
+      ...prev,
+      ...v,
+      durationSec: v.durationSec || prev?.durationSec || 0,
+      viewCount: v.viewCount || prev?.viewCount || 0,
+    });
+  }
+  return Array.from(byId.values()).sort((a, b) =>
+    (a.publishedAt || '').localeCompare(b.publishedAt || ''),
+  );
+}
+
+function extractYouTubeId(url: string | null | undefined): string {
+  if (!url) return '';
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+  return match?.[1] ?? '';
+}
+
+function mapImportedRows(rows: any[]): Video[] {
+  return rows
+    .map((r) => {
+      const id = r.external_id || extractYouTubeId(r.video_url);
+      return {
+        id,
+        title: r.title ?? '',
+        description: r.description ?? '',
+        thumbnail: r.thumbnail_url ?? (id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : ''),
+        channelTitle: r.episode ? `YouTube · ${r.episode}` : 'YouTube · Lovanet',
+        publishedAt: r.published_at ?? r.created_at ?? '',
+        durationSec: 0,
+        viewCount: 0,
+      };
+    })
+    .filter((v) => !!v.id);
+}
 
 function mapRows(rows: any[]): Video[] {
   return rows.map((r) => ({
