@@ -544,6 +544,51 @@ export const HologramOverlay = () => {
   const [figures, setFigures] = useState<Spawn[]>([]);
   const [bursts, setBursts] = useState<Burst[]>([]);
   const [visible, setVisible] = useState<boolean>(typeof document === "undefined" ? true : !document.hidden);
+  const [clipPath, setClipPath] = useState<string | undefined>(undefined);
+
+  // Cut the hologram overlay around video players, iframes and elements marked
+  // with data-hologram-block so the 3D figures never cover them.
+  useEffect(() => {
+    let raf = 0;
+    const compute = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const selectors = "video, iframe, [data-hologram-block]";
+      const rects: DOMRect[] = [];
+      document.querySelectorAll<HTMLElement>(selectors).forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.width < 24 || r.height < 24) return;
+        if (r.bottom < 0 || r.top > h || r.right < 0 || r.left > w) return;
+        rects.push(r);
+      });
+      if (!rects.length) { setClipPath(undefined); return; }
+      // Outer rect (clockwise) + inner rects (counter-clockwise) with evenodd.
+      let d = `M0 0 H${w} V${h} H0 Z`;
+      for (const r of rects) {
+        const x1 = Math.max(0, r.left);
+        const y1 = Math.max(0, r.top);
+        const x2 = Math.min(w, r.right);
+        const y2 = Math.min(h, r.bottom);
+        // reversed winding
+        d += ` M${x1} ${y1} V${y2} H${x2} V${y1} Z`;
+      }
+      setClipPath(`path(evenodd, "${d}")`);
+    };
+    const schedule = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(compute);
+    };
+    schedule();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    const interval = window.setInterval(schedule, 500);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearInterval(interval);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, []);
 
   useEffect(() => {
     const onVis = () => setVisible(!document.hidden);
@@ -589,7 +634,13 @@ export const HologramOverlay = () => {
       aria-hidden
       data-hologram-overlay
       className="fixed inset-0 h-screen w-screen overflow-visible"
-      style={{ isolation: "isolate", zIndex: 2147483000, pointerEvents: "none" }}
+      style={{
+        isolation: "isolate",
+        zIndex: 2147483000,
+        pointerEvents: "none",
+        clipPath,
+        WebkitClipPath: clipPath,
+      }}
     >
       <Canvas
         dpr={[1, 2]}
