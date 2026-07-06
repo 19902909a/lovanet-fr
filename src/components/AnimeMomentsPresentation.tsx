@@ -237,12 +237,6 @@ export const AnimeMomentsPresentation = () => {
           {dimOverlay && (
             <>
               <div className="absolute inset-0 bg-black/40" />
-              <img
-                src={blingBling.url}
-                alt=""
-                aria-hidden
-                className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none mix-blend-screen"
-              />
               <div className="absolute inset-0 bg-gradient-to-b from-zinc-950 via-transparent to-zinc-950 pointer-events-none" />
               <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-transparent to-zinc-950 pointer-events-none" />
             </>
@@ -252,6 +246,15 @@ export const AnimeMomentsPresentation = () => {
           <div className="absolute inset-0 w-full h-full scale-[1.35] pointer-events-none">
             <div ref={playerHostRef} className="w-full h-full" />
           </div>
+
+          {dimOverlay && (
+            <img
+              src={blingBling.url}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 w-full h-full object-cover opacity-40 pointer-events-none mix-blend-screen"
+            />
+          )}
 
           {/* Interactive spotlights */}
           {[
