@@ -234,11 +234,6 @@ export const AnimeMomentsPresentation = () => {
             )
           )}
 
-          {/* YT player host — controlled via IFrame API */}
-          <div className="absolute inset-0 w-full h-full scale-[1.35] pointer-events-none">
-            <div ref={playerHostRef} className="w-full h-full" />
-          </div>
-
           {dimOverlay && (
             <>
               <div className="absolute inset-0 bg-black/40" />
@@ -252,6 +247,11 @@ export const AnimeMomentsPresentation = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-transparent to-zinc-950 pointer-events-none" />
             </>
           )}
+
+          {/* YT player host — controlled via IFrame API */}
+          <div className="absolute inset-0 w-full h-full scale-[1.35] pointer-events-none">
+            <div ref={playerHostRef} className="w-full h-full" />
+          </div>
 
           {/* Interactive spotlights */}
           {[
