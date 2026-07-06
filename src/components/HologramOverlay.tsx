@@ -42,8 +42,8 @@ const GLBS: GlbDef[] = [
   {
     url: "https://threejs.org/examples/models/gltf/Xbot.glb",
     kind: "human",
-    scale: 1.0,
-    y: -1.52,
+    scale: 0.55,
+    y: -1.35,
     facing: Math.PI / 2,
     loco: { idle: "idle" },
     extra: [],
