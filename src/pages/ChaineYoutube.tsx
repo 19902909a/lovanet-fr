@@ -100,6 +100,11 @@ const ChaineYoutube = () => {
             Ouvrir YouTube <ExternalLink className="w-4 h-4" />
           </a>
         </Button>
+        <Button asChild variant="outline" className="rounded-full gap-2 border-red-500/60 text-red-400 hover:bg-red-500/10">
+          <a href="/chaine-youtube/manga">
+            Univers Manga & Anime →
+          </a>
+        </Button>
         <div className="inline-flex p-1 rounded-full bg-secondary border border-border">
           <button
             onClick={() => setOrientation("horizontal")}
