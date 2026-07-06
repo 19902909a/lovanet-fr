@@ -221,9 +221,13 @@ Deno.serve(async (req) => {
     const reset = url.searchParams.get('reset') === '1';
     const incremental = url.searchParams.get('incremental') === '1';
 
-    // Read cursor from DB (last processed publishedAt).
+    // Historical sweep: crawl YouTube from 2007-01-01 forward, one year window
+    // per run. The cursor in youtube_sync_state stores the START of the next
+    // window. When we reach "now", wrap around to 2007 so the catalogue keeps
+    // growing (YouTube exposes different results run-to-run).
+    const EPOCH_START = '2007-01-01T00:00:00Z';
     let cursorIso: string | null = null;
-    if (incremental && !reset) {
+    {
       const { data: state } = await admin
         .from('youtube_sync_state')
         .select('last_published_at')
@@ -231,6 +235,20 @@ Deno.serve(async (req) => {
         .maybeSingle();
       cursorIso = (state?.last_published_at as string | null) ?? null;
     }
+    if (reset || !cursorIso) cursorIso = EPOCH_START;
+
+    // Compute the [windowStart, windowEnd] for this run (1 year wide).
+    let windowStart = new Date(cursorIso);
+    if (Number.isNaN(windowStart.getTime())) windowStart = new Date(EPOCH_START);
+    const now = new Date();
+    if (windowStart >= now) windowStart = new Date(EPOCH_START); // wrap
+    const windowEnd = new Date(windowStart);
+    windowEnd.setUTCFullYear(windowEnd.getUTCFullYear() + 1);
+    if (windowEnd > now) windowEnd.setTime(now.getTime());
+    const publishedAfter = windowStart.toISOString();
+    const publishedBefore = windowEnd.toISOString();
+    // The custom `q` search bypasses the sweep and behaves like a free-form query.
+    const useSweep = !customQ;
 
     // 1) Collect candidate video IDs via search.list
     const ids = new Set<string>();
@@ -248,10 +266,13 @@ Deno.serve(async (req) => {
           safeSearch: 'moderate',
           relevanceLanguage: 'fr',
         });
-        // Only incremental runs use the cursor. Full scans intentionally revisit
-        // older results so the stored catalogue grows instead of getting stuck at
-        // the newest timestamp.
-        if (incremental && cursorIso) params.set('publishedAfter', cursorIso);
+        // Historical window — oldest → newest sweep.
+        if (useSweep) {
+          params.set('publishedAfter', publishedAfter);
+          params.set('publishedBefore', publishedBefore);
+        } else if (incremental && cursorIso) {
+          params.set('publishedAfter', cursorIso);
+        }
         if (pageToken) params.set('pageToken', pageToken);
         const r = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
         if (!r.ok) break;
@@ -380,10 +401,14 @@ Deno.serve(async (req) => {
           .upsert(rows.slice(i, i + 500), { onConflict: 'video_id', ignoreDuplicates: false });
       }
 
-      // Advance cursor to the newest publishedAt we just processed.
-      const newest = videos[videos.length - 1].publishedAt;
-      const prev = cursorIso ?? '';
-      const nextCursor = newest > prev ? newest : cursorIso;
+      // Advance the sweep cursor to the next window start (windowEnd), so the
+      // next run picks up the following year. For non-sweep runs, keep the
+      // classic behaviour: track the newest publishedAt observed.
+      const nextCursor = useSweep
+        ? publishedBefore
+        : (videos[videos.length - 1].publishedAt > (cursorIso ?? '')
+            ? videos[videos.length - 1].publishedAt
+            : cursorIso);
       await admin
         .from('youtube_sync_state')
         .upsert(
@@ -391,15 +416,18 @@ Deno.serve(async (req) => {
           { onConflict: 'key' },
         );
     } else {
+      // No new videos this run — still advance the sweep so we don't loop.
+      const nextCursor = useSweep ? publishedBefore : cursorIso;
       await admin
         .from('youtube_sync_state')
         .upsert(
-          { key: SYNC_KEY, last_published_at: cursorIso, last_run_at: new Date().toISOString() },
+          { key: SYNC_KEY, last_published_at: nextCursor, last_run_at: new Date().toISOString() },
           { onConflict: 'key' },
         );
     }
 
-    // Return the full stored list (oldest → newest) so the UI is consistent.
+    // Return the full stored list. Storage/order stays oldest → newest;
+    // the UI reverses to newest → oldest for display.
     const storedVideos = await loadStoredVideos(admin);
 
     return new Response(
@@ -408,6 +436,7 @@ Deno.serve(async (req) => {
         inserted: videos.length,
         visionBlocked: visionBlacklistAdds.length,
         cursor: cursorIso,
+        window: { publishedAfter, publishedBefore, useSweep },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
