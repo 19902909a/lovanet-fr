@@ -208,15 +208,22 @@ Deno.serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const pages = Math.min(Number(url.searchParams.get('pages') ?? 8), 20);
     const customQ = url.searchParams.get('q');
+    // YouTube search.list is expensive (100 quota units per page). For the full
+    // catalogue scan, process one page per query so a run stays below the daily
+    // 10k quota and can still add many validated videos quickly.
+    const requestedPages = Number(url.searchParams.get('pages') ?? 1);
+    const pages = customQ
+      ? Math.min(Math.max(requestedPages, 1), 5)
+      : Math.min(Math.max(requestedPages, 1), 1);
     const order = url.searchParams.get('order') ?? 'date';
     const queries = customQ ? [customQ] : DEFAULT_QUERIES;
     const reset = url.searchParams.get('reset') === '1';
+    const incremental = url.searchParams.get('incremental') === '1';
 
     // Read cursor from DB (last processed publishedAt).
     let cursorIso: string | null = null;
-    if (!reset) {
+    if (incremental && !reset) {
       const { data: state } = await admin
         .from('youtube_sync_state')
         .select('last_published_at')
@@ -237,12 +244,14 @@ Deno.serve(async (req) => {
           maxResults: '50',
           q,
           order,
-          videoDuration: 'medium', // 4-20 min — already excludes Shorts
+          videoDuration: 'any', // keep long valid anime videos; Shorts are filtered below
           safeSearch: 'moderate',
           relevanceLanguage: 'fr',
         });
-        // Only fetch videos published after the cursor to avoid duplicates.
-        if (cursorIso) params.set('publishedAfter', cursorIso);
+        // Only incremental runs use the cursor. Full scans intentionally revisit
+        // older results so the stored catalogue grows instead of getting stuck at
+        // the newest timestamp.
+        if (incremental && cursorIso) params.set('publishedAfter', cursorIso);
         if (pageToken) params.set('pageToken', pageToken);
         const r = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
         if (!r.ok) break;
