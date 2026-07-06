@@ -175,8 +175,8 @@ export const HeroCarousel = () => {
   const geometry = useMemo(() => {
     const centerX = size.w * 0.5;
     const centerY = size.h * (isConstrained ? 0.48 : 0.42);
-    const radius = Math.max(isConstrained ? 138 : 176, Math.min(size.w * (isConstrained ? 0.34 : 0.4), size.h * 0.52));
-    const cardW = Math.max(isConstrained ? 190 : 260, Math.min(radius * 1.55, size.w * (isConstrained ? 0.84 : 0.88), isConstrained ? 320 : 460));
+    const radius = Math.max(isConstrained ? 138 : 200, Math.min(size.w * (isConstrained ? 0.32 : 0.28), size.h * 0.55));
+    const cardW = Math.max(isConstrained ? 200 : 300, Math.min(radius * 1.55, size.w * (isConstrained ? 0.82 : 0.42), isConstrained ? 340 : 560));
     return { centerX, centerY, radius, cardW, cardH: (cardW * 9) / 16 };
   }, [isConstrained, size.h, size.w]);
 
@@ -206,12 +206,16 @@ export const HeroCarousel = () => {
     const edgeFade = Math.max(0, 1 - Math.max(0, Math.abs(offset) - (visibleRadius - 0.35)) / 1.6);
     const opacity = Math.abs(offset) <= visibleRadius + 0.65 ? Math.max(isConstrained ? 0.86 : 0.52, depth * edgeFade) : 0;
     const scale = isConstrained ? 0.94 + depth * 0.06 : 0.9 + depth * 0.1;
+    // Sophisticated 3D motion: Y-axis fan + gentle roll on Z, deeper cards pushed back
+    const rotY = isConstrained ? 0 : Math.max(-38, Math.min(38, offset * -14));
+    const rotZ = isConstrained ? 0 : Math.sin(offset * 0.9) * 4;
+    const zDepth = isConstrained ? 0 : (depth - 1) * 60; // center card pops forward
     return {
       left: geometry.centerX - geometry.cardW / 2,
       top: geometry.centerY - geometry.cardH / 2,
       width: geometry.cardW,
       aspectRatio: "16 / 9",
-      transform: `translate3d(0, ${y}px, 0) rotateX(${-ang}deg) scale(${scale})`,
+      transform: `translate3d(0, ${y}px, ${zDepth}px) rotateX(${-ang}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg) scale(${scale})`,
       transformStyle: "preserve-3d",
       transformOrigin: "center center",
       opacity,
@@ -381,7 +385,7 @@ export const HeroCarousel = () => {
             <div
               className="card-3d-front rgb-frame relative w-full aspect-video overflow-hidden rounded-xl bg-card"
               style={{
-                transform: "translateZ(0)",
+                transform: "translateZ(2px)",
                 boxShadow: "0 0 0 1px hsl(var(--neon-magenta) / 0.35), 0 18px 36px -18px hsl(var(--neon-purple) / 0.55)",
               }}
             >
@@ -406,6 +410,7 @@ export const HeroCarousel = () => {
               />
               <div className="absolute inset-0 z-[2] bg-gradient-to-t from-black/80 via-black/15 to-transparent pointer-events-none" />
               <div className="card-3d-gloss absolute inset-0 z-[3] pointer-events-none rounded-xl" />
+              <div className="card-3d-edge absolute inset-0 z-[4] pointer-events-none rounded-xl" aria-hidden />
               <div className="absolute bottom-2 left-3 right-3 z-[4]">
                 <div className="text-[11px] text-fuchsia-200/90 font-medium">
                   {c.v.source === "tiktok" ? "TikTok" : c.v.source === "prime" ? "Prime Video" : "YouTube"}
@@ -415,6 +420,9 @@ export const HeroCarousel = () => {
                 </div>
               </div>
             </div>
+            {!isConstrained && (
+              <div className="card-3d-thickness rounded-xl" aria-hidden />
+            )}
           </Link>
         );
       })}
