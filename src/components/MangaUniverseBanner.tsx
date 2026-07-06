@@ -33,9 +33,6 @@ export const MangaUniverseBanner = () => {
               <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight">
                 Univers Manga &amp; Anime
               </h2>
-              <p className="text-sm text-white/80 mt-1 max-w-md">
-                Toutes les vidéos manga diffusées sur YouTube, filtrées et synchronisées automatiquement.
-              </p>
             </div>
           </div>
 

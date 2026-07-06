@@ -183,12 +183,6 @@ export const AnimeMomentsPresentation = () => {
               ANIME<br />MOMENTS
             </h1>
 
-            <p className="mt-6 max-w-xl text-base lg:text-lg text-zinc-300/90 leading-relaxed">
-              Le portail Lovanet : mangas animés, bandes-annonces, moments forts,
-              chaîne YouTube, TikTok et shop créateur — tout ce qu'il vous faut,
-              à portée d'un clic.
-            </p>
-
             {/* Primary CTAs */}
             <div className="mt-8 flex flex-col sm:flex-row flex-wrap gap-3">
               <Link

@@ -51,6 +51,21 @@ export default function TabletTrailerPlayer() {
   const playerHostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
 
+  // Customizable background behind the 3D carousel + interactive spotlights.
+  type BgMode = "color" | "image" | "video";
+  const [bgMode, setBgMode] = useState<BgMode>("color");
+  const [bgColor, setBgColor] = useState<string>("#0b0b16");
+  const [bgMedia, setBgMedia] = useState<string>("");
+  const [showBgPanel, setShowBgPanel] = useState(false);
+  const [spots, setSpots] = useState<boolean[]>([true, true, true]);
+  const toggleSpot = (i: number) =>
+    setSpots((s) => s.map((v, idx) => (idx === i ? !v : v)));
+  const onPickMedia = (file: File) => {
+    const url = URL.createObjectURL(file);
+    setBgMedia(url);
+    setBgMode(file.type.startsWith("video") ? "video" : "image");
+  };
+
   // Load catalog cache + site videos
   useEffect(() => {
     let cancelled = false;
@@ -273,8 +288,13 @@ export default function TabletTrailerPlayer() {
 
       {/* 3D spiral trailer strip BELOW the tablet — drifts slowly to the right */}
       <div
-        className="relative w-full select-none mt-4"
-        style={{ height: 240, perspective: "1400px", overflow: "hidden" }}
+        className="relative w-full select-none mt-4 rounded-2xl"
+        style={{
+          height: 260,
+          perspective: "1400px",
+          overflow: "hidden",
+          background: bgMode === "color" ? bgColor : "transparent",
+        }}
         onPointerDown={(e) => {
           draggingRef.current = { x: e.clientX, a: phase, moved: false };
         }}
@@ -289,17 +309,69 @@ export default function TabletTrailerPlayer() {
         }}
         onPointerUp={() => { draggingRef.current = null; }}
       >
-        {/* Soft edge gradients so cards fade in/out at the ends */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 w-24 z-10"
-          style={{ background: "linear-gradient(to right, rgba(0,0,0,0.7), transparent)" }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 w-24 z-10"
-          style={{ background: "linear-gradient(to left, rgba(0,0,0,0.7), transparent)" }}
-        />
+        {/* Custom media background (image / video) */}
+        {bgMode !== "color" && bgMedia && (
+          bgMode === "video" ? (
+            <video
+              src={bgMedia}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <img
+              src={bgMedia}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )
+        )}
+
+        {/* Interactive spotlights — click to toggle on/off */}
+        {[
+          { left: "18%", color: "255,80,220" },
+          { left: "50%", color: "120,200,255" },
+          { left: "82%", color: "255,220,120" },
+        ].map((s, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); toggleSpot(i); }}
+            aria-label={`Spot ${i + 1} ${spots[i] ? "allumé" : "éteint"}`}
+            className="absolute top-0 z-20"
+            style={{ left: s.left, transform: "translateX(-50%)" }}
+          >
+            {/* Lamp head */}
+            <span
+              className="block w-5 h-5 rounded-full border border-white/40"
+              style={{
+                background: spots[i]
+                  ? `radial-gradient(circle, rgb(${s.color}) 0%, rgba(${s.color},0.4) 70%)`
+                  : "rgba(255,255,255,0.15)",
+                boxShadow: spots[i]
+                  ? `0 0 18px rgba(${s.color},0.9)`
+                  : "none",
+              }}
+            />
+            {/* Beam */}
+            {spots[i] && (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2"
+                style={{
+                  width: 220,
+                  height: 240,
+                  background: `radial-gradient(ellipse at top, rgba(${s.color},0.55) 0%, rgba(${s.color},0.15) 40%, transparent 70%)`,
+                  clipPath: "polygon(45% 0%, 55% 0%, 100% 100%, 0% 100%)",
+                  filter: "blur(2px)",
+                }}
+              />
+            )}
+          </button>
+        ))}
+
         <div className="absolute inset-0 flex items-center justify-center">
           <div
             className="relative"
@@ -380,11 +452,46 @@ export default function TabletTrailerPlayer() {
           </div>
         </div>
 
-        <div className="absolute top-1 left-3 text-[10px] uppercase tracking-widest text-white/60">
-          {items.length} bandes-annonces · aléatoire non-répété
-        </div>
-        <div className="absolute top-1 right-3 text-[10px] uppercase tracking-widest text-white/40">
-          glisser pour tourner · tablette redimensionnable (coin bas-droit)
+        {/* Background customization panel */}
+        <div className="absolute bottom-2 right-2 z-30 flex flex-col items-end gap-2">
+          {showBgPanel && (
+            <div className="rounded-xl bg-black/70 backdrop-blur border border-white/15 p-3 flex flex-col gap-2 text-white text-xs">
+              <div className="flex items-center gap-2">
+                <label className="uppercase tracking-widest text-[10px] text-white/70">Couleur</label>
+                <input
+                  type="color"
+                  value={bgColor}
+                  onChange={(e) => { setBgColor(e.target.value); setBgMode("color"); }}
+                  className="w-8 h-8 rounded cursor-pointer bg-transparent"
+                />
+              </div>
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <span className="uppercase tracking-widest text-[10px] text-white/70">Image / Vidéo</span>
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={(e) => e.target.files?.[0] && onPickMedia(e.target.files[0])}
+                  className="text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-white/10 file:text-white"
+                />
+              </label>
+              {bgMode !== "color" && (
+                <button
+                  type="button"
+                  onClick={() => { setBgMedia(""); setBgMode("color"); }}
+                  className="text-[10px] underline text-white/70 self-start"
+                >
+                  Retirer le média
+                </button>
+              )}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowBgPanel((v) => !v)}
+            className="px-3 py-1.5 rounded-full text-[10px] uppercase tracking-widest bg-white/10 hover:bg-white/20 text-white border border-white/15 backdrop-blur"
+          >
+            {showBgPanel ? "Fermer" : "Fond"}
+          </button>
         </div>
       </div>
     </div>
