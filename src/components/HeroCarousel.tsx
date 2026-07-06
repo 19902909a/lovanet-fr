@@ -167,6 +167,9 @@ export const HeroCarousel = () => {
   const [dragging, setDragging] = useState(false);
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [size, setSize] = useState({ w: 520, h: 540 });
+  const [spots, setSpots] = useState<boolean[]>([true, true, true]);
+  const toggleSpot = (i: number) =>
+    setSpots((s) => s.map((v, idx) => (idx === i ? !v : v)));
   const [allVideos, setAllVideos] = useState<WheelVideo[]>(() =>
     videos.map((v) => ({
       id: v.id,
