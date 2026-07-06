@@ -82,8 +82,9 @@ function isAnimeVideo(
   const hay = `${title}\n${desc}\n${channel}\n${tags.join(' ')}`.toLowerCase();
   for (const b of BLOCK_WORDS) if (hay.includes(b)) return false;
   for (const k of extraKeywords) if (k && hay.includes(k.toLowerCase())) return false;
-  for (const r of REQUIRE_ANY) if (hay.includes(r)) return true;
-  return false;
+  // Queries already target anime/manga — trust YouTube's relevance and keep
+  // everything that isn't explicitly blocked. This lets the catalog grow.
+  return true;
 }
 
 /**
