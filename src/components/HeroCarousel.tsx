@@ -196,32 +196,56 @@ export const HeroCarousel = () => {
   }, [N, allVideos, baseSlot, fractional, renderedSlots]);
 
   const styleFor = useCallback((offset: number): React.CSSProperties => {
-    const maxAng = isConstrained ? 52 : 60;
-    const clamped = Math.max(-visibleRadius, Math.min(visibleRadius, offset));
-    const ang = (clamped / visibleRadius) * maxAng;
-    const rad = (ang * Math.PI) / 180;
-    const wheelR = Math.max(geometry.radius * 1.28, geometry.cardH * 1.75);
-    const y = Math.sin(rad) * wheelR;
-    const depth = Math.cos(rad);
-    const edgeFade = Math.max(0, 1 - Math.max(0, Math.abs(offset) - (visibleRadius - 0.35)) / 1.6);
-    const opacity = Math.abs(offset) <= visibleRadius + 0.65 ? Math.max(isConstrained ? 0.86 : 0.52, depth * edgeFade) : 0;
-    const scale = isConstrained ? 0.94 + depth * 0.06 : 0.9 + depth * 0.1;
-    // Sophisticated 3D motion: Y-axis fan + gentle roll on Z, deeper cards pushed back
-    const rotY = isConstrained ? 0 : Math.max(-38, Math.min(38, offset * -14));
-    const rotZ = isConstrained ? 0 : Math.sin(offset * 0.9) * 4;
-    const zDepth = isConstrained ? 0 : (depth - 1) * 60; // center card pops forward
+    // Kinetic Orbital Disc — horizontal fan, center pops forward on Z,
+    // neighbours tilt inward with rotateY, distants recede + desaturate.
+    const absO = Math.abs(offset);
+    const sign = offset === 0 ? 0 : offset < 0 ? -1 : 1;
+    // Horizontal spacing between slots (tighter on mobile).
+    const spacingX = geometry.cardW * (isConstrained ? 0.42 : 0.55);
+    const x = offset * spacingX;
+    // Z depth: piecewise lerp mimicking the prototype (0→+320, 1→+40, 2→-260).
+    const zA = 320, zB = 40, zC = -260;
+    let z: number;
+    if (absO <= 1) z = zA + (zB - zA) * absO;
+    else z = zB + (zC - zB) * Math.min(1, absO - 1);
+    if (isConstrained) z *= 0.35;
+    // rotateY fanning inward: 0° center, 25° at offset ±1, 45° at offset ≥ ±2.
+    let rotY: number;
+    if (absO <= 1) rotY = -sign * (absO * 25);
+    else rotY = -sign * (25 + Math.min(1, absO - 1) * 20);
+    if (isConstrained) rotY *= 0.5;
+    // Slight vertical drift so the fan feels like a tilted disc, not a flat rail.
+    const y = isConstrained ? 0 : Math.sin(offset * 0.55) * 14;
+    // Scale: center largest, distants shrink slightly.
+    const scale = isConstrained
+      ? Math.max(0.88, 1 - absO * 0.04)
+      : Math.max(0.82, 1 - absO * 0.08);
+    // Opacity + grayscale for distants.
+    const edgeFade = Math.max(0, 1 - Math.max(0, absO - (visibleRadius - 0.4)) / 1.4);
+    const opacity = absO <= visibleRadius + 0.6
+      ? Math.max(0.15, (absO <= 1 ? 1 : absO <= 2 ? 0.7 : 0.35) * edgeFade)
+      : 0;
+    const saturate = absO <= 1 ? 1 : Math.max(0.35, 1 - (absO - 1) * 0.4);
+    // Subtle overall disc tilt applied per-card (persistent rotateX + rotateY-Y).
+    const discTiltX = isConstrained ? 6 : 12;
+    const discTiltY = isConstrained ? 0 : -3;
     return {
       left: geometry.centerX - geometry.cardW / 2,
       top: geometry.centerY - geometry.cardH / 2,
       width: geometry.cardW,
       aspectRatio: "16 / 9",
-      transform: `translate3d(0, ${y}px, ${zDepth}px) rotateX(${-ang}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg) scale(${scale})`,
+      transform:
+        `rotateX(${discTiltX}deg) rotateY(${discTiltY}deg) ` +
+        `translate3d(${x}px, ${y}px, ${z}px) ` +
+        `rotateY(${rotY}deg) scale(${scale})`,
       transformStyle: "preserve-3d",
       transformOrigin: "center center",
       opacity,
-      zIndex: Math.round(100 + (visibleRadius - Math.abs(offset)) * 10),
+      zIndex: Math.round(200 - absO * 20),
       pointerEvents: opacity > 0.6 ? "auto" : "none",
-      filter: isConstrained ? "none" : "drop-shadow(0 16px 30px hsl(var(--neon-purple) / 0.35))",
+      filter: isConstrained
+        ? (saturate < 1 ? `saturate(${saturate})` : "none")
+        : `saturate(${saturate}) drop-shadow(0 22px 40px hsl(var(--neon-purple) / ${absO <= 1 ? 0.55 : 0.25}))`,
     };
   }, [geometry, isConstrained, visibleRadius]);
 
