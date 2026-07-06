@@ -133,6 +133,60 @@ export default function AnimeCatalog() {
           await new Promise((r) => setTimeout(r, 120));
         }
       }
+      // Secondary source: Jikan (MyAnimeList) — enrich with titles AniList may not surface.
+      // No API key required. Rate limit: 3 req/s, 60/min. We pull top pages sequentially.
+      try {
+        for (let p = 1; p <= 40; p++) {
+          const r = await fetch(`https://api.jikan.moe/v4/top/anime?page=${p}`).catch(() => null);
+          if (!r || !r.ok) break;
+          const j = await r.json().catch(() => null);
+          const data = j?.data ?? [];
+          if (!data.length) break;
+          for (const a of data) {
+            // Namespace MAL IDs into a distinct range to avoid collisions with AniList IDs.
+            const pseudoId = 1_000_000_000 + (a.mal_id ?? 0);
+            if (dedup.has(pseudoId)) continue;
+            // Skip if we already have an AniList entry with the same english/romaji title.
+            const titleKey = (a.title_english || a.title || "").toLowerCase().trim();
+            if (titleKey) {
+              let dup = false;
+              for (const existing of dedup.values()) {
+                const t = (existing.title.english || existing.title.romaji || "").toLowerCase().trim();
+                if (t && t === titleKey) { dup = true; break; }
+              }
+              if (dup) continue;
+            }
+            const media: Media = {
+              id: pseudoId,
+              title: {
+                romaji: a.title,
+                english: a.title_english ?? undefined,
+                native: a.title_japanese ?? undefined,
+              },
+              coverImage: {
+                extraLarge: a.images?.jpg?.large_image_url,
+                large: a.images?.jpg?.large_image_url,
+                color: undefined,
+              },
+              averageScore: a.score ? Math.round(a.score * 10) : undefined,
+              episodes: a.episodes ?? undefined,
+              genres: (a.genres ?? []).map((g: any) => g.name),
+              format: a.type,
+              seasonYear: a.aired?.prop?.from?.year ?? a.year ?? undefined,
+              description: a.synopsis ?? undefined,
+              trailer: a.trailer?.youtube_id
+                ? { id: a.trailer.youtube_id, site: "youtube" }
+                : null,
+            };
+            dedup.set(pseudoId, media);
+          }
+          const snapshot = Array.from(dedup.values());
+          setGridItems(snapshot);
+          await new Promise((r) => setTimeout(r, 400)); // stay under Jikan rate limit
+        }
+      } catch (e) {
+        console.error("Jikan enrichment error", e);
+      }
     } catch (e) {
       console.error("AniList grid fetch error", e);
     } finally {
