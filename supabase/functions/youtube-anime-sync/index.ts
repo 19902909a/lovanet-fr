@@ -26,18 +26,31 @@ type Video = {
 };
 
 const DEFAULT_QUERIES = [
-  'anime episode',
-  'anime full episode',
-  'manga anime scene',
-  'anime opening',
-  'anime ending',
-  'anime AMV',
-  'anime trailer',
-  'anime clip',
-  'anime moment',
-  'anime fight scene',
-  'shonen anime',
-  'seinen anime',
+  // Formats
+  'anime episode', 'anime full episode', 'anime scene', 'anime clip',
+  'anime moment', 'anime fight scene', 'anime best moments',
+  'anime opening', 'anime ending', 'anime OP', 'anime ED',
+  'anime AMV', 'anime edit', 'anime trailer', 'anime PV',
+  'manga anime scene', 'manga trailer', 'manga PV',
+  // Genres / demographics
+  'shonen anime', 'seinen anime', 'shojo anime', 'isekai anime',
+  'mecha anime', 'slice of life anime', 'romance anime',
+  'horror anime', 'sports anime', 'fantasy anime',
+  // Franchises (broad, drives volume)
+  'naruto amv', 'naruto scene', 'one piece scene', 'one piece amv',
+  'bleach scene', 'bleach amv', 'dragon ball scene', 'dragon ball amv',
+  'attack on titan scene', 'attack on titan amv', 'demon slayer scene',
+  'demon slayer amv', 'jujutsu kaisen scene', 'jujutsu kaisen amv',
+  'my hero academia scene', 'my hero academia amv', 'hunter x hunter scene',
+  'chainsaw man scene', 'spy x family scene', 'jojo scene', 'jojo amv',
+  'fullmetal alchemist scene', 'death note scene', 'tokyo revengers scene',
+  'black clover scene', 'fairy tail scene', 'sword art online scene',
+  'evangelion scene', 'gintama scene', 'mob psycho scene', 'vinland saga scene',
+  'made in abyss scene', 'code geass scene', 'steins gate scene',
+  'haikyuu scene', 'kaiju no 8 scene', 'frieren scene', 'dandadan scene',
+  // Language variants — VOSTFR/VF/dub keeps pulling fresh content
+  'anime vostfr', 'anime vf', 'anime episode vostfr', 'anime sub español',
+  'anime dub english', 'アニメ 名場面', 'アニメ OP', 'アニメ ED',
 ];
 
 // Words that strongly indicate commentator / streamer / reaction content — NOT anime footage.
