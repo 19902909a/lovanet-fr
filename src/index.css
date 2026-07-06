@@ -707,14 +707,14 @@
     padding: 0;
     border: 0;
     background:
-      radial-gradient(circle at 34% 24%, hsl(0 0% 100% / 0.55), transparent 30%),
+      radial-gradient(circle at 34% 24%, hsl(0 0% 100% / 0.35), transparent 35%),
       conic-gradient(from 0deg,
-        hsl(var(--neon-magenta) / 0.88),
-        hsl(var(--neon-cyan) / 0.74),
-        hsl(150 92% 55% / 0.68),
-        hsl(var(--neon-purple) / 0.78),
-        hsl(var(--neon-magenta) / 0.88));
-    filter: blur(5px) saturate(1.45);
+        hsl(210 40% 40% / 0.35),
+        hsl(var(--neon-cyan) / 0.3),
+        hsl(150 60% 45% / 0.25),
+        hsl(210 50% 45% / 0.3),
+        hsl(210 40% 40% / 0.35));
+    filter: blur(6px) saturate(0.9);
     animation: halo-spin-ccw 22s linear infinite;
     transition: clip-path .7s ease, opacity .35s ease;
     cursor: pointer;
