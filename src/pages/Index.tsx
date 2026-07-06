@@ -259,93 +259,94 @@ const Index = () => {
           ))}
         </div>
 
-        <div className="container mx-auto px-4 lg:px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <a
-              href="https://www.youtube.com/channel/UC0T9pcWA9_lpdB6-ZucZYmw"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-fuchsia-200 ring-1 ring-fuchsia-400/40 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 transition-colors"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-fuchsia-400 animate-pulse" />
-              AnimemomentsAnimeofficiel
-            </a>
-            <h1
-              className="neon-rainbow-text font-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black leading-[0.95] tracking-tight"
-              style={{ letterSpacing: "-0.02em" }}
-            >
-              ANIME<br />MOMENTS
-            </h1>
-            {/* Mini 3D circle carousel — mirrors the full catalogue */}
-            <div className="relative pt-2">
-              <MiniCatalogOrb size={210} cardW={40} cardH={58} />
-            </div>
-            <p className="text-base text-muted-foreground max-w-lg">
-              Lovanet présente les mangas animés, vidéos anime, moments forts et contenus directs YouTube / TikTok.
-            </p>
+        {/* Full-width carousel bar — spans edge to edge with integrated title & orb overlay */}
+        <div className="relative w-full pt-6 lg:pt-8">
+          <div className="relative w-full">
+            <HeroCarousel />
+            {/* Cadre verre 3D — contour uniquement */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                border: "1px solid hsl(0 0% 100% / 0.28)",
+                boxShadow:
+                  "inset 0 1px 0 hsl(0 0% 100% / 0.45), inset 0 -1px 0 hsl(0 0% 0% / 0.45), 0 18px 50px -20px hsl(var(--neon-magenta) / 0.45)",
+              }}
+            />
+            {/* Liseré brillant supérieur */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-[2px]"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent 0%, hsl(0 0% 100% / 0.75) 50%, transparent 100%)",
+                mixBlendMode: "screen",
+              }}
+            />
 
-            <div className="flex flex-wrap gap-3">
-              <Button
-                asChild
-                size="lg"
-                className="btn-magnetic btn-neon-rainbow rounded-full gap-2 text-white border-0"
-              >
-                <Link to="/lecteurs-video"><Play className="w-4 h-4 fill-current" /> Regarder maintenant</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="btn-magnetic btn-neon-rainbow-outline rounded-full gap-2">
-                <Link to="/shop"><ShoppingBag className="w-4 h-4" /> Boutique créateur</Link>
-              </Button>
-            </div>
-
-            <div className="flex flex-wrap gap-2 pt-2">
-              {tags.map((t) => (
-                <span key={t} className="px-3 py-1 rounded-full bg-secondary/70 border border-border text-xs text-muted-foreground">
-                  {t}
-                </span>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap gap-2 pt-1">
-              {reactions.map((r) => (
-                <button
-                  key={r.label}
-                  className="px-4 py-2 rounded-full bg-secondary/70 border border-border text-xs font-semibold hover:border-primary/60 hover:bg-primary/10 transition-colors"
+            {/* Overlay title + orb, anchored to the left side of the carousel */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center">
+              <div className="pointer-events-auto max-w-[42%] sm:max-w-[38%] lg:max-w-[32%] pl-4 sm:pl-6 lg:pl-10 space-y-3">
+                <a
+                  href="https://www.youtube.com/channel/UC0T9pcWA9_lpdB6-ZucZYmw"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium text-fuchsia-200 ring-1 ring-fuchsia-400/40 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 transition-colors"
                 >
-                  {r.emoji} {r.label}
-                </button>
-              ))}
+                  <span className="w-1 h-1 rounded-full bg-fuchsia-400 animate-pulse" />
+                  AnimemomentsAnimeofficiel
+                </a>
+                <h1
+                  className="neon-rgb-text-mini font-display text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black leading-[0.9] tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
+                  style={{ letterSpacing: "-0.02em" }}
+                >
+                  ANIME<br />MOMENTS
+                </h1>
+                <div className="relative">
+                  <MiniCatalogOrb size={140} cardW={26} cardH={38} />
+                </div>
+              </div>
             </div>
           </div>
+          {/* Barre RGB fluo sous le carrousel */}
+          <div className="container mx-auto px-4 lg:px-8 mt-3">
+            <NeonFooterBar inline height={22} className="rounded-full overflow-hidden" />
+          </div>
+        </div>
 
-          <div className="relative">
-            {/* Roulette de cartes vidéo */}
-            <div className="relative rounded-3xl">
-              <HeroCarousel />
-              {/* Cadre verre 3D brillant — uniquement le contour, sans masquer les cartes */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0 rounded-3xl"
-                style={{
-                  border: "1px solid hsl(0 0% 100% / 0.35)",
-                  boxShadow:
-                    "inset 0 1px 0 hsl(0 0% 100% / 0.55), inset 0 -1px 0 hsl(0 0% 0% / 0.45), 0 0 0 1px hsl(0 0% 100% / 0.08), 0 18px 50px -20px hsl(var(--neon-magenta) / 0.45)",
-                }}
-              />
-              {/* Liseré brillant supérieur — reflet de verre, sans flou */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-[2px] rounded-t-3xl"
-                style={{
-                  background:
-                    "linear-gradient(90deg, transparent 0%, hsl(0 0% 100% / 0.75) 50%, transparent 100%)",
-                  mixBlendMode: "screen",
-                }}
-              />
-            </div>
-            {/* Barre RGB fluo sous le carrousel */}
-            <div className="mt-3">
-              <NeonFooterBar inline height={22} className="rounded-full overflow-hidden" />
-            </div>
+        {/* CTA + tags + reactions below */}
+        <div className="container mx-auto px-4 lg:px-8 py-10 lg:py-14 space-y-5">
+          <p className="text-base text-muted-foreground max-w-2xl">
+            Lovanet présente les mangas animés, vidéos anime, moments forts et contenus directs YouTube / TikTok.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              asChild
+              size="lg"
+              className="btn-magnetic btn-neon-rainbow rounded-full gap-2 text-white border-0"
+            >
+              <Link to="/lecteurs-video"><Play className="w-4 h-4 fill-current" /> Regarder maintenant</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="btn-magnetic btn-neon-rainbow-outline rounded-full gap-2">
+              <Link to="/shop"><ShoppingBag className="w-4 h-4" /> Boutique créateur</Link>
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {tags.map((t) => (
+              <span key={t} className="px-3 py-1 rounded-full bg-secondary/70 border border-border text-xs text-muted-foreground">
+                {t}
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {reactions.map((r) => (
+              <button
+                key={r.label}
+                className="px-4 py-2 rounded-full bg-secondary/70 border border-border text-xs font-semibold hover:border-primary/60 hover:bg-primary/10 transition-colors"
+              >
+                {r.emoji} {r.label}
+              </button>
+            ))}
           </div>
         </div>
       </section>
