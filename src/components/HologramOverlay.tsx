@@ -24,8 +24,8 @@ const GLBS: GlbDef[] = [
   {
     url: "https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
     kind: "robot",
-    scale: 0.62,
-    y: -1.45,
+    scale: 0.35,
+    y: -1.25,
     facing: -Math.PI / 2,
     loco: { walk: "Walking", run: "Running", idle: "Idle", dance: "Dance", wave: "Wave", jump: "Jump" },
     extra: ["Yes", "No", "Punch", "ThumbsUp"],
