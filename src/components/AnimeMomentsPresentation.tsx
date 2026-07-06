@@ -240,8 +240,8 @@ export const AnimeMomentsPresentation = () => {
 
           {dimOverlay && (
             <>
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/70 via-zinc-950/10 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/50 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/40 via-zinc-950/5 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/25 via-transparent to-transparent" />
             </>
           )}
 
