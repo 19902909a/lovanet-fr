@@ -86,7 +86,8 @@ const flowTransform = (
     const clamped = Math.max(-visibleRadius, Math.min(visibleRadius, offset));
     const ang = (clamped / visibleRadius) * maxAng;
     const rad = (ang * Math.PI) / 180;
-    const R = Math.max(geom.radius * 1.28, geom.cardH * 1.75);
+    // Larger radius = more vertical spacing between successive cards on the wheel.
+    const R = Math.max(geom.radius * 1.7, geom.cardH * 2.3);
     const y = Math.sin(rad) * R;
     const depth = Math.cos(rad);
     const z = (depth - 1) * 80;
@@ -95,7 +96,7 @@ const flowTransform = (
   }
   if (mode === "disc") {
     // Kinetic orbital disc — horizontal fan, center pops on Z, sides tilt inward.
-    const spacingX = geom.cardW * (isConstrained ? 0.42 : 0.55);
+    const spacingX = geom.cardW * (isConstrained ? 0.6 : 0.8);
     const x = offset * spacingX;
     const zA = 320, zB = 40, zC = -260;
     let z = absO <= 1 ? zA + (zB - zA) * absO : zB + (zC - zB) * Math.min(1, absO - 1);
@@ -108,7 +109,7 @@ const flowTransform = (
   }
   if (mode === "sinuous") {
     // S-curve — horizontal flow with pronounced vertical sinewave.
-    const spacingX = geom.cardW * (isConstrained ? 0.45 : 0.6);
+    const spacingX = geom.cardW * (isConstrained ? 0.62 : 0.85);
     const x = offset * spacingX;
     const y = Math.sin(offset * 1.1) * (isConstrained ? 60 : 110);
     const z = Math.cos(offset * 0.5) * 80 - absO * 30;
@@ -118,11 +119,11 @@ const flowTransform = (
     return { x, y, z, rotX: 6, rotY, rotZ, scale };
   }
   // helix — DNA spiral: cards revolve around a vertical column.
-  const R = geom.cardW * (isConstrained ? 0.55 : 0.8);
+  const R = geom.cardW * (isConstrained ? 0.75 : 1.05);
   const theta = offset * (Math.PI / 3); // 60° per slot
   const x = Math.sin(theta) * R;
   const z = Math.cos(theta) * R - 40;
-  const y = offset * (isConstrained ? 18 : 28);
+  const y = offset * (isConstrained ? 26 : 40);
   const rotY = -theta * (180 / Math.PI);
   const scale = 0.78 + Math.max(0, Math.cos(theta)) * 0.22;
   return { x, y, z, rotX: 8, rotY, rotZ: 0, scale };
