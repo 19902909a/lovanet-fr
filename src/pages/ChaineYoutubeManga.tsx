@@ -54,6 +54,14 @@ export default function ChaineYoutubeManga() {
       try { localStorage.setItem(HIDDEN_IDS_KEY, JSON.stringify([...next])); } catch {}
       return next;
     });
+    // Persist to the shared blacklist so future auto-syncs skip this video.
+    supabase.functions
+      .invoke("youtube-anime-sync", {
+        body: { blacklist: { videoIds: [id], reason: "user-hidden" } },
+      })
+      .catch((e) => console.warn("Blacklist persist failed", e));
+    // Also drop the row locally.
+    setVideos((prev) => prev.filter((v) => v.id !== id));
   };
   const resetHidden = () => {
     setHiddenIds(new Set());
