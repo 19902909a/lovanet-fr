@@ -85,8 +85,18 @@ export default function ChaineYoutubeManga() {
       if (error) throw error;
       const list: Video[] = data?.videos ?? [];
       if (list.length) {
-        setVideos(list);
-        try { localStorage.setItem(CACHE_KEY, JSON.stringify(list)); } catch {}
+        // Merge with local cache — the catalogue must only grow, never shrink,
+        // even if the backend returns a smaller list on a given run.
+        setVideos((prev) => {
+          const byId = new Map<string, Video>();
+          for (const v of prev) byId.set(v.id, v);
+          for (const v of list) byId.set(v.id, v); // fresh data wins on overlap
+          const merged = Array.from(byId.values()).sort((a, b) =>
+            (a as any).publishedAt < (b as any).publishedAt ? -1 : 1,
+          );
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify(merged)); } catch {}
+          return merged;
+        });
         setActive((a) => a || list[0]?.id || "");
       }
     } catch (e) {
