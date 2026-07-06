@@ -316,7 +316,7 @@ export const HeroCarousel = () => {
       pointerEvents: opacity > 0.6 ? "auto" : "none",
       filter: isConstrained
         ? (saturate < 1 ? `saturate(${saturate})` : "none")
-        : `saturate(${saturate}) drop-shadow(0 22px 40px hsl(var(--neon-purple) / ${absO <= 1 ? 0.55 : 0.25}))`,
+        : `saturate(${saturate}) drop-shadow(0 18px 30px hsl(240 20% 5% / ${absO <= 1 ? 0.5 : 0.25}))`,
     };
   }, [flowBlend, flowIdx, geometry, isConstrained, visibleRadius]);
 
