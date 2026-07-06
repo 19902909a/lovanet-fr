@@ -689,6 +689,7 @@ export default function AnimeCatalog() {
                   allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                   allowFullScreen
                 />
+                <YoutubeBrandCover />
               </div>
             ) : active.bannerImage ? (
               <img src={active.bannerImage} alt="" className="w-full h-40 object-cover" />
