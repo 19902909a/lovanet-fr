@@ -425,20 +425,20 @@ export const AnimeMomentsPresentation = () => {
             <div className="mt-8 flex flex-col sm:flex-row flex-wrap gap-3">
               <Link
                 to="/lecteurs-video"
-                className="group relative px-7 py-4 rounded-full text-white font-black text-base inline-flex items-center justify-center gap-3 bg-gradient-to-r from-fuchsia-600 via-pink-500 to-rose-500 shadow-[0_15px_40px_-10px_rgba(236,72,153,0.7)] hover:shadow-[0_20px_50px_-8px_rgba(236,72,153,0.9)] hover:scale-[1.04] active:scale-[0.97] transition-all duration-300"
-                aria-label="Regarder les épisodes maintenant"
+                className="group relative px-7 py-4 rounded-full text-zinc-900 font-black text-base inline-flex items-center justify-center gap-3 bg-white hover:bg-zinc-100 shadow-[0_15px_40px_-10px_rgba(255,255,255,0.5)] hover:shadow-[0_20px_50px_-8px_rgba(255,255,255,0.7)] hover:scale-[1.04] active:scale-[0.97] transition-all duration-300"
+                aria-label="Lancer la lecture"
               >
                 <Play className="w-5 h-5 fill-current" />
-                <span>Regarder maintenant</span>
+                <span>Lancer la lecture</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 to="/shop"
                 className="group px-6 py-4 rounded-full font-bold text-sm inline-flex items-center justify-center gap-2 bg-white text-zinc-900 hover:bg-fuchsia-100 shadow-lg hover:scale-[1.03] transition-all"
-                aria-label="Ouvrir la boutique créateur"
+                aria-label="Ouvrir la boutique officielle"
               >
                 <ShoppingBag className="w-4 h-4" />
-                <span>Boutique créateur</span>
+                <span>Boutique officielle</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
