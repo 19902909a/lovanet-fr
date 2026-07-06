@@ -77,18 +77,37 @@ export default function AnimeCountdown() {
 
   const fetchData = async () => {
     try {
-      const pages = await Promise.all(
-        [1, 2, 3, 4].map((p) =>
-          fetch("https://graphql.anilist.co", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Accept: "application/json" },
-            body: JSON.stringify({ query: QUERY, variables: { page: p, perPage: 50 } }),
-          }).then((r) => r.json())
-        )
-      );
-      const all: Media[] = pages.flatMap((j) => j?.data?.Page?.media ?? []);
+      // Pull as many pages as AniList exposes for releasing shows so we catch every new episode
+      const pageNums = Array.from({ length: 20 }, (_, i) => i + 1); // up to 1000 titles
       const dedup = new Map<number, Media>();
-      for (const m of all) if (m.nextAiringEpisode?.airingAt) dedup.set(m.id, m);
+      for (let i = 0; i < pageNums.length; i += 4) {
+        const batch = pageNums.slice(i, i + 4);
+        const results = await Promise.all(
+          batch.map((p) =>
+            fetch("https://graphql.anilist.co", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Accept: "application/json" },
+              body: JSON.stringify({ query: QUERY, variables: { page: p, perPage: 50 } }),
+            }).then((r) => r.json()).catch(() => null)
+          )
+        );
+        let stop = false;
+        for (const j of results) {
+          const list = j?.data?.Page?.media ?? [];
+          if (!list.length) stop = true;
+          for (const m of list) {
+            if (m.nextAiringEpisode?.airingAt && !dedup.has(m.id)) dedup.set(m.id, m);
+          }
+        }
+        // Progressive render so new titles appear as they're fetched
+        const snapshot = Array.from(dedup.values()).sort(
+          (a, b) => (a.nextAiringEpisode?.airingAt ?? 0) - (b.nextAiringEpisode?.airingAt ?? 0)
+        );
+        setItems(snapshot);
+        setLoading(false);
+        if (stop) break;
+        await new Promise((r) => setTimeout(r, 120));
+      }
       const list = Array.from(dedup.values());
       list.sort(
         (a, b) =>
@@ -120,11 +139,18 @@ export default function AnimeCountdown() {
       if (t) setThemeIdx(Number(t) || 0);
     } catch {}
     fetchData();
-    const sync = setInterval(fetchData, 1000 * 60 * 10); // auto-sync every 10 min
+    const sync = setInterval(fetchData, 1000 * 60 * 3); // auto-sync every 3 min
     const tick = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);
+    // Re-sync when the tab regains focus so the user always sees the latest additions
+    const onFocus = () => fetchData();
+    const onVisibility = () => { if (document.visibilityState === "visible") fetchData(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       clearInterval(sync);
       clearInterval(tick);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
