@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { HoverPreview } from "@/components/HoverPreview";
 import { cn } from "@/lib/utils";
 import { AdminRemoveVideo } from "@/components/AdminRemoveVideo";
+import { MangaUniverseBanner } from "@/components/MangaUniverseBanner";
 
 type ImportedVideo = {
   id: string;
@@ -255,6 +256,7 @@ const ChaineYoutube = () => {
           );
         })}
       </section>
+      <MangaUniverseBanner />
     </PageShell>
   );
 };
