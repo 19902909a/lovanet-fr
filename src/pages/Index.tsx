@@ -237,11 +237,7 @@ const Index = () => {
         <div className="absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />
         {/* Animated gradient blobs */}
         <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 -left-20 w-96 h-96 rounded-full blur-3xl opacity-10 animate-blob"
-            style={{ background: "radial-gradient(circle, hsl(var(--neon-magenta)), transparent 70%)" }} />
-          <div className="absolute top-1/3 right-0 w-[28rem] h-[28rem] rounded-full blur-3xl opacity-8 animate-blob animation-delay-2000"
-            style={{ background: "radial-gradient(circle, hsl(var(--neon-purple)), transparent 70%)" }} />
-          <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full blur-3xl opacity-10 animate-blob animation-delay-4000"
+          <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full blur-3xl opacity-[0.06] animate-blob animation-delay-4000"
             style={{ background: "radial-gradient(circle, hsl(var(--neon-cyan)), transparent 70%)" }} />
         </div>
         {/* Floating sparkles */}
@@ -249,7 +245,7 @@ const Index = () => {
           {[...Array(6)].map((_, i) => (
             <span
               key={i}
-              className="sparkle absolute w-1.5 h-1.5 rounded-full bg-white/70 shadow-[0_0_8px_hsl(var(--neon-magenta))]"
+              className="sparkle absolute w-1 h-1 rounded-full bg-white/60"
               style={{
                 left: `${10 + i * 15}%`,
                 bottom: '10%',
@@ -270,7 +266,7 @@ const Index = () => {
               style={{
                 border: "1px solid hsl(0 0% 100% / 0.28)",
                 boxShadow:
-                  "inset 0 1px 0 hsl(0 0% 100% / 0.45), inset 0 -1px 0 hsl(0 0% 0% / 0.45), 0 18px 50px -20px hsl(var(--neon-magenta) / 0.45)",
+                  "inset 0 1px 0 hsl(0 0% 100% / 0.45), inset 0 -1px 0 hsl(0 0% 0% / 0.45), 0 18px 50px -20px hsl(240 20% 5% / 0.55)",
               }}
             />
             {/* Liseré brillant supérieur */}
