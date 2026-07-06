@@ -8,7 +8,7 @@ import MiniCatalogOrb from "@/components/MiniCatalogOrb";
 import AnimeMomentsOrb from "@/components/AnimeMomentsOrb";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import TabletTrailerPlayer from "@/components/TabletTrailerPlayer";
-import AnimeMomentsPresentation from "@/components/AnimeMomentsPresentation";
+
 import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
 import { ProductArtwork } from "@/components/ProductArtwork";
@@ -291,8 +291,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Nouvelle présentation cinématique : ANIME MOMENTS + services + partage */}
-        <AnimeMomentsPresentation />
       </section>
 
       {/* Anime Moments — quick access to countdown & catalog */}
