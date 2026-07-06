@@ -24,8 +24,8 @@ const GLBS: GlbDef[] = [
   {
     url: "https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
     kind: "robot",
-    scale: 0.62,
-    y: -1.45,
+    scale: 0.35,
+    y: -1.25,
     facing: -Math.PI / 2,
     loco: { walk: "Walking", run: "Running", idle: "Idle", dance: "Dance", wave: "Wave", jump: "Jump" },
     extra: ["Yes", "No", "Punch", "ThumbsUp"],
@@ -33,8 +33,8 @@ const GLBS: GlbDef[] = [
   {
     url: "https://threejs.org/examples/models/gltf/Soldier.glb",
     kind: "soldier",
-    scale: 1.05,
-    y: -1.52,
+    scale: 0.6,
+    y: -1.35,
     facing: Math.PI / 2,
     loco: { walk: "Walk", run: "Run", idle: "Idle" },
     extra: [],
@@ -42,8 +42,8 @@ const GLBS: GlbDef[] = [
   {
     url: "https://threejs.org/examples/models/gltf/Xbot.glb",
     kind: "human",
-    scale: 1.0,
-    y: -1.52,
+    scale: 0.55,
+    y: -1.35,
     facing: Math.PI / 2,
     loco: { idle: "idle" },
     extra: [],
@@ -195,7 +195,7 @@ const buildVariants = (): Variant[] => {
         label,
         glbIndex: i % GLBS.length,
         tint: TINTS[(i * 3 + k) % TINTS.length],
-        scaleMul: 0.85 + Math.random() * 0.35,
+        scaleMul: 0.55 + Math.random() * 0.25,
         preferredAction:
           label === "dancer" ? "dance"
           : label === "young" ? "run"
