@@ -1,6 +1,11 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
+const LOVABLE_AI_KEY = Deno.env.get('LOVABLE_API_KEY') ?? '';
+const LOVABLE_AI_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
+const VISION_MODEL = 'google/gemini-3-flash-preview';
+const MAX_VISION_PER_RUN = 40; // cap thumbnail OCR to control cost
+
 // Parses ISO-8601 duration (PT#H#M#S) to seconds.
 function isoToSeconds(iso: string): number {
   const m = iso.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
@@ -57,11 +62,68 @@ const REQUIRE_ANY = [
   'sub', 'dub', 'vostfr', 'vf', 'shonen', 'seinen', 'shojo', 'isekai',
 ];
 
-function isAnimeVideo(title: string, desc: string, channel: string, tags: string[] = []): boolean {
+function isAnimeVideo(
+  title: string, desc: string, channel: string,
+  tags: string[] = [], extraKeywords: string[] = [],
+): boolean {
   const hay = `${title}\n${desc}\n${channel}\n${tags.join(' ')}`.toLowerCase();
   for (const b of BLOCK_WORDS) if (hay.includes(b)) return false;
+  for (const k of extraKeywords) if (k && hay.includes(k.toLowerCase())) return false;
   for (const r of REQUIRE_ANY) if (hay.includes(r)) return true;
   return false;
+}
+
+/**
+ * Ask a vision LLM whether this YouTube thumbnail shows a real human commentator /
+ * streamer / reactor (webcam overlay, face cam, podcast host, etc.) rather than
+ * pure animated anime/manga content. Returns { commentator: boolean, reason?: string }.
+ */
+async function analyseThumbnail(imageUrl: string): Promise<{ commentator: boolean; reason?: string } | null> {
+  if (!LOVABLE_AI_KEY) return null;
+  try {
+    const res = await fetch(LOVABLE_AI_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Lovable-API-Key': LOVABLE_AI_KEY,
+      },
+      body: JSON.stringify({
+        model: VISION_MODEL,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You classify YouTube thumbnails. Reply strict JSON only: ' +
+              '{"commentator": boolean, "reason": string}. ' +
+              '"commentator" is true when the thumbnail shows a real human face ' +
+              '(webcam overlay, face cam, streamer, reactor, podcast host, ' +
+              'YouTuber pointing/screaming at the camera, tier-list host, ' +
+              'commentary/analysis creator). ' +
+              'Also true if OCR text on the thumbnail contains words like ' +
+              'REACTION, REACT, TIER LIST, TOP 10, PODCAST, EXPLAINED, STREAM, ' +
+              'REACTS TO, RANKING, RANT, TALK. ' +
+              'False when the thumbnail shows only anime/manga artwork, ' +
+              'characters, animated scenes, opening/ending stills.',
+          },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'Classify this YouTube thumbnail.' },
+              { type: 'image_url', image_url: { url: imageUrl } },
+            ],
+          },
+        ],
+      }),
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    const raw = j.choices?.[0]?.message?.content ?? '{}';
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    return { commentator: !!parsed.commentator, reason: parsed.reason };
+  } catch {
+    return null;
+  }
 }
 
 Deno.serve(async (req) => {
@@ -80,6 +142,57 @@ Deno.serve(async (req) => {
   const SYNC_KEY = 'youtube-manga';
 
   try {
+    // ---- POST action: add entries to the persistent blacklist ---------------
+    if (req.method === 'POST') {
+      const body = await req.json().catch(() => ({}));
+      const bl = (body as any)?.blacklist;
+      if (bl && (Array.isArray(bl.videoIds) || Array.isArray(bl.keywords))) {
+        const rows: { kind: string; value: string; reason?: string }[] = [];
+        for (const v of bl.videoIds ?? []) {
+          if (typeof v === 'string' && v.trim()) rows.push({ kind: 'video_id', value: v.trim(), reason: bl.reason });
+        }
+        for (const k of bl.keywords ?? []) {
+          if (typeof k === 'string' && k.trim()) rows.push({ kind: 'keyword', value: k.trim().toLowerCase(), reason: bl.reason });
+        }
+        if (rows.length) {
+          await admin
+            .from('youtube_blacklist')
+            .upsert(rows, { onConflict: 'kind,value', ignoreDuplicates: true });
+          // Hide any stored videos that match.
+          if (bl.videoIds?.length) {
+            await admin
+              .from('youtube_manga_videos')
+              .update({ is_hidden: true })
+              .in('video_id', bl.videoIds);
+          }
+          if (bl.keywords?.length) {
+            for (const k of bl.keywords) {
+              const like = `%${String(k).toLowerCase()}%`;
+              await admin
+                .from('youtube_manga_videos')
+                .update({ is_hidden: true })
+                .or(`title.ilike.${like},description.ilike.${like},channel_title.ilike.${like}`);
+            }
+          }
+        }
+        return new Response(JSON.stringify({ ok: true, added: rows.length }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      // Fall through to sync flow if no blacklist payload.
+    }
+
+    // ---- Load persistent blacklist (video ids + keywords) -------------------
+    const { data: blRows } = await admin
+      .from('youtube_blacklist')
+      .select('kind, value');
+    const blockedIds = new Set<string>();
+    const blockedKeywords: string[] = [];
+    for (const r of blRows ?? []) {
+      if (r.kind === 'video_id') blockedIds.add(r.value);
+      else if (r.kind === 'keyword') blockedKeywords.push(r.value);
+    }
+
     const url = new URL(req.url);
     const pages = Math.min(Number(url.searchParams.get('pages') ?? 8), 20);
     const customQ = url.searchParams.get('q');
@@ -121,7 +234,8 @@ Deno.serve(async (req) => {
         if (!r.ok) break;
         const j = await r.json();
         for (const it of j.items ?? []) {
-          if (it.id?.videoId) ids.add(it.id.videoId);
+          const vid = it.id?.videoId;
+          if (vid && !blockedIds.has(vid)) ids.add(vid);
         }
         if (!j.nextPageToken) break;
         pageToken = j.nextPageToken;
@@ -141,9 +255,21 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Also drop IDs we've already analysed with vision — no need to rerun OCR.
+    const idArrAll = Array.from(ids);
+    const { data: knownRows } = await admin
+      .from('youtube_manga_videos')
+      .select('video_id, vision_checked')
+      .in('video_id', idArrAll);
+    const alreadyVisionChecked = new Set<string>(
+      (knownRows ?? []).filter((r: any) => r.vision_checked).map((r: any) => r.video_id),
+    );
+
     // 2) Batch videos.list to get durations, filter Shorts and < 60s.
-    const idArr = Array.from(ids);
+    const idArr = idArrAll;
     const videos: Video[] = [];
+    const visionBlacklistAdds: { kind: string; value: string; reason: string }[] = [];
+    let visionBudget = MAX_VISION_PER_RUN;
     for (let i = 0; i < idArr.length; i += 50) {
       const chunk = idArr.slice(i, i + 50);
       const params = new URLSearchParams({
@@ -161,29 +287,63 @@ Deno.serve(async (req) => {
         const description = it.snippet?.description ?? '';
         const channelTitle = it.snippet?.channelTitle ?? '';
         const tags: string[] = it.snippet?.tags ?? [];
-        if (!isAnimeVideo(title, description, channelTitle, tags)) continue;
+        if (!isAnimeVideo(title, description, channelTitle, tags, blockedKeywords)) continue;
         const thumbs = it.snippet?.thumbnails ?? {};
+        const thumbnail =
+          thumbs.maxres?.url || thumbs.standard?.url || thumbs.high?.url || thumbs.medium?.url ||
+          thumbs.default?.url || `https://i.ytimg.com/vi/${it.id}/hqdefault.jpg`;
+
+        // Vision OCR / face-detection pass — only for videos not yet checked.
+        let visionVerdict: string | null = null;
+        let visionRan = false;
+        if (visionBudget > 0 && !alreadyVisionChecked.has(it.id)) {
+          visionBudget--;
+          const verdict = await analyseThumbnail(thumbnail);
+          if (verdict) {
+            visionRan = true;
+            visionVerdict = verdict.commentator
+              ? `commentator:${verdict.reason ?? ''}`.slice(0, 200)
+              : `ok:${verdict.reason ?? ''}`.slice(0, 200);
+            if (verdict.commentator) {
+              visionBlacklistAdds.push({
+                kind: 'video_id',
+                value: it.id,
+                reason: `vision:${verdict.reason ?? 'commentator'}`.slice(0, 200),
+              });
+              continue; // do not include this video
+            }
+          }
+        }
+
         videos.push({
           id: it.id,
           title,
           description,
-          thumbnail:
-            thumbs.maxres?.url || thumbs.standard?.url || thumbs.high?.url || thumbs.medium?.url ||
-            thumbs.default?.url || `https://i.ytimg.com/vi/${it.id}/hqdefault.jpg`,
+          thumbnail,
           channelTitle,
           publishedAt: it.snippet?.publishedAt ?? '',
           durationSec,
           viewCount: Number(it.statistics?.viewCount ?? 0),
-        });
+          // @ts-ignore — carried through to the DB row below.
+          _visionRan: visionRan,
+          _visionVerdict: visionVerdict,
+        } as any);
       }
     }
 
     // Sort by publishedAt ASC — oldest → newest.
     videos.sort((a, b) => (a.publishedAt < b.publishedAt ? -1 : 1));
 
+    // Persist vision-based blacklist additions.
+    if (visionBlacklistAdds.length) {
+      await admin
+        .from('youtube_blacklist')
+        .upsert(visionBlacklistAdds, { onConflict: 'kind,value', ignoreDuplicates: true });
+    }
+
     // Upsert into DB (video_id is PK → no duplicates).
     if (videos.length) {
-      const rows = videos.map((v) => ({
+      const rows = videos.map((v: any) => ({
         video_id: v.id,
         title: v.title,
         description: v.description,
@@ -192,6 +352,8 @@ Deno.serve(async (req) => {
         published_at: v.publishedAt,
         duration_sec: v.durationSec,
         view_count: v.viewCount,
+        vision_checked: !!v._visionRan,
+        vision_verdict: v._visionVerdict ?? null,
       }));
       // Chunk upserts to stay safe.
       for (let i = 0; i < rows.length; i += 500) {
@@ -231,6 +393,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         videos: mapRows(stored ?? []),
         inserted: videos.length,
+        visionBlocked: visionBlacklistAdds.length,
         cursor: cursorIso,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
