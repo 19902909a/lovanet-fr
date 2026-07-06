@@ -481,7 +481,7 @@ export const HeroCarousel = () => {
               className="card-3d-front rgb-frame relative w-full aspect-video overflow-hidden rounded-xl bg-card"
               style={{
                 transform: "translateZ(2px)",
-                boxShadow: "0 0 0 1px hsl(var(--neon-magenta) / 0.35), 0 18px 36px -18px hsl(var(--neon-purple) / 0.55)",
+                boxShadow: "0 0 0 1px hsl(0 0% 100% / 0.18), 0 18px 36px -18px hsl(240 30% 5% / 0.55)",
               }}
             >
               {c.v.source === "tiktok" && (
