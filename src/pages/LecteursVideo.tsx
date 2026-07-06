@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Volume2, VolumeX, ExternalLink, ArrowRight, Youtube, Play, Music2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HoverPreview } from "@/components/HoverPreview";
+import { MangaUniverseBanner } from "@/components/MangaUniverseBanner";
 
 type Service = "youtube" | "prime" | "tiktok";
 
@@ -189,6 +190,7 @@ const LecteursVideo = () => {
             ))}
         </div>
       </section>
+      <MangaUniverseBanner />
     </PageShell>
   );
 };
