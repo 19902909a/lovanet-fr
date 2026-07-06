@@ -352,6 +352,93 @@ const PrimeVideo = () => {
       </section>
 
       <section className="container mx-auto px-4 lg:px-8 pb-16">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h3 className="font-display text-xl font-bold">
+            Animés disponibles sur Prime Video
+            <span className="text-muted-foreground font-normal"> · {filteredPrime.length}/{primeAnime.length} titres</span>
+          </h3>
+          <div className="flex items-center gap-2 text-xs">
+            {primeLoading && <span className="text-muted-foreground">Synchronisation…</span>}
+            <select
+              value={primeGenre}
+              onChange={(e) => setPrimeGenre(e.target.value)}
+              className="bg-secondary border border-border rounded-full px-3 py-1.5"
+              aria-label="Filtrer par genre"
+            >
+              <option value="all">Tous les genres</option>
+              {primeGenres.map((g) => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-12">
+          {filteredPrime.map((a) => (
+            <article
+              key={`prime-${a.id}`}
+              className="group rounded-2xl overflow-hidden bg-card border border-border hover:border-sky-500/60 transition-all flex flex-col"
+            >
+              <div
+                className="relative aspect-[2/3] overflow-hidden"
+                style={{ background: a.color || "#0a1428" }}
+              >
+                {a.cover && (
+                  <img
+                    src={a.cover}
+                    alt={a.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                  />
+                )}
+                <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md text-[10px] font-bold bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow">
+                  ◆ PRIME
+                </span>
+                {typeof a.score === "number" && (
+                  <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-black/70 text-cyan-300 text-[10px] font-semibold">
+                    {a.score}
+                  </span>
+                )}
+              </div>
+              <div className="p-3 flex flex-col gap-2 flex-1">
+                <h4 className="text-sm font-semibold line-clamp-2 group-hover:text-sky-400 transition-colors">
+                  {a.title}
+                </h4>
+                <div className="text-[10px] text-muted-foreground">
+                  {a.format ?? "—"} · {a.year ?? "—"} {a.episodes ? `· ${a.episodes} ép.` : ""}
+                </div>
+                {a.genres.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {a.genres.slice(0, 3).map((g) => (
+                      <span key={g} className="text-[9px] px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">
+                        {g}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-[11px] text-muted-foreground line-clamp-4 leading-snug flex-1">
+                  {a.description || "Aucune description disponible."}
+                </p>
+                {a.primeUrl && (
+                  <a
+                    href={a.primeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:opacity-90"
+                  >
+                    Voir sur Prime Video <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            </article>
+          ))}
+          {!primeLoading && filteredPrime.length === 0 && (
+            <div className="col-span-full text-center text-sm text-muted-foreground py-8">
+              Aucun titre disponible pour ce filtre.
+            </div>
+          )}
+        </div>
+
         <h3 className="font-display text-xl font-bold mb-4">
           Bibliothèque Prime <span className="text-muted-foreground font-normal">· {items.length} vidéos</span>
         </h3>
