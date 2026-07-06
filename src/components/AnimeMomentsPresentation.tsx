@@ -14,10 +14,14 @@ import {
   MessageCircle,
   Twitter,
   Facebook,
+  ArrowRight,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useState } from "react";
 import MiniCatalogOrb from "@/components/MiniCatalogOrb";
 import heroBg from "@/assets/anime-moments-hero.jpg";
+import { videos } from "@/data/videos";
 
 const tags = [
   "Lovanet",
@@ -45,6 +49,7 @@ const services = [
     title: "Explorer le catalogue",
     desc: "1500+ animés à découvrir",
     accent: "from-fuchsia-500 to-pink-500",
+    cta: "Ouvrir",
   },
   {
     to: "/anime-countdown",
@@ -52,6 +57,7 @@ const services = [
     title: "Countdown sorties",
     desc: "Prochains épisodes & saisons",
     accent: "from-cyan-400 to-sky-500",
+    cta: "Voir le planning",
   },
   {
     to: "/chaine-youtube",
@@ -59,6 +65,7 @@ const services = [
     title: "Tendances YouTube",
     desc: "Moments forts du moment",
     accent: "from-red-500 to-rose-500",
+    cta: "Regarder",
   },
   {
     to: "/shop",
@@ -66,11 +73,14 @@ const services = [
     title: "Shop créateur",
     desc: "Drops manga exclusifs",
     accent: "from-violet-500 to-fuchsia-600",
+    cta: "Boutique",
   },
 ];
 
 export const AnimeMomentsPresentation = () => {
   const [copied, setCopied] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const bannerId = videos[0]?.id ?? "bGFUthZjGd4";
 
   const shareUrl =
     typeof window !== "undefined" ? window.location.href : "https://lovanet.fr";
@@ -87,6 +97,59 @@ export const AnimeMomentsPresentation = () => {
   return (
     <section className="container mx-auto px-4 lg:px-8 py-10 lg:py-14">
       <div className="relative w-full rounded-[2rem] overflow-hidden border border-white/10 bg-zinc-950/80 shadow-[0_0_80px_-20px_hsl(var(--neon-magenta)/0.35)]">
+        {/* PRO VIDEO BANNER */}
+        <div className="relative w-full aspect-[21/9] sm:aspect-[21/8] overflow-hidden border-b border-white/10">
+          <iframe
+            key={`${bannerId}-${muted ? "m" : "s"}`}
+            className="absolute inset-0 w-full h-full scale-[1.35] pointer-events-none"
+            src={`https://www.youtube-nocookie.com/embed/${bannerId}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&loop=1&playlist=${bannerId}&modestbranding=1&playsinline=1&rel=0&showinfo=0`}
+            title="Anime Moments — bande-annonce"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-zinc-950/60" />
+          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/90 via-transparent to-zinc-950/40" />
+
+          {/* Banner overlays */}
+          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-600 text-white text-[10px] font-black tracking-widest uppercase shadow-lg">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-70 animate-ping" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+              </span>
+              LIVE · Anime Moments
+            </span>
+            <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur border border-white/10 text-white/90 text-[10px] font-bold tracking-widest uppercase">
+              Officiel Lovanet
+            </span>
+          </div>
+
+          <button
+            onClick={() => setMuted((m) => !m)}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur border border-white/15 flex items-center justify-center text-white transition-colors z-10"
+            aria-label={muted ? "Activer le son" : "Couper le son"}
+          >
+            {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+
+          <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 flex flex-wrap items-end justify-between gap-3">
+            <div className="max-w-2xl">
+              <div className="text-[10px] uppercase tracking-[0.3em] text-fuchsia-300 font-bold mb-1">
+                Épisode à la une
+              </div>
+              <h2 className="text-white font-display font-black text-xl sm:text-3xl lg:text-4xl leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+                {videos[0]?.title ?? "Anime Moments"} <span className="text-fuchsia-300">— {videos[0]?.series}</span>
+              </h2>
+            </div>
+            <Link
+              to="/lecteurs-video"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black font-bold text-sm hover:bg-fuchsia-300 transition-colors shadow-xl"
+            >
+              <Play className="w-4 h-4 fill-current" /> Voir l'épisode
+            </Link>
+          </div>
+        </div>
+
         {/* Cinematic banner background */}
         <div className="absolute inset-0 z-0">
           <img
@@ -127,24 +190,33 @@ export const AnimeMomentsPresentation = () => {
             </p>
 
             {/* Primary CTAs */}
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-col sm:flex-row flex-wrap gap-3">
               <Link
                 to="/lecteurs-video"
-                className="btn-magnetic btn-neon-rainbow px-6 py-3 rounded-full text-white font-bold inline-flex items-center gap-2 shadow-[0_10px_30px_-10px_hsl(var(--neon-magenta)/0.7)] transition-all hover:scale-[1.03] active:scale-[0.98]"
+                className="group relative px-7 py-4 rounded-full text-white font-black text-base inline-flex items-center justify-center gap-3 bg-gradient-to-r from-fuchsia-600 via-pink-500 to-rose-500 shadow-[0_15px_40px_-10px_rgba(236,72,153,0.7)] hover:shadow-[0_20px_50px_-8px_rgba(236,72,153,0.9)] hover:scale-[1.04] active:scale-[0.97] transition-all duration-300"
+                aria-label="Regarder les épisodes maintenant"
               >
-                <Play className="w-4 h-4 fill-current" /> Regarder maintenant
+                <Play className="w-5 h-5 fill-current" />
+                <span>Regarder maintenant</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 to="/shop"
-                className="px-6 py-3 rounded-full font-bold inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/15 backdrop-blur-md transition-colors"
+                className="group px-6 py-4 rounded-full font-bold text-sm inline-flex items-center justify-center gap-2 bg-white text-zinc-900 hover:bg-fuchsia-100 shadow-lg hover:scale-[1.03] transition-all"
+                aria-label="Ouvrir la boutique créateur"
               >
-                <ShoppingBag className="w-4 h-4" /> Boutique créateur
+                <ShoppingBag className="w-4 h-4" />
+                <span>Boutique créateur</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 to="/anime-catalog"
-                className="px-6 py-3 rounded-full font-bold inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/15 backdrop-blur-md transition-colors"
+                className="group px-6 py-4 rounded-full font-bold text-sm inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/15 text-white border border-white/25 backdrop-blur-md transition-all hover:scale-[1.03]"
+                aria-label="Explorer le catalogue d'animés"
               >
-                <Sparkles className="w-4 h-4" /> Catalogue
+                <Sparkles className="w-4 h-4" />
+                <span>Catalogue 1500+</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
 
@@ -174,17 +246,21 @@ export const AnimeMomentsPresentation = () => {
                 <Link
                   key={s.to}
                   to={s.to}
-                  className="group relative p-4 rounded-2xl bg-black/50 backdrop-blur-xl border border-white/10 hover:border-white/25 transition-all hover:-translate-y-0.5"
+                  className="group relative p-4 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 hover:border-fuchsia-400/60 hover:bg-black/80 transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(236,72,153,0.5)]"
+                  aria-label={s.title}
                 >
                   <div
-                    className={`w-9 h-9 rounded-xl mb-3 flex items-center justify-center text-white bg-gradient-to-br ${s.accent} shadow-lg`}
+                    className={`w-10 h-10 rounded-xl mb-3 flex items-center justify-center text-white bg-gradient-to-br ${s.accent} shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-transform`}
                   >
-                    <s.icon className="w-4 h-4" />
+                    <s.icon className="w-5 h-5" />
                   </div>
                   <div className="text-sm font-bold text-white leading-tight">
                     {s.title}
                   </div>
                   <div className="text-[11px] text-zinc-400 mt-0.5">{s.desc}</div>
+                  <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-fuchsia-300 opacity-0 group-hover:opacity-100 -translate-y-1 group-hover:translate-y-0 transition-all">
+                    {s.cta} <ArrowRight className="w-3 h-3" />
+                  </div>
                 </Link>
               ))}
             </div>
