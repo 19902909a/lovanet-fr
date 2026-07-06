@@ -1,11 +1,41 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useAnimations, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
+import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 
 /**
- * Animated 3D humanoid holograms rendered in a fullscreen transparent Canvas.
- * Built from local procedural geometry so they always appear, without external GLB loading.
+ * Animated 3D holograms rendered in a fullscreen transparent Canvas.
+ * Uses the original GLB characters from the captures: humanoid + expressive robot.
  */
+
+const MODELS = [
+  {
+    url: "https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb",
+    kind: "robot",
+    scale: 0.62,
+    y: -1.45,
+    actions: ["Walking", "Running", "Dance", "Wave", "Jump", "Idle", "Yes", "No", "Punch", "ThumbsUp"],
+  },
+  {
+    url: "https://threejs.org/examples/models/gltf/Soldier.glb",
+    kind: "soldier",
+    scale: 1.05,
+    y: -1.52,
+    actions: ["Walk", "Run", "Idle"],
+  },
+  {
+    url: "https://threejs.org/examples/models/gltf/Xbot.glb",
+    kind: "human",
+    scale: 1.0,
+    y: -1.52,
+    actions: ["walking", "running", "dance", "wave", "idle"],
+  },
+] as const;
+
+if (typeof window !== "undefined") {
+  MODELS.forEach((model) => useGLTF.preload(model.url));
+}
 
 const TINTS = [
   "#22d3ee",
@@ -18,18 +48,16 @@ const TINTS = [
   "#ffffff",
 ];
 
-const ACTIONS = [
-  "walk", "run", "wave", "dance", "jump", "idle", "spin",
-] as const;
-type ActionName = typeof ACTIONS[number];
-
 type Spawn = {
   id: number;
+  url: string;
+  kind: string;
   dir: 1 | -1;
   z: number;
   y: number;
+  baseScale: number;
   tint: string;
-  action: ActionName;
+  action: string;
   speed: number;
   startAt: number;
   scale: number;
@@ -38,57 +66,67 @@ type Spawn = {
 
 let uid = 1;
 const spawnOne = (): Spawn => {
-  const action = ACTIONS[Math.floor(Math.random() * ACTIONS.length)];
-  const stationary = action !== "walk" && action !== "run";
+  const model = MODELS[Math.floor(Math.random() * MODELS.length)];
+  const action = model.actions[Math.floor(Math.random() * model.actions.length)];
+  const low = action.toLowerCase();
+  const moving = low.includes("walk") || low.includes("run");
   return {
     id: uid++,
+    url: model.url,
+    kind: model.kind,
     dir: Math.random() < 0.5 ? 1 : -1,
     z: -1.2 + Math.random() * 2.4,
-    y: -1.85 + Math.random() * 0.35,
-    tint: TINTS[Math.floor(Math.random() * TINTS.length)],
+    y: model.y + Math.random() * 0.18,
+    baseScale: model.scale,
+    tint: model.kind === "robot" ? "#7dd3fc" : TINTS[Math.floor(Math.random() * TINTS.length)],
     action,
-    speed: action === "run" ? 2.45 : action === "walk" ? 1.25 : 0,
-    scale: 0.82 + Math.random() * 0.42,
-    spin: stationary ? (Math.random() - 0.5) * 0.6 : 0,
+    speed: low.includes("run") ? 2.25 : low.includes("walk") ? 1.18 : 0,
+    scale: model.scale * (0.86 + Math.random() * 0.2),
+    spin: moving ? 0 : (Math.random() - 0.5) * 0.55,
     startAt: performance.now(),
   };
 };
 
 const HoloFigure = ({ spawn, onDone }: { spawn: Spawn; onDone: (id: number) => void }) => {
+  const { scene, animations } = useGLTF(spawn.url) as any;
+  const cloned = useMemo(() => SkeletonUtils.clone(scene) as THREE.Object3D, [scene]);
   const group = useRef<THREE.Group>(null!);
-  const head = useRef<THREE.Mesh>(null!);
-  const body = useRef<THREE.Mesh>(null!);
-  const leftArm = useRef<THREE.Group>(null!);
-  const rightArm = useRef<THREE.Group>(null!);
-  const leftLeg = useRef<THREE.Group>(null!);
-  const rightLeg = useRef<THREE.Group>(null!);
+  const { actions, mixer } = useAnimations(animations, group);
 
-  const material = useMemo(
-    () =>
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color(spawn.tint),
+  useEffect(() => {
+    const tint = new THREE.Color(spawn.tint);
+    cloned.traverse((object: any) => {
+      if (!object.isMesh) return;
+      object.frustumCulled = false;
+      object.castShadow = false;
+      object.receiveShadow = false;
+      object.renderOrder = 10000;
+      object.material = new THREE.MeshBasicMaterial({
+        color: tint,
         transparent: true,
-        opacity: 0.9,
+        opacity: spawn.kind === "robot" ? 0.66 : 0.72,
         blending: THREE.AdditiveBlending,
         depthTest: false,
         depthWrite: false,
-      }),
-    [spawn.tint]
-  );
+      });
+    });
+  }, [cloned, spawn.kind, spawn.tint]);
 
-  const wireMaterial = useMemo(
-    () =>
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color("#ffffff"),
-        transparent: true,
-        opacity: 0.42,
-        blending: THREE.AdditiveBlending,
-        depthTest: false,
-        depthWrite: false,
-        wireframe: true,
-      }),
-    []
-  );
+  useEffect(() => {
+    const keys = Object.keys(actions || {});
+    if (!keys.length) return;
+    const wanted = spawn.action.toLowerCase();
+    const key =
+      keys.find((name) => name.toLowerCase() === wanted) ||
+      keys.find((name) => name.toLowerCase().includes(wanted)) ||
+      keys.find((name) => wanted.includes(name.toLowerCase())) ||
+      keys[0];
+    const action = actions[key];
+    action?.reset().fadeIn(0.25).play();
+    return () => {
+      action?.fadeOut(0.2);
+    };
+  }, [actions, spawn.action]);
 
   // Travel across the scene; remove when off-screen.
   const stationary = spawn.speed === 0;
@@ -96,6 +134,7 @@ const HoloFigure = ({ spawn, onDone }: { spawn: Spawn; onDone: (id: number) => v
     stationary ? (Math.random() - 0.5) * 8 : spawn.dir === 1 ? -8 : 8
   );
   useFrame((_, dt) => {
+    mixer?.update(dt);
     const g = group.current;
     if (!g) return;
     g.position.x += spawn.dir * spawn.speed * dt;
@@ -103,38 +142,19 @@ const HoloFigure = ({ spawn, onDone }: { spawn: Spawn; onDone: (id: number) => v
     g.position.y = spawn.y + Math.sin(performance.now() / 320 + spawn.id) * 0.04;
 
     const t = performance.now() / 1000;
-    const phase = t * (spawn.action === "run" ? 9 : 5.6) + spawn.id;
-    const stride = Math.sin(phase);
 
     if (stationary) {
-      g.rotation.y += (spawn.action === "spin" ? 1.15 : spawn.spin) * dt;
+      g.rotation.y += spawn.spin * dt;
     } else {
       g.rotation.y = spawn.dir === 1 ? Math.PI / 2 : -Math.PI / 2;
     }
-
-    leftLeg.current.rotation.x = stride * 0.8;
-    rightLeg.current.rotation.x = -stride * 0.8;
-    leftArm.current.rotation.x = -stride * 0.7;
-    rightArm.current.rotation.x = stride * 0.7;
-
-    if (spawn.action === "wave") {
-      rightArm.current.rotation.z = -1.9 + Math.sin(t * 8) * 0.34;
-      rightArm.current.rotation.x = -0.25;
-    } else if (spawn.action === "dance") {
-      leftArm.current.rotation.z = 1.25 + Math.sin(t * 7) * 0.45;
-      rightArm.current.rotation.z = -1.25 + Math.cos(t * 7) * 0.45;
-      body.current.rotation.z = Math.sin(t * 5) * 0.14;
-    } else if (spawn.action === "jump") {
+    if (spawn.action.toLowerCase().includes("jump")) {
       g.position.y += Math.abs(Math.sin(t * 4.6)) * 0.34;
-      leftArm.current.rotation.z = 1.55;
-      rightArm.current.rotation.z = -1.55;
     }
-
-    head.current.rotation.y = Math.sin(t * 2.8 + spawn.id) * 0.22;
-
-    const flick = 0.74 + 0.2 * Math.sin(t * 9 + spawn.id);
-    material.opacity = flick;
-    wireMaterial.opacity = 0.34 + 0.12 * Math.sin(t * 13 + spawn.id);
+    const flick = 0.58 + 0.16 * Math.sin(t * 9 + spawn.id);
+    g.traverse((object: any) => {
+      if (object.isMesh && object.material) object.material.opacity = flick;
+    });
 
     if (Math.abs(g.position.x) > 9 || (stationary && performance.now() - spawn.startAt > 12000)) {
       onDone(spawn.id);
@@ -143,47 +163,7 @@ const HoloFigure = ({ spawn, onDone }: { spawn: Spawn; onDone: (id: number) => v
 
   return (
     <group ref={group} position={[startX.current, spawn.y, spawn.z]} scale={spawn.scale}>
-      <group>
-        <mesh ref={head} position={[0, 1.82, 0]} material={material} renderOrder={9999}>
-          <sphereGeometry args={[0.23, 24, 20]} />
-        </mesh>
-        <mesh position={[0, 1.82, 0]} material={wireMaterial} renderOrder={10000}>
-          <sphereGeometry args={[0.245, 12, 10]} />
-        </mesh>
-
-        <mesh ref={body} position={[0, 1.18, 0]} material={material} renderOrder={9999}>
-          <capsuleGeometry args={[0.28, 0.72, 8, 20]} />
-        </mesh>
-        <mesh position={[0, 1.18, 0]} material={wireMaterial} renderOrder={10000}>
-          <capsuleGeometry args={[0.295, 0.74, 6, 10]} />
-        </mesh>
-
-        <group ref={leftArm} position={[-0.34, 1.43, 0]}>
-          <mesh position={[0, -0.34, 0]} rotation={[0, 0, 0.12]} material={material} renderOrder={9999}>
-            <capsuleGeometry args={[0.07, 0.62, 6, 12]} />
-          </mesh>
-        </group>
-        <group ref={rightArm} position={[0.34, 1.43, 0]}>
-          <mesh position={[0, -0.34, 0]} rotation={[0, 0, -0.12]} material={material} renderOrder={9999}>
-            <capsuleGeometry args={[0.07, 0.62, 6, 12]} />
-          </mesh>
-        </group>
-
-        <group ref={leftLeg} position={[-0.14, 0.72, 0]}>
-          <mesh position={[0, -0.44, 0]} material={material} renderOrder={9999}>
-            <capsuleGeometry args={[0.085, 0.78, 6, 12]} />
-          </mesh>
-        </group>
-        <group ref={rightLeg} position={[0.14, 0.72, 0]}>
-          <mesh position={[0, -0.44, 0]} material={material} renderOrder={9999}>
-            <capsuleGeometry args={[0.085, 0.78, 6, 12]} />
-          </mesh>
-        </group>
-
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.18, 0]} material={material} renderOrder={9998}>
-          <ringGeometry args={[0.48, 0.55, 48]} />
-        </mesh>
-      </group>
+      <primitive object={cloned} />
     </group>
   );
 };
@@ -200,9 +180,11 @@ const Stage = ({ figures, removeFigure }: { figures: Spawn[]; removeFigure: (id:
       <pointLight position={[5, 5, 5]} intensity={1.2} color="#ff66ff" />
       <pointLight position={[-5, 3, 5]} intensity={1.2} color="#66ffff" />
       <pointLight position={[0, 6, -3]} intensity={0.9} color="#a78bfa" />
-      {figures.map((f) => (
-        <HoloFigure key={f.id} spawn={f} onDone={removeFigure} />
-      ))}
+      <Suspense fallback={null}>
+        {figures.map((f) => (
+          <HoloFigure key={f.id} spawn={f} onDone={removeFigure} />
+        ))}
+      </Suspense>
     </>
   );
 };
