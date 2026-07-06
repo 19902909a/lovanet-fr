@@ -13,7 +13,7 @@ const navItems = [
   { to: "/tiktok", label: "TikTok" },
   { to: "/anime-countdown", label: "À venir" },
   { to: "/anime-catalog", label: "Catalogue" },
-  { to: "/decouvrir", label: "Découvrir" },
+  { to: "/decouvrir", label: "Univers Lovanet" },
   { to: "/shop", label: "Shop" },
 ];
 
@@ -29,7 +29,7 @@ const megaSections = [
   { to: "/lecteurs-video", label: "Lecteur vidéo", desc: "Player immersif anime", icon: Film, tint: "from-purple-500 to-violet-600" },
   { to: "/anime-countdown", label: "Animés à venir", desc: "Countdown live des prochains épisodes", icon: Play, tint: "from-fuchsia-500 to-cyan-500" },
   { to: "/anime-catalog", label: "Catalogue Animés", desc: "Carrousel 3D tendances", icon: Film, tint: "from-cyan-500 to-violet-600" },
-  { to: "/decouvrir", label: "Découvrir", desc: "Vitrine SEO produits & vidéos", icon: Compass, tint: "from-amber-500 to-pink-600" },
+  { to: "/decouvrir", label: "Univers Lovanet", desc: "Vitrine SEO produits & vidéos", icon: Compass, tint: "from-amber-500 to-pink-600" },
   { to: "/contact", label: "Contact", desc: "Écrire à l'équipe", icon: Mail, tint: "from-emerald-500 to-teal-600" },
 ];
 
