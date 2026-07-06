@@ -98,8 +98,9 @@ const HoloFigure = ({ spawn, onDone }: { spawn: Spawn; onDone: (id: number) => v
         o.material = new THREE.MeshBasicMaterial({
           color: tint,
           transparent: true,
-          opacity: 0.55,
+          opacity: 0.82,
           blending: THREE.AdditiveBlending,
+          depthTest: false,
           depthWrite: false,
           wireframe: false,
         });
@@ -184,7 +185,7 @@ export const HologramOverlay = () => {
   // Only opt out for explicit reduced-motion preference — otherwise we go all in.
   const skip = useMemo(() => {
     if (typeof window === "undefined") return true;
-    return !!window.matchMedia?.("(prefers-reduced-motion: reduce), (pointer: coarse), (max-width: 767px)").matches;
+    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   }, []);
 
   // Limit concurrent figures on small viewports to keep things smooth.
@@ -223,8 +224,9 @@ export const HologramOverlay = () => {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-[5]"
-      style={{ mixBlendMode: "screen", pointerEvents: "none" }}
+      data-hologram-overlay
+      className="pointer-events-none fixed inset-0 h-screen w-screen overflow-visible z-[9998]"
+      style={{ pointerEvents: "none", isolation: "isolate" }}
     >
       <Canvas
         dpr={[1, 2]}
@@ -236,7 +238,7 @@ export const HologramOverlay = () => {
           preserveDrawingBuffer: false,
         }}
         camera={{ position: [0, 0.4, 6], fov: 45 }}
-        style={{ background: "transparent", pointerEvents: "none" }}
+        style={{ width: "100vw", height: "100vh", background: "transparent", pointerEvents: "none" }}
       >
         <Stage figures={figures} removeFigure={removeFigure} />
       </Canvas>
