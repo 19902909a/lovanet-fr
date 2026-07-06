@@ -211,12 +211,6 @@ export const HologramOverlay = () => {
   const [figures, setFigures] = useState<Spawn[]>([]);
   const [visible, setVisible] = useState<boolean>(typeof document === "undefined" ? true : !document.hidden);
 
-  // Only opt out for explicit reduced-motion preference — otherwise we go all in.
-  const skip = useMemo(() => {
-    if (typeof window === "undefined") return true;
-    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  }, []);
-
   // Limit concurrent figures on small viewports to keep things smooth.
   const maxFigures = useMemo(() => {
     if (typeof window === "undefined") return 3;
@@ -230,7 +224,6 @@ export const HologramOverlay = () => {
   }, []);
 
   useEffect(() => {
-    if (skip) return;
     let cancelled = false;
     const tick = () => {
       if (cancelled) return;
@@ -244,19 +237,17 @@ export const HologramOverlay = () => {
       cancelled = true;
       window.clearTimeout(first);
     };
-  }, [skip, maxFigures]);
+  }, [maxFigures]);
 
   const removeFigure = (id: number) =>
     setFigures((arr) => arr.filter((f) => f.id !== id));
-
-  if (skip) return null;
 
   return (
     <div
       aria-hidden
       data-hologram-overlay
       className="pointer-events-none fixed inset-0 h-screen w-screen overflow-visible z-[9998]"
-      style={{ pointerEvents: "none", isolation: "isolate" }}
+      style={{ pointerEvents: "none", isolation: "isolate", zIndex: 2147483000 }}
     >
       <Canvas
         dpr={[1, 2]}
