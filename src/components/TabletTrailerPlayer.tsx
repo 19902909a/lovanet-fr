@@ -27,19 +27,26 @@ query ($page: Int, $perPage: Int) {
   }
 }`;
 
-// Lazy-load the YouTube IFrame API once for the whole page.
-let ytApiPromise: Promise<any> | null = null;
+// Lazy-load the YouTube IFrame API once for the whole page — SHARED via
+// window so multiple players don't overwrite each other's ready callback.
 const loadYTApi = (): Promise<any> => {
   if (typeof window === "undefined") return Promise.reject();
-  if ((window as any).YT?.Player) return Promise.resolve((window as any).YT);
-  if (ytApiPromise) return ytApiPromise;
-  ytApiPromise = new Promise((resolve) => {
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
-    (window as any).onYouTubeIframeAPIReady = () => resolve((window as any).YT);
+  const w = window as any;
+  if (w.YT?.Player) return Promise.resolve(w.YT);
+  if (w.__ytApiPromise) return w.__ytApiPromise;
+  w.__ytApiPromise = new Promise((resolve) => {
+    const prev = w.onYouTubeIframeAPIReady;
+    w.onYouTubeIframeAPIReady = () => {
+      try { prev?.(); } catch {}
+      resolve(w.YT);
+    };
+    if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    }
   });
-  return ytApiPromise;
+  return w.__ytApiPromise;
 };
 
 export default function TabletTrailerPlayer() {
