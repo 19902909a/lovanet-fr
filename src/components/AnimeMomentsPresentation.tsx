@@ -218,7 +218,7 @@ export const AnimeMomentsPresentation = () => {
 
   return (
     <section className="container mx-auto px-4 lg:px-8 py-10 lg:py-14">
-      <div className="relative w-full rounded-[2rem] overflow-hidden border border-white/10 bg-zinc-950/80 shadow-[0_0_80px_-20px_hsl(var(--neon-magenta)/0.35)]">
+      <div className="relative w-full rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_80px_-20px_hsl(var(--neon-magenta)/0.35)]">
         {/* PRO VIDEO BANNER */}
         <div className="relative w-full aspect-[21/9] sm:aspect-[21/8] overflow-hidden border-b border-white/10">
           {/* Custom background layer (color / user image / user video) */}
@@ -379,11 +379,10 @@ export const AnimeMomentsPresentation = () => {
             alt=""
             width={1920}
             height={960}
-            className="w-full h-full object-cover opacity-45"
+            className="w-full h-full object-cover opacity-90"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/85 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
         </div>
 
         {/* Content */}
