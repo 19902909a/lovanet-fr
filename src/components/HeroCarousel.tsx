@@ -505,7 +505,7 @@ export const HeroCarousel = () => {
                 className={`relative z-[1] w-full h-full opacity-100 ${
                   c.v.source === "tiktok" ? "object-contain" : "object-cover"
                 }`}
-                style={{ backgroundColor: "hsl(var(--card))" }}
+                style={{ backgroundColor: c.v.source === "tiktok" ? "transparent" : "hsl(var(--card))" }}
                 onError={(e) => {
                   const img = e.currentTarget;
                   const step = img.dataset.fb || "0";
