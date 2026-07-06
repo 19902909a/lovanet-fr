@@ -300,36 +300,27 @@ const Index = () => {
 
       {/* Shop preview */}
       <section className="container mx-auto px-4 lg:px-8 py-16">
-        <div className="flex items-baseline justify-between mb-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.25em] text-primary mb-2">Shop creator</p>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold">
-              {SHOP_PRODUCTS.length} produits uniques YouTube & TikTok
-            </h2>
-          </div>
+        <div className="flex items-center justify-end mb-4">
           <Link to="/shop" className="text-sm text-primary hover:underline whitespace-nowrap">Boutique →</Link>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {SHOP_PRODUCTS.slice(0, 8).map((p) => (
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+          {SHOP_PRODUCTS.slice(0, 24).map((p) => (
             <Link
               key={p.id}
               to="/shop"
-              className="rgb-card group rounded-2xl overflow-hidden bg-card border border-border transition-all"
+              className="rgb-card group rounded-xl overflow-hidden bg-card border border-border transition-all hover:-translate-y-0.5"
             >
               <div className="rgb-frame aspect-square overflow-hidden">
                 <div className="rgb-art w-full h-full group-hover:scale-110 transition-transform duration-700">
                   <ProductArtwork seed={p.id} category={p.category} label={p.name} />
                 </div>
               </div>
-              <div className="p-4">
-                <span className="inline-block text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary mb-2 relative z-10">
-                  {categoryLabel(p.category)}
-                </span>
-                <div className="font-display font-bold text-sm leading-snug group-hover:text-primary transition-colors">
+              <div className="p-2">
+                <div className="font-display font-bold text-[11px] leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                   {p.name}
                 </div>
-                <div className="rgb-price text-xs font-bold mt-1">{p.price} €</div>
+                <div className="rgb-price text-[11px] font-bold mt-0.5">{p.price} €</div>
               </div>
             </Link>
           ))}
