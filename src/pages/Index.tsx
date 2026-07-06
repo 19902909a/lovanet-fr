@@ -237,11 +237,11 @@ const Index = () => {
         <div className="absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />
         {/* Animated gradient blobs */}
         <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 -left-20 w-96 h-96 rounded-full blur-3xl opacity-30 animate-blob"
+          <div className="absolute top-1/4 -left-20 w-96 h-96 rounded-full blur-3xl opacity-10 animate-blob"
             style={{ background: "radial-gradient(circle, hsl(var(--neon-magenta)), transparent 70%)" }} />
-          <div className="absolute top-1/3 right-0 w-[28rem] h-[28rem] rounded-full blur-3xl opacity-25 animate-blob animation-delay-2000"
+          <div className="absolute top-1/3 right-0 w-[28rem] h-[28rem] rounded-full blur-3xl opacity-8 animate-blob animation-delay-2000"
             style={{ background: "radial-gradient(circle, hsl(var(--neon-purple)), transparent 70%)" }} />
-          <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full blur-3xl opacity-20 animate-blob animation-delay-4000"
+          <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full blur-3xl opacity-10 animate-blob animation-delay-4000"
             style={{ background: "radial-gradient(circle, hsl(var(--neon-cyan)), transparent 70%)" }} />
         </div>
         {/* Floating sparkles */}
