@@ -8,6 +8,7 @@ import MiniCatalogOrb from "@/components/MiniCatalogOrb";
 import AnimeMomentsOrb from "@/components/AnimeMomentsOrb";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import TabletTrailerPlayer from "@/components/TabletTrailerPlayer";
+import AnimeMomentsPresentation from "@/components/AnimeMomentsPresentation";
 import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
 import { ProductArtwork } from "@/components/ProductArtwork";
@@ -290,67 +291,8 @@ const Index = () => {
           </div>
         </div>
 
-        {/* ANIME MOMENTS title + mini carousel — moved below the neon bar */}
-        <div className="container mx-auto px-4 lg:px-8 pt-8 pb-2">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
-            <div className="space-y-2">
-              <a
-                href="https://www.youtube.com/channel/UC0T9pcWA9_lpdB6-ZucZYmw"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium text-fuchsia-200 ring-1 ring-fuchsia-400/40 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 transition-colors"
-              >
-                <span className="w-1 h-1 rounded-full bg-fuchsia-400 animate-pulse" />
-                AnimemomentsAnimeofficiel
-              </a>
-              <h1
-                className="neon-rgb-text-mini font-display text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black leading-[0.9] tracking-tight drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
-                style={{ letterSpacing: "-0.02em" }}
-              >
-                ANIME<br />MOMENTS
-              </h1>
-            </div>
-            <div className="relative">
-              <MiniCatalogOrb size={140} cardW={26} cardH={38} />
-            </div>
-          </div>
-        </div>
-
-        {/* CTA + tags + reactions below */}
-        <div className="container mx-auto px-4 lg:px-8 py-10 lg:py-14 space-y-5">
-          <p className="text-base text-muted-foreground max-w-2xl">
-            Lovanet présente les mangas animés, vidéos anime, moments forts et contenus directs YouTube / TikTok.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Button
-              asChild
-              size="lg"
-              className="btn-magnetic btn-neon-rainbow rounded-full gap-2 text-white border-0"
-            >
-              <Link to="/lecteurs-video"><Play className="w-4 h-4 fill-current" /> Regarder maintenant</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="btn-magnetic btn-neon-rainbow-outline rounded-full gap-2">
-              <Link to="/shop"><ShoppingBag className="w-4 h-4" /> Boutique créateur</Link>
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((t) => (
-              <span key={t} className="px-3 py-1 rounded-full bg-secondary/70 border border-border text-xs text-muted-foreground">
-                {t}
-              </span>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {reactions.map((r) => (
-              <button
-                key={r.label}
-                className="px-4 py-2 rounded-full bg-secondary/70 border border-border text-xs font-semibold hover:border-primary/60 hover:bg-primary/10 transition-colors"
-              >
-                {r.emoji} {r.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Nouvelle présentation cinématique : ANIME MOMENTS + services + partage */}
+        <AnimeMomentsPresentation />
       </section>
 
       {/* Anime Moments — quick access to countdown & catalog */}
