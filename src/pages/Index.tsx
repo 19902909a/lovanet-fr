@@ -296,6 +296,19 @@ const Index = () => {
         <AnimeMomentsPresentation />
       </section>
 
+      {/* Crystal city visual — 21:9 showcase */}
+      <section className="container mx-auto px-4 lg:px-8 py-6">
+        <div className="relative w-full aspect-[21/9] overflow-hidden rounded-3xl border border-white/10 shadow-[0_40px_120px_-40px_rgba(236,72,153,0.5)]">
+          <img
+            src={crystalCity.url}
+            alt="Univers cristallin — cité futuriste"
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      </section>
+
       {/* Shop preview */}
       <section className="container mx-auto px-4 lg:px-8 py-16">
         <div className="flex items-center justify-end mb-4">
