@@ -6,6 +6,7 @@ import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import MiniCatalogOrb from "@/components/MiniCatalogOrb";
 import AnimeMomentsPresentation from "@/components/AnimeMomentsPresentation";
+import crystalCity from "@/assets/crystal-city.jpg.asset.json";
 
 import NeonFooterBar from "@/components/NeonFooterBar";
 import TabletTrailerPlayer from "@/components/TabletTrailerPlayer";
