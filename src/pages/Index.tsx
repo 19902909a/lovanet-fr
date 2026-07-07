@@ -6,6 +6,7 @@ import { PageShell } from "@/components/PageShell";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import MiniCatalogOrb from "@/components/MiniCatalogOrb";
 import AnimeMomentsPresentation from "@/components/AnimeMomentsPresentation";
+import crystalCity from "@/assets/crystal-city.jpg.asset.json";
 
 import NeonFooterBar from "@/components/NeonFooterBar";
 import TabletTrailerPlayer from "@/components/TabletTrailerPlayer";
@@ -297,6 +298,20 @@ const Index = () => {
         <AnimeMomentsPresentation />
       </section>
 
+      {/* Crystal city visual — 21:9 showcase */}
+      <div className="container mx-auto px-4 lg:px-8 py-6">
+        <div className="relative w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+          <div className="aspect-[21/9] w-full">
+            <img
+              src={crystalCity.url}
+              alt="Crystalline skyline"
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+        </div>
+      </div>
 
       {/* Shop preview */}
       <section className="container mx-auto px-4 lg:px-8 py-16">

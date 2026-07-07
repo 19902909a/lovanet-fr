@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import MiniCatalogOrb from "@/components/MiniCatalogOrb";
-import heroBg from "@/assets/anime-moments-hero.jpg";
 import blingBling from "@/assets/bling-bling.jpg.asset.json";
 import { videos } from "@/data/videos";
 
@@ -418,19 +417,6 @@ export const AnimeMomentsPresentation = () => {
               <Play className="w-4 h-4 fill-current" /> Voir l'épisode
             </Link>
           </div>
-        </div>
-
-        {/* Cinematic banner background */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={heroBg}
-            alt=""
-            width={1920}
-            height={960}
-            className="w-full h-full object-cover opacity-90"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
         </div>
 
         {/* Content */}
