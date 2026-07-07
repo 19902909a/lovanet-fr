@@ -107,9 +107,39 @@ export const AnimeMomentsPresentation = () => {
   const [muted, setMuted] = useState(true);
 
   // Rotating banner playlist: AnimeMomentsOfficiel site videos + catalogue trailers.
-  const [pool, setPool] = useState<string[]>(() => videos.map((v) => v.id));
-  const [bannerId, setBannerId] = useState<string>(videos[0]?.id ?? "bGFUthZjGd4");
-  const playedRef = useRef<Set<string>>(new Set([videos[0]?.id ?? "bGFUthZjGd4"]));
+  const PLAYED_KEY = "lovanet.banner.played.v1";
+  const readPlayed = (): Set<string> => {
+    try {
+      const raw = localStorage.getItem(PLAYED_KEY);
+      return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+    } catch { return new Set(); }
+  };
+  const initialPool = (() => {
+    const ids = new Set(videos.map((v) => v.id));
+    try {
+      const cached = localStorage.getItem("lovanet.cache.catalog.grid");
+      if (cached) {
+        const list = JSON.parse(cached) as any[];
+        for (const m of list) {
+          if (m?.trailer?.id && m?.trailer?.site === "youtube") ids.add(m.trailer.id);
+        }
+      }
+    } catch {}
+    return Array.from(ids);
+  })();
+  const initialPlayed = readPlayed();
+  const pickInitial = () => {
+    const remaining = initialPool.filter((id) => !initialPlayed.has(id));
+    const source = remaining.length ? remaining : initialPool;
+    return source[Math.floor(Math.random() * source.length)] ?? videos[0]?.id ?? "bGFUthZjGd4";
+  };
+  const firstId = pickInitial();
+  const [pool, setPool] = useState<string[]>(initialPool);
+  const [bannerId, setBannerId] = useState<string>(firstId);
+  const playedRef = useRef<Set<string>>(new Set([...initialPlayed, firstId]));
+  const persistPlayed = () => {
+    try { localStorage.setItem(PLAYED_KEY, JSON.stringify([...playedRef.current])); } catch {}
+  };
   const playerHostRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<any>(null);
 
@@ -152,6 +182,7 @@ export const AnimeMomentsPresentation = () => {
     const source = remaining.length ? remaining : (playedRef.current.clear(), pool);
     const n = source[Math.floor(Math.random() * source.length)];
     playedRef.current.add(n);
+    persistPlayed();
     return n;
   };
 
