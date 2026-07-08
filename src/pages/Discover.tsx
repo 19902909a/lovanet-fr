@@ -21,7 +21,7 @@ const Discover = () => {
       if (!el) { el = document.createElement("meta"); prop ? el.setAttribute("property", name) : el.setAttribute("name", name); document.head.appendChild(el); }
       el.content = value;
     };
-    meta("description", "Index complet AnimemomentsAnimeofficiel : vidéos YouTube, shorts TikTok, Prime Video, boutique 360°, animés à venir et catalogue.");
+    meta("description", "AnimemomentsAnimeofficiel — la plateforme officielle Lovanet dédiée à l'anime : chaîne YouTube, Prime Video, TikTok, animés à venir, catalogue complet et boutique collector.");
     meta("og:title", "Univers Lovanet — AnimemomentsAnimeofficiel", true);
     meta("og:url", "https://lovanet.fr/decouvrir", true);
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
