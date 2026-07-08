@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageShell } from "@/components/PageShell";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
@@ -13,6 +13,16 @@ import { ShoppingBag, Youtube, Music2, Play, Film, Calendar, Sparkles } from "lu
  * deep links to every section. No filler text.
  */
 const Discover = () => {
+  const [catalogSeo, setCatalogSeo] = useState<Array<{
+    id: number; title: string; summary: string; year: number | null; score: number | null;
+    genres: string[]; cover: string | null; banner: string | null; trailerId: string | null; url: string;
+  }>>([]);
+
+  useEffect(() => {
+    // Load prebuilt catalog SEO index (up to 1500 titles with trailers, covers & synopsis)
+    fetch("/catalog-seo.json").then((r) => (r.ok ? r.json() : [])).then(setCatalogSeo).catch(() => setCatalogSeo([]));
+  }, []);
+
   useEffect(() => {
     document.title = "Univers Lovanet — Vidéos, shorts, boutique, animés";
     const meta = (name: string, value: string, prop = false) => {
@@ -21,7 +31,7 @@ const Discover = () => {
       if (!el) { el = document.createElement("meta"); prop ? el.setAttribute("property", name) : el.setAttribute("name", name); document.head.appendChild(el); }
       el.content = value;
     };
-    meta("description", "AnimemomentsAnimeofficiel — la plateforme officielle Lovanet dédiée à l'anime : chaîne YouTube, Prime Video, TikTok, animés à venir, catalogue complet et boutique collector.");
+    meta("description", "Anime.Moments.officiel : Lovanet — la plateforme officielle dédiée à l'anime : chaîne YouTube AnimemomentsAnimeofficiel, shorts TikTok Anime.Moments.officiel, Prime Video, animés à venir, catalogue 1500+ titres et boutique collector.");
     meta("og:title", "Univers Lovanet — AnimemomentsAnimeofficiel", true);
     meta("og:url", "https://lovanet.fr/decouvrir", true);
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
@@ -71,10 +81,56 @@ const Discover = () => {
     })),
   };
 
+  // Chunk the catalog JSON-LD (1500 items) into 3 blocks so each script tag stays reasonable.
+  const catalogChunks: typeof catalogSeo[] = [];
+  const CHUNK = 500;
+  for (let i = 0; i < catalogSeo.length; i += CHUNK) catalogChunks.push(catalogSeo.slice(i, i + CHUNK));
+
+  const catalogItemListLd = (chunk: typeof catalogSeo, offset: number) => ({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `Catalogue Lovanet — animés ${offset + 1}–${offset + chunk.length}`,
+    itemListElement: chunk.map((it, i) => ({
+      "@type": "ListItem",
+      position: offset + i + 1,
+      item: it.trailerId
+        ? {
+            "@type": "VideoObject",
+            name: `${it.title} — Trailer officiel`,
+            description: it.summary || `${it.title} — trailer et fiche complète sur Lovanet.`,
+            thumbnailUrl: [it.cover, `https://i.ytimg.com/vi/${it.trailerId}/hqdefault.jpg`].filter(Boolean),
+            uploadDate: it.year ? `${it.year}-01-01` : "2020-01-01",
+            contentUrl: `https://www.youtube.com/watch?v=${it.trailerId}`,
+            embedUrl: `https://www.youtube.com/embed/${it.trailerId}`,
+            genre: it.genres,
+            url: it.url,
+          }
+        : {
+            "@type": "CreativeWork",
+            name: it.title,
+            description: it.summary || `${it.title} — fiche complète sur Lovanet.`,
+            image: [it.cover, it.banner].filter(Boolean),
+            genre: it.genres,
+            url: it.url,
+            datePublished: it.year ? `${it.year}-01-01` : undefined,
+            aggregateRating: it.score
+              ? { "@type": "AggregateRating", ratingValue: (it.score / 10).toFixed(1), bestRating: "10", ratingCount: 1 }
+              : undefined,
+          },
+    })),
+  });
+
   return (
     <PageShell>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(videoLd) }} />
+      {catalogChunks.map((chunk, i) => (
+        <script
+          key={`catalog-ld-${i}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(catalogItemListLd(chunk, i * CHUNK)) }}
+        />
+      ))}
 
       <section className="container mx-auto px-4 py-10">
         <h1 className="text-3xl md:text-5xl font-display font-bold gradient-text mb-2">
