@@ -408,6 +408,25 @@ export const AnimeMomentsPresentation = () => {
                     className="text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-white/10 file:text-white"
                   />
                 </label>
+                <div className="flex items-center gap-2">
+                  <label className="uppercase tracking-widest text-[10px] text-white/70">Décors</label>
+                  <input
+                    type="color"
+                    value={decorColor}
+                    onChange={(e) => setDecorColor(e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer bg-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setDecorOn((s) => s.map(() => true))}
+                    className="text-[10px] underline text-white/70"
+                  >Tout allumer</button>
+                  <button
+                    type="button"
+                    onClick={() => setDecorOn((s) => s.map(() => false))}
+                    className="text-[10px] underline text-white/70"
+                  >Éteindre</button>
+                </div>
                 <label className="inline-flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
