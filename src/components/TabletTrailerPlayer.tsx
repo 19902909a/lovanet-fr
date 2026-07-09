@@ -67,6 +67,29 @@ export default function TabletTrailerPlayer() {
   const [spots, setSpots] = useState<boolean[]>([true, true, true]);
   const toggleSpot = (i: number) =>
     setSpots((s) => s.map((v, idx) => (idx === i ? !v : v)));
+
+  // 50 decorative side ornaments — alternate left/right, cycle a new variation
+  // every 29 seconds. Each can be toggled on/off like the spots.
+  const DECOR_COUNT = 50;
+  const DECOR_VARIANTS = [
+    "✦", "✧", "✩", "✪", "✫", "✬", "✭", "✮", "✯", "★",
+    "❋", "❊", "❉", "❈", "❇", "✺", "✹", "✸", "✷", "✶",
+    "❄", "❅", "❆", "☾", "☽", "♡", "♥", "◈", "◇", "◆",
+    "▲", "△", "▼", "▽", "●", "○", "◉", "◎", "☀", "☂",
+    "⚡", "☘", "❀", "✿", "❁", "❃", "❄", "✾", "✽", "❂",
+  ];
+  const [decorOn, setDecorOn] = useState<boolean[]>(
+    () => Array.from({ length: DECOR_COUNT }, () => true),
+  );
+  const [decorTick, setDecorTick] = useState(0);
+  const [decorColor, setDecorColor] = useState<string>("#f0abfc");
+  useEffect(() => {
+    const id = setInterval(() => setDecorTick((t) => t + 1), 29000);
+    return () => clearInterval(id);
+  }, []);
+  const toggleDecor = (i: number) =>
+    setDecorOn((s) => s.map((v, idx) => (idx === i ? !v : v)));
+
   const onPickMedia = (file: File) => {
     const url = URL.createObjectURL(file);
     setBgMedia(url);
@@ -232,9 +255,9 @@ export default function TabletTrailerPlayer() {
   // has its own screen slot (no stacking, no hidden cards behind others).
   const catalogue = useMemo(() => items.slice(0, 1500), [items]);
   const count = Math.max(catalogue.length, 1);
-  const VISIBLE_SLOTS = 13; // odd → nice symmetric center card
-  const helixWidth = 1400;
-  const helixRadius = 80;
+  const VISIBLE_SLOTS = 11; // odd → nice symmetric center card
+  const helixWidth = 1500;
+  const helixRadius = 110;
   const slotStep = helixWidth / VISIBLE_SLOTS;
 
   const onSelect = (m: Media) => {
@@ -297,7 +320,7 @@ export default function TabletTrailerPlayer() {
       <div
         className="relative w-full select-none mt-4 rounded-2xl"
         style={{
-          height: 260,
+          height: 360,
           perspective: "1400px",
           overflow: "hidden",
           background: bgMode === "color" ? bgColor : "transparent",
@@ -335,6 +358,46 @@ export default function TabletTrailerPlayer() {
             />
           )
         )}
+
+        {/* Decorative side ornaments — 25 left / 25 right, drifting vertically,
+            varying every 29s. Click any to toggle it on/off. */}
+        {Array.from({ length: DECOR_COUNT }).map((_, i) => {
+          const side = i % 2 === 0 ? "left" : "right";
+          const rowIndex = Math.floor(i / 2); // 0..24
+          const variantIdx =
+            (i + decorTick * 7 + rowIndex * 3) % DECOR_VARIANTS.length;
+          const glyph = DECOR_VARIANTS[variantIdx];
+          const on = decorOn[i];
+          // Vertical position spread + gentle drift with phase
+          const basePct = 4 + rowIndex * 3.7; // 4%..~92%
+          const drift = Math.sin((phase + i) * 0.9) * 8;
+          const top = `${basePct}%`;
+          const size = 14 + ((i * 37) % 14); // 14..27px
+          const hue = (i * 137 + decorTick * 40) % 360;
+          const color = on ? `hsl(${hue} 90% 70%)` : "rgba(255,255,255,0.18)";
+          return (
+            <button
+              key={`decor-${i}`}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); toggleDecor(i); }}
+              aria-label={`Décor ${i + 1}`}
+              className="absolute z-20 leading-none transition-all duration-500"
+              style={{
+                [side]: `${2 + ((i * 13) % 26)}px` as any,
+                top,
+                transform: `translateY(${drift}px)`,
+                fontSize: size,
+                color: on ? decorColor : "rgba(255,255,255,0.18)",
+                textShadow: on
+                  ? `0 0 10px ${decorColor}, 0 0 20px ${color}`
+                  : "none",
+                opacity: on ? 1 : 0.35,
+              }}
+            >
+              {glyph}
+            </button>
+          );
+        })}
 
         {/* Interactive spotlights — click to toggle on/off */}
         {[
@@ -423,8 +486,8 @@ export default function TabletTrailerPlayer() {
                     title={m.title}
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
                     style={{
-                      width: 78,
-                      height: 112,
+                      width: 130,
+                      height: 186,
                       transform: `translate3d(${x}px, ${y}px, ${z}px) scale(${scale})`,
                       opacity,
                       zIndex: Math.round(depth * 1000),
@@ -471,6 +534,25 @@ export default function TabletTrailerPlayer() {
                   onChange={(e) => { setBgColor(e.target.value); setBgMode("color"); }}
                   className="w-8 h-8 rounded cursor-pointer bg-transparent"
                 />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="uppercase tracking-widest text-[10px] text-white/70">Décors</label>
+                <input
+                  type="color"
+                  value={decorColor}
+                  onChange={(e) => setDecorColor(e.target.value)}
+                  className="w-8 h-8 rounded cursor-pointer bg-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => setDecorOn((s) => s.map(() => true))}
+                  className="text-[10px] underline text-white/70"
+                >Tout allumer</button>
+                <button
+                  type="button"
+                  onClick={() => setDecorOn((s) => s.map(() => false))}
+                  className="text-[10px] underline text-white/70"
+                >Éteindre</button>
               </div>
               <label className="inline-flex items-center gap-2 cursor-pointer">
                 <span className="uppercase tracking-widest text-[10px] text-white/70">Image / Vidéo</span>
