@@ -255,9 +255,9 @@ export default function TabletTrailerPlayer() {
   // has its own screen slot (no stacking, no hidden cards behind others).
   const catalogue = useMemo(() => items.slice(0, 1500), [items]);
   const count = Math.max(catalogue.length, 1);
-  const VISIBLE_SLOTS = 13; // odd → nice symmetric center card
-  const helixWidth = 1400;
-  const helixRadius = 80;
+  const VISIBLE_SLOTS = 11; // odd → nice symmetric center card
+  const helixWidth = 1500;
+  const helixRadius = 110;
   const slotStep = helixWidth / VISIBLE_SLOTS;
 
   const onSelect = (m: Media) => {
@@ -320,7 +320,7 @@ export default function TabletTrailerPlayer() {
       <div
         className="relative w-full select-none mt-4 rounded-2xl"
         style={{
-          height: 260,
+          height: 360,
           perspective: "1400px",
           overflow: "hidden",
           background: bgMode === "color" ? bgColor : "transparent",
