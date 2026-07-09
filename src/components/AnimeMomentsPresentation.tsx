@@ -146,6 +146,28 @@ export const AnimeMomentsPresentation = () => {
   const [spots, setSpots] = useState<boolean[]>([true, true, true]);
   const toggleSpot = (i: number) =>
     setSpots((s) => s.map((v, idx) => (idx === i ? !v : v)));
+
+  // 50 interactive edge decorations — variation cycles every 29 s.
+  const DECOR_COUNT = 50;
+  const DECOR_VARIANTS = [
+    "✦","✧","✩","✪","✫","✬","✭","✮","✯","★",
+    "❋","❊","❉","❈","❇","✺","✹","✸","✷","✶",
+    "❄","❅","❆","☾","☽","♡","♥","◈","◇","◆",
+    "▲","△","▼","▽","●","○","◉","◎","☀","☂",
+    "⚡","☘","❀","✿","❁","❃","✾","✽","❂","☄",
+  ];
+  const [decorOn, setDecorOn] = useState<boolean[]>(
+    () => Array.from({ length: DECOR_COUNT }, () => true),
+  );
+  const [decorTick, setDecorTick] = useState(0);
+  const [decorColor, setDecorColor] = useState<string>("#f0abfc");
+  useEffect(() => {
+    const id = setInterval(() => setDecorTick((t) => t + 1), 29000);
+    return () => clearInterval(id);
+  }, []);
+  const toggleDecor = (i: number) =>
+    setDecorOn((s) => s.map((v, idx) => (idx === i ? !v : v)));
+
   type BgMode = "video" | "color" | "media";
   const [bgMode, setBgMode] = useState<BgMode>("video");
   const [bgColor, setBgColor] = useState("#0b0b16");
@@ -331,6 +353,39 @@ export const AnimeMomentsPresentation = () => {
             </button>
           ))}
 
+          {/* Decorative side ornaments — 25 left / 25 right, varying every 29s */}
+          {Array.from({ length: DECOR_COUNT }).map((_, i) => {
+            const side = i % 2 === 0 ? "left" : "right";
+            const rowIndex = Math.floor(i / 2); // 0..24
+            const variantIdx =
+              (i + decorTick * 7 + rowIndex * 3) % DECOR_VARIANTS.length;
+            const glyph = DECOR_VARIANTS[variantIdx];
+            const on = decorOn[i];
+            const basePct = 3 + rowIndex * 3.8;
+            const size = 14 + ((i * 37) % 14);
+            return (
+              <button
+                key={`decor-${i}`}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); toggleDecor(i); }}
+                aria-label={`Décor ${i + 1}`}
+                className="absolute z-30 leading-none transition-all duration-500"
+                style={{
+                  [side]: `${2 + ((i * 13) % 26)}px` as any,
+                  top: `${basePct}%`,
+                  fontSize: size,
+                  color: on ? decorColor : "rgba(255,255,255,0.18)",
+                  textShadow: on
+                    ? `0 0 10px ${decorColor}, 0 0 22px ${decorColor}`
+                    : "none",
+                  opacity: on ? 1 : 0.35,
+                }}
+              >
+                {glyph}
+              </button>
+            );
+          })}
+
           {/* Background customization panel */}
           <div className="absolute bottom-16 right-4 sm:right-6 z-30 flex flex-col items-end gap-2">
             {showBgPanel && (
@@ -353,6 +408,25 @@ export const AnimeMomentsPresentation = () => {
                     className="text-[10px] file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-white/10 file:text-white"
                   />
                 </label>
+                <div className="flex items-center gap-2">
+                  <label className="uppercase tracking-widest text-[10px] text-white/70">Décors</label>
+                  <input
+                    type="color"
+                    value={decorColor}
+                    onChange={(e) => setDecorColor(e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer bg-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setDecorOn((s) => s.map(() => true))}
+                    className="text-[10px] underline text-white/70"
+                  >Tout allumer</button>
+                  <button
+                    type="button"
+                    onClick={() => setDecorOn((s) => s.map(() => false))}
+                    className="text-[10px] underline text-white/70"
+                  >Éteindre</button>
+                </div>
                 <label className="inline-flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
