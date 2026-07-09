@@ -146,6 +146,28 @@ export const AnimeMomentsPresentation = () => {
   const [spots, setSpots] = useState<boolean[]>([true, true, true]);
   const toggleSpot = (i: number) =>
     setSpots((s) => s.map((v, idx) => (idx === i ? !v : v)));
+
+  // 50 interactive edge decorations — variation cycles every 29 s.
+  const DECOR_COUNT = 50;
+  const DECOR_VARIANTS = [
+    "✦","✧","✩","✪","✫","✬","✭","✮","✯","★",
+    "❋","❊","❉","❈","❇","✺","✹","✸","✷","✶",
+    "❄","❅","❆","☾","☽","♡","♥","◈","◇","◆",
+    "▲","△","▼","▽","●","○","◉","◎","☀","☂",
+    "⚡","☘","❀","✿","❁","❃","✾","✽","❂","☄",
+  ];
+  const [decorOn, setDecorOn] = useState<boolean[]>(
+    () => Array.from({ length: DECOR_COUNT }, () => true),
+  );
+  const [decorTick, setDecorTick] = useState(0);
+  const [decorColor, setDecorColor] = useState<string>("#f0abfc");
+  useEffect(() => {
+    const id = setInterval(() => setDecorTick((t) => t + 1), 29000);
+    return () => clearInterval(id);
+  }, []);
+  const toggleDecor = (i: number) =>
+    setDecorOn((s) => s.map((v, idx) => (idx === i ? !v : v)));
+
   type BgMode = "video" | "color" | "media";
   const [bgMode, setBgMode] = useState<BgMode>("video");
   const [bgColor, setBgColor] = useState("#0b0b16");
