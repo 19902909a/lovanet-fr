@@ -446,8 +446,8 @@ export default function TabletTrailerPlayer() {
                     title={m.title}
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
                     style={{
-                      width: 78,
-                      height: 112,
+                      width: 130,
+                      height: 186,
                       transform: `translate3d(${x}px, ${y}px, ${z}px) scale(${scale})`,
                       opacity,
                       zIndex: Math.round(depth * 1000),
