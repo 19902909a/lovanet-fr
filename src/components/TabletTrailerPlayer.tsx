@@ -67,6 +67,29 @@ export default function TabletTrailerPlayer() {
   const [spots, setSpots] = useState<boolean[]>([true, true, true]);
   const toggleSpot = (i: number) =>
     setSpots((s) => s.map((v, idx) => (idx === i ? !v : v)));
+
+  // 50 decorative side ornaments — alternate left/right, cycle a new variation
+  // every 29 seconds. Each can be toggled on/off like the spots.
+  const DECOR_COUNT = 50;
+  const DECOR_VARIANTS = [
+    "✦", "✧", "✩", "✪", "✫", "✬", "✭", "✮", "✯", "★",
+    "❋", "❊", "❉", "❈", "❇", "✺", "✹", "✸", "✷", "✶",
+    "❄", "❅", "❆", "☾", "☽", "♡", "♥", "◈", "◇", "◆",
+    "▲", "△", "▼", "▽", "●", "○", "◉", "◎", "☀", "☂",
+    "⚡", "☘", "❀", "✿", "❁", "❃", "❄", "✾", "✽", "❂",
+  ];
+  const [decorOn, setDecorOn] = useState<boolean[]>(
+    () => Array.from({ length: DECOR_COUNT }, () => true),
+  );
+  const [decorTick, setDecorTick] = useState(0);
+  const [decorColor, setDecorColor] = useState<string>("#f0abfc");
+  useEffect(() => {
+    const id = setInterval(() => setDecorTick((t) => t + 1), 29000);
+    return () => clearInterval(id);
+  }, []);
+  const toggleDecor = (i: number) =>
+    setDecorOn((s) => s.map((v, idx) => (idx === i ? !v : v)));
+
   const onPickMedia = (file: File) => {
     const url = URL.createObjectURL(file);
     setBgMedia(url);
