@@ -353,6 +353,39 @@ export const AnimeMomentsPresentation = () => {
             </button>
           ))}
 
+          {/* Decorative side ornaments — 25 left / 25 right, varying every 29s */}
+          {Array.from({ length: DECOR_COUNT }).map((_, i) => {
+            const side = i % 2 === 0 ? "left" : "right";
+            const rowIndex = Math.floor(i / 2); // 0..24
+            const variantIdx =
+              (i + decorTick * 7 + rowIndex * 3) % DECOR_VARIANTS.length;
+            const glyph = DECOR_VARIANTS[variantIdx];
+            const on = decorOn[i];
+            const basePct = 3 + rowIndex * 3.8;
+            const size = 14 + ((i * 37) % 14);
+            return (
+              <button
+                key={`decor-${i}`}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); toggleDecor(i); }}
+                aria-label={`Décor ${i + 1}`}
+                className="absolute z-30 leading-none transition-all duration-500"
+                style={{
+                  [side]: `${2 + ((i * 13) % 26)}px` as any,
+                  top: `${basePct}%`,
+                  fontSize: size,
+                  color: on ? decorColor : "rgba(255,255,255,0.18)",
+                  textShadow: on
+                    ? `0 0 10px ${decorColor}, 0 0 22px ${decorColor}`
+                    : "none",
+                  opacity: on ? 1 : 0.35,
+                }}
+              >
+                {glyph}
+              </button>
+            );
+          })}
+
           {/* Background customization panel */}
           <div className="absolute bottom-16 right-4 sm:right-6 z-30 flex flex-col items-end gap-2">
             {showBgPanel && (
