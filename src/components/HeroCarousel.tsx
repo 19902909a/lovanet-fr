@@ -313,7 +313,10 @@ export const HeroCarousel = () => {
     const centerX = size.w * (isConstrained ? 0.5 : 0.62);
     const centerY = size.h * (isConstrained ? 0.48 : 0.42);
     const radius = Math.max(isConstrained ? 138 : 200, Math.min(size.w * (isConstrained ? 0.32 : 0.28), size.h * 0.55));
-    const cardW = Math.max(isConstrained ? 200 : 300, Math.min(radius * 1.55, size.w * (isConstrained ? 0.82 : 0.42), isConstrained ? 340 : 560));
+    const cardW = Math.max(
+      isConstrained ? 260 : 400,
+      Math.min(radius * 2.0, size.w * (isConstrained ? 0.9 : 0.55), isConstrained ? 440 : 760),
+    );
     return { centerX, centerY, radius, cardW, cardH: (cardW * 9) / 16 };
   }, [isConstrained, size.h, size.w]);
 
