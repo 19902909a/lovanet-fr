@@ -212,7 +212,8 @@ const buildVariants = (): Variant[] => {
         label: key,
         buildKey: key,
         tint: TINTS[(key.length + k) % TINTS.length],
-        scaleMul: 0.9 + Math.random() * 0.3,
+        // Objets/bâtiments légèrement plus petits que les humanoïdes.
+        scaleMul: 0.55 + Math.random() * 0.2,
       });
     }
   });
