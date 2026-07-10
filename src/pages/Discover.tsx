@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PageShell } from "@/components/PageShell";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
 import { videos, thumb } from "@/data/videos";
-import { ShoppingBag, Youtube, Music2, Play, Film, Calendar, Sparkles } from "lucide-react";
+import { ShoppingBag, Youtube, Music2, Play, Film, Calendar, Sparkles, ArrowRight } from "lucide-react";
 
 /**
  * /decouvrir — SEO landing page.
@@ -39,15 +39,29 @@ const Discover = () => {
     canonical.href = "https://lovanet.fr/decouvrir";
   }, []);
 
-  const sections = [
-    { to: "/shop", label: "Boutique 360°", desc: `${SHOP_PRODUCTS.length} produits officiels`, icon: ShoppingBag },
-    { to: "/chaine-youtube", label: "Chaîne YouTube", desc: "Vidéos longues & shorts", icon: Youtube },
-    { to: "/tiktok", label: "TikTok", desc: "Shorts verticaux", icon: Music2 },
-    { to: "/prime-video", label: "Prime Video", desc: "Lecture immersive", icon: Play },
-    { to: "/lecteurs-video", label: "Lecteur vidéo", desc: "Player anime", icon: Film },
-    { to: "/anime-countdown", label: "Animés à venir", desc: "Countdown live", icon: Calendar },
-    { to: "/anime-catalog", label: "Catalogue animés", desc: "5000+ titres", icon: Sparkles },
+  const sections: Array<{
+    to: string; label: string; tagline: string; desc: string; icon: any;
+    grad: string; accent: string; emoji: string;
+  }> = [
+    { to: "/chaine-youtube", label: "AnimemomentsAnimeofficiel", tagline: "YouTube officiel", desc: "Edits, trailers & épisodes en HD", icon: Youtube, grad: "from-red-500/40 via-rose-500/20 to-transparent", accent: "#ef4444", emoji: "▶️" },
+    { to: "/tiktok", label: "Anime.Moments.officiel", tagline: "TikTok · shorts viraux", desc: "Shorts verticaux, edits & moments cultes", icon: Music2, grad: "from-fuchsia-500/40 via-cyan-400/20 to-transparent", accent: "#e879f9", emoji: "🎵" },
+    { to: "/prime-video", label: "Prime Video", tagline: "Séances immersives", desc: "Lecture cinéma en pleine page", icon: Play, grad: "from-sky-500/40 via-blue-500/20 to-transparent", accent: "#38bdf8", emoji: "🎬" },
+    { to: "/anime-countdown", label: "À venir", tagline: "Countdown live", desc: "Prochaines sorties anime en direct", icon: Calendar, grad: "from-amber-500/40 via-orange-500/20 to-transparent", accent: "#fbbf24", emoji: "⏳" },
+    { to: "/anime-catalog", label: "Catalogue", tagline: "1500+ animés", desc: "Fiches, trailers, synopsis complets", icon: Sparkles, grad: "from-violet-500/40 via-indigo-500/20 to-transparent", accent: "#a78bfa", emoji: "📚" },
+    { to: "/", label: "Univers Lovanet", tagline: "Accueil immersif", desc: "Le hub 3D avec hologrammes & carrousel", icon: Film, grad: "from-emerald-500/40 via-teal-500/20 to-transparent", accent: "#34d399", emoji: "🌌" },
+    { to: "/shop", label: "Shop", tagline: "Collector officiel", desc: `${SHOP_PRODUCTS.length} pièces exclusives · édition limitée`, icon: ShoppingBag, grad: "from-pink-500/40 via-rose-500/20 to-transparent", accent: "#f472b6", emoji: "🛍️" },
   ];
+
+  // Rotating hero showcase — cycles through featured video thumbnails.
+  const heroVideos = videos.slice(0, 6);
+  const [heroIdx, setHeroIdx] = useState(0);
+  useEffect(() => {
+    if (!heroVideos.length) return;
+    const t = setInterval(() => setHeroIdx((i) => (i + 1) % heroVideos.length), 4200);
+    return () => clearInterval(t);
+  }, [heroVideos.length]);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   const itemListLd = {
     "@context": "https://schema.org",
@@ -132,78 +146,234 @@ const Discover = () => {
         />
       ))}
 
-      <section className="container mx-auto px-4 py-10">
-        <h1 className="text-3xl md:text-5xl font-display font-bold gradient-text mb-2">
-          Univers Lovanet — AnimemomentsAnimeofficiel
-        </h1>
-        <p className="text-sm text-muted-foreground mb-8">
-          Vidéos · Shorts · Boutique · Animés · Catalogue
-        </p>
-
-        <nav aria-label="Sections" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-12">
-          {sections.map((s) => (
-            <Link key={s.to} to={s.to} className="group rounded-2xl border border-border bg-card/60 hover:border-primary p-4 transition-all hover:-translate-y-1">
-              <s.icon className="w-6 h-6 mb-2 text-primary" />
-              <div className="text-sm font-semibold">{s.label}</div>
-              <div className="text-[11px] text-muted-foreground">{s.desc}</div>
-            </Link>
+      {/* Hidden SEO index — crawlable but not shown to visitors */}
+      <div className="sr-only" aria-hidden="true">
+        <ul>
+          {videos.map((v) => (
+            <li key={`seo-v-${v.id}`} itemScope itemType="https://schema.org/VideoObject">
+              <a href={`https://www.youtube.com/watch?v=${v.id}`}>
+                <img src={thumb(v.id)} alt={`${v.title} — ${v.series}`} itemProp="thumbnailUrl" />
+                <span itemProp="name">{v.title}</span>
+                <span itemProp="description">{v.series} · {v.episode}</span>
+              </a>
+            </li>
           ))}
-        </nav>
-
-        <h2 className="text-2xl font-display font-bold mb-4">Vidéos & shorts</h2>
-        <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-12" itemScope itemType="https://schema.org/ItemList">
-          {videos.map((v, i) => (
-            <li key={v.id} itemProp="itemListElement" itemScope itemType="https://schema.org/VideoObject" className="rounded-xl overflow-hidden border border-border bg-card group">
-              <meta itemProp="position" content={String(i + 1)} />
-              <a href={`https://www.youtube.com/watch?v=${v.id}`} target="_blank" rel="noopener" className="block">
-                <img
-                  src={thumb(v.id)}
-                  alt={`${v.title} — ${v.series}`}
-                  loading="lazy"
-                  width={480}
-                  height={360}
-                  itemProp="thumbnailUrl"
-                  className="w-full aspect-video object-cover group-hover:scale-105 transition-transform"
-                />
-                <div className="p-2">
-                  <div className="text-xs font-semibold truncate" itemProp="name">{v.title}</div>
-                  <div className="text-[10px] text-muted-foreground" itemProp="description">{v.series} · {v.episode}</div>
-                </div>
-                <meta itemProp="uploadDate" content={v.date ?? "2026-01-01"} />
-                <meta itemProp="contentUrl" content={`https://www.youtube.com/watch?v=${v.id}`} />
-                <meta itemProp="embedUrl" content={`https://www.youtube.com/embed/${v.id}`} />
+          {SHOP_PRODUCTS.map((p) => (
+            <li key={`seo-p-${p.id}`} itemScope itemType="https://schema.org/Product">
+              <a href={`https://lovanet.fr/shop#${p.id}`}>
+                <img src={`/products/${p.id}.svg`} alt={`${p.name} — ${categoryLabel(p.category)}`} itemProp="image" />
+                <span itemProp="name">{p.name}</span>
+                <span itemProp="description">{p.description}</span>
               </a>
             </li>
           ))}
         </ul>
+      </div>
 
-        <h2 className="text-2xl font-display font-bold mb-4">Boutique — {SHOP_PRODUCTS.length} produits</h2>
-        <ul className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {SHOP_PRODUCTS.map((p) => (
-            <li key={p.id} itemScope itemType="https://schema.org/Product" className="rounded-xl overflow-hidden border border-border bg-card group">
-              <Link to={`/shop#${p.id}`}>
-                <img
-                  src={`/products/${p.id}.svg`}
-                  alt={`${p.name} — ${categoryLabel(p.category)} AnimemomentsAnimeofficiel`}
-                  loading="lazy"
-                  width={400}
-                  height={400}
-                  itemProp="image"
-                  className="w-full aspect-square object-cover bg-black/30 group-hover:scale-105 transition-transform"
-                />
-                <div className="p-2">
-                  <div className="text-[11px] text-muted-foreground">{categoryLabel(p.category)}</div>
-                  <div className="text-xs font-semibold truncate" itemProp="name">{p.name}</div>
-                  <div className="text-xs text-primary" itemProp="offers" itemScope itemType="https://schema.org/Offer">
-                    <span itemProp="price">{p.price.toFixed(2)}</span> <span itemProp="priceCurrency">EUR</span>
+      {/* HERO — animated banner */}
+      <section className="relative overflow-hidden">
+        <div
+          ref={heroRef}
+          onMouseMove={(e) => {
+            const r = heroRef.current?.getBoundingClientRect();
+            if (!r) return;
+            const x = ((e.clientX - r.left) / r.width - 0.5) * 2;
+            const y = ((e.clientY - r.top) / r.height - 0.5) * 2;
+            setTilt({ x, y });
+          }}
+          onMouseLeave={() => setTilt({ x: 0, y: 0 })}
+          className="relative container mx-auto px-4 pt-10 pb-16 md:pt-16 md:pb-24"
+          style={{ perspective: "1400px" }}
+        >
+          {/* Aurora blobs */}
+          <div aria-hidden className="absolute -top-24 -left-24 w-[520px] h-[520px] rounded-full blur-3xl opacity-40 animate-pulse"
+            style={{ background: "radial-gradient(circle, #e879f9 0%, transparent 60%)" }} />
+          <div aria-hidden className="absolute top-10 right-0 w-[480px] h-[480px] rounded-full blur-3xl opacity-30 animate-pulse"
+            style={{ background: "radial-gradient(circle, #38bdf8 0%, transparent 60%)", animationDelay: "1.5s" }} />
+          <div aria-hidden className="absolute bottom-0 left-1/3 w-[420px] h-[420px] rounded-full blur-3xl opacity-30 animate-pulse"
+            style={{ background: "radial-gradient(circle, #a78bfa 0%, transparent 60%)", animationDelay: "3s" }} />
+
+          <div className="relative grid lg:grid-cols-[1.1fr,1fr] gap-8 lg:gap-12 items-center">
+            <div className="relative z-10">
+              <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] px-3 py-1 rounded-full border border-fuchsia-400/40 text-fuchsia-300 bg-fuchsia-500/10 backdrop-blur mb-6">
+                <Sparkles className="w-3 h-3" /> Univers officiel · 2026
+              </span>
+              <h1
+                className="font-display font-black leading-[0.95] mb-5 text-4xl md:text-6xl lg:text-7xl"
+                style={{
+                  background: "linear-gradient(120deg, #f0abfc 0%, #67e8f9 45%, #fde68a 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  filter: "drop-shadow(0 6px 30px rgba(240,171,252,0.35))",
+                }}
+              >
+                Anime.Moments.officiel<br />
+                <span className="text-2xl md:text-3xl lg:text-4xl font-semibold opacity-90">: Lovanet Univers</span>
+              </h1>
+              <p className="text-base md:text-lg text-white/85 max-w-xl mb-3 leading-relaxed">
+                <span className="text-fuchsia-300 font-semibold">Lovanet</span> — le hub officiel :
+                <span className="text-red-300 font-semibold"> AnimemomentsAnimeofficiel</span> sur YouTube,
+                <span className="text-cyan-300 font-semibold"> Anime.Moments.officiel</span> sur TikTok,
+                Prime Video, catalogue 1500+ animés & boutique collector.
+              </p>
+              <p className="text-xs md:text-sm text-white/55 max-w-xl mb-8">
+                Un seul lien pour toutes les plateformes · Edits · Trailers · Merch officiel
+              </p>
+
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  to="/anime-catalog"
+                  className="group inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm text-white transition-transform hover:scale-105"
+                  style={{
+                    background: "linear-gradient(135deg, #e879f9, #8b5cf6)",
+                    boxShadow: "0 20px 40px -12px rgba(232,121,249,0.6)",
+                  }}
+                >
+                  Explorer le catalogue
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+                <Link
+                  to="/shop"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm text-white border border-white/20 bg-white/5 backdrop-blur hover:bg-white/10 transition-colors"
+                >
+                  <ShoppingBag className="w-4 h-4" /> Boutique collector
+                </Link>
+              </div>
+            </div>
+
+            {/* 3D showcase card cluster */}
+            <div
+              className="relative h-[340px] md:h-[420px] lg:h-[480px]"
+              style={{ transformStyle: "preserve-3d", transform: `rotateX(${tilt.y * -6}deg) rotateY(${tilt.x * 8}deg)`, transition: "transform 0.2s ease-out" }}
+            >
+              {heroVideos.map((v, i) => {
+                const isActive = i === heroIdx;
+                const rel = (i - heroIdx + heroVideos.length) % heroVideos.length;
+                const offset = rel > heroVideos.length / 2 ? rel - heroVideos.length : rel;
+                return (
+                  <div
+                    key={v.id}
+                    className="absolute top-1/2 left-1/2 rounded-3xl overflow-hidden border transition-all duration-700"
+                    style={{
+                      width: "min(78%, 340px)",
+                      aspectRatio: "16/10",
+                      transform: `translate(-50%, -50%) translateX(${offset * 40}px) translateY(${Math.abs(offset) * 24}px) translateZ(${-Math.abs(offset) * 120}px) rotateY(${offset * -12}deg) scale(${isActive ? 1 : 0.85 - Math.abs(offset) * 0.05})`,
+                      opacity: Math.abs(offset) > 2 ? 0 : 1 - Math.abs(offset) * 0.25,
+                      borderColor: isActive ? "rgba(240,171,252,0.7)" : "rgba(255,255,255,0.15)",
+                      boxShadow: isActive
+                        ? "0 40px 80px -20px rgba(232,121,249,0.55), 0 0 0 1px rgba(240,171,252,0.4) inset"
+                        : "0 20px 40px -12px rgba(0,0,0,0.6)",
+                      zIndex: 10 - Math.abs(offset),
+                    }}
+                  >
+                    <img src={thumb(v.id)} alt={v.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <div className="text-[10px] uppercase tracking-widest text-fuchsia-300 mb-1">{v.channel}</div>
+                      <div className="text-sm font-semibold text-white line-clamp-2">{v.title}</div>
+                    </div>
+                    {isActive && (
+                      <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/20 backdrop-blur border border-white/40 grid place-items-center">
+                        <Play className="w-4 h-4 text-white fill-white" />
+                      </div>
+                    )}
                   </div>
+                );
+              })}
+              {/* Floating glow ring */}
+              <div aria-hidden className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[80%] rounded-full opacity-40 blur-2xl pointer-events-none"
+                style={{ background: "conic-gradient(from 0deg, #e879f9, #38bdf8, #fde68a, #e879f9)" }} />
+            </div>
+          </div>
+        </div>
+
+        {/* wave divider */}
+        <div aria-hidden className="h-px w-full" style={{ background: "linear-gradient(90deg, transparent, rgba(240,171,252,0.5), transparent)" }} />
+      </section>
+
+      {/* SECTIONS DÉDIÉES — premium cards */}
+      <section className="container mx-auto px-4 py-14 md:py-20">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.35em] text-fuchsia-300 mb-2">Explorer</div>
+            <h2 className="font-display text-3xl md:text-4xl font-black text-white">Sections dédiées</h2>
+          </div>
+          <p className="text-sm text-white/60 max-w-md">Chaque univers a sa propre page — vidéos, edits, trailers, produits et actualités.</p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6" style={{ perspective: "1200px" }}>
+          {sections.map((s, i) => (
+            <Link
+              key={s.to}
+              to={s.to}
+              className="group relative rounded-3xl overflow-hidden border border-white/10 bg-white/[0.03] backdrop-blur-sm p-6 md:p-7 min-h-[220px] flex flex-col justify-between transition-all duration-500 hover:-translate-y-2 hover:border-white/25"
+              style={{
+                transformStyle: "preserve-3d",
+                boxShadow: "0 20px 60px -30px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.03) inset",
+              }}
+            >
+              {/* animated gradient wash */}
+              <div aria-hidden className={`absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity bg-gradient-to-br ${s.grad}`} />
+              {/* shine sweep */}
+              <div aria-hidden className="absolute -inset-x-1 -top-1 h-24 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ background: `linear-gradient(180deg, ${s.accent}22, transparent)` }} />
+              {/* corner glyph */}
+              <div aria-hidden className="absolute -bottom-8 -right-8 text-[140px] leading-none opacity-10 group-hover:opacity-25 transition-opacity select-none">
+                {s.emoji}
+              </div>
+
+              <div className="relative z-10 flex items-start justify-between">
+                <div
+                  className="w-12 h-12 rounded-2xl grid place-items-center border border-white/15 backdrop-blur"
+                  style={{ background: `${s.accent}22`, boxShadow: `0 0 24px ${s.accent}55` }}
+                >
+                  <s.icon className="w-5 h-5" style={{ color: s.accent }} />
                 </div>
-                <meta itemProp="description" content={p.description} />
-                <link itemProp="url" href={`https://lovanet.fr/shop#${p.id}`} />
-              </Link>
-            </li>
+                <span className="text-2xl" aria-hidden>{s.emoji}</span>
+              </div>
+
+              <div className="relative z-10 mt-6">
+                <div className="text-[10px] uppercase tracking-[0.3em] mb-2" style={{ color: s.accent }}>
+                  {s.tagline}
+                </div>
+                <div className="font-display text-xl md:text-2xl font-bold text-white mb-2 leading-tight break-words">
+                  {s.label}
+                </div>
+                <div className="text-xs md:text-sm text-white/65 leading-relaxed">{s.desc}</div>
+              </div>
+
+              <div className="relative z-10 mt-5 inline-flex items-center gap-2 text-xs font-semibold text-white/80 group-hover:text-white transition-colors">
+                Découvrir
+                <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+              </div>
+            </Link>
           ))}
-        </ul>
+        </div>
+      </section>
+
+      {/* Closing CTA strip */}
+      <section className="container mx-auto px-4 pb-16">
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 p-8 md:p-12 text-center"
+          style={{ background: "radial-gradient(ellipse at center, rgba(232,121,249,0.18), rgba(56,189,248,0.08) 60%, transparent)" }}>
+          <div aria-hidden className="absolute inset-0 opacity-40"
+            style={{ background: "conic-gradient(from 90deg at 50% 50%, transparent, rgba(240,171,252,0.15), transparent 40%)" }} />
+          <h3 className="relative font-display text-2xl md:text-4xl font-black text-white mb-3">
+            Tout l'univers Lovanet en un clic
+          </h3>
+          <p className="relative text-sm md:text-base text-white/70 max-w-xl mx-auto mb-6">
+            YouTube · TikTok · Prime · Catalogue · Shop — connectés au même hub officiel.
+          </p>
+          <Link
+            to="/"
+            className="relative inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm text-white transition-transform hover:scale-105"
+            style={{
+              background: "linear-gradient(135deg, #e879f9, #38bdf8)",
+              boxShadow: "0 20px 40px -12px rgba(232,121,249,0.5)",
+            }}
+          >
+            Retour à l'accueil <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </section>
     </PageShell>
   );
