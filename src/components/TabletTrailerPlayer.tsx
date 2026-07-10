@@ -54,6 +54,7 @@ export default function TabletTrailerPlayer() {
   const [current, setCurrent] = useState<Media | null>(null);
   const playedRef = useRef<Set<string>>(new Set());
   const [phase, setPhase] = useState(0); // 0..1 flow along the 3D spiral
+  const [previewItem, setPreviewItem] = useState<Media | null>(null);
   const draggingRef = useRef<{ x: number; a: number; moved?: boolean } | null>(null);
   const playerHostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -257,12 +258,11 @@ export default function TabletTrailerPlayer() {
   const count = Math.max(catalogue.length, 1);
   const VISIBLE_SLOTS = 11; // odd → nice symmetric center card
   const helixWidth = 1500;
-  const helixRadius = 110;
+  const helixRadius = 92;
   const slotStep = helixWidth / VISIBLE_SLOTS;
 
   const onSelect = (m: Media) => {
-    playedRef.current.add(m.ytId);
-    setCurrent(m);
+    setPreviewItem(m);
   };
 
   return (
@@ -318,6 +318,7 @@ export default function TabletTrailerPlayer() {
 
       {/* 3D spiral trailer strip BELOW the tablet — drifts slowly to the right */}
       <div
+        data-hologram-block
         className="relative w-full select-none mt-4 rounded-2xl"
         style={{
           height: 360,
@@ -486,8 +487,8 @@ export default function TabletTrailerPlayer() {
                     title={m.title}
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
                     style={{
-                      width: 130,
-                      height: 186,
+                      width: 108,
+                      height: 154,
                       transform: `translate3d(${x}px, ${y}px, ${z}px) scale(${scale})`,
                       opacity,
                       zIndex: Math.round(depth * 1000),
@@ -583,6 +584,54 @@ export default function TabletTrailerPlayer() {
           </button>
         </div>
       </div>
+
+      {/* Fullscreen preview modal for clicked thumbnail */}
+      {previewItem && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Aperçu : ${previewItem.title}`}
+          className="fixed inset-0 z-[2147483600] bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={() => setPreviewItem(null)}
+        >
+          <div
+            className="relative w-full max-w-6xl aspect-video rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-black"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${previewItem.ytId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+              title={previewItem.title}
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+            <div className="absolute top-3 right-3 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  playedRef.current.add(previewItem.ytId);
+                  setCurrent(previewItem);
+                  setPreviewItem(null);
+                }}
+                className="px-3 py-1.5 rounded-full text-[11px] uppercase tracking-widest bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur"
+              >
+                Lire sur la tablette
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewItem(null)}
+                aria-label="Fermer"
+                className="w-9 h-9 grid place-items-center rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur text-lg leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <div className="absolute bottom-3 left-4 right-4 text-white text-sm truncate pointer-events-none">
+              {previewItem.title}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
