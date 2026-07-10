@@ -314,8 +314,8 @@ export const HeroCarousel = () => {
     const centerY = size.h * (isConstrained ? 0.48 : 0.42);
     const radius = Math.max(isConstrained ? 138 : 200, Math.min(size.w * (isConstrained ? 0.32 : 0.28), size.h * 0.55));
     const cardW = Math.max(
-      isConstrained ? 260 : 400,
-      Math.min(radius * 2.0, size.w * (isConstrained ? 0.9 : 0.55), isConstrained ? 440 : 760),
+      isConstrained ? 220 : 340,
+      Math.min(radius * 1.7, size.w * (isConstrained ? 0.78 : 0.48), isConstrained ? 380 : 640),
     );
     return { centerX, centerY, radius, cardW, cardH: (cardW * 9) / 16 };
   }, [isConstrained, size.h, size.w]);
@@ -444,6 +444,7 @@ export const HeroCarousel = () => {
   return (
     <div
       ref={containerRef}
+      data-hologram-block
       className={`relative w-full h-[380px] sm:h-[560px] lg:h-[640px] overflow-hidden touch-pan-y select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 rounded-xl ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
       style={{ perspective: isConstrained ? 900 : 1400, perspectiveOrigin: "50% 50%" }}
       role="region"
