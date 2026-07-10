@@ -591,11 +591,11 @@ export default function TabletTrailerPlayer() {
           role="dialog"
           aria-modal="true"
           aria-label={`Aperçu : ${previewItem.title}`}
-          className="fixed inset-0 z-[2147483600] bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 z-[2147483600] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4"
           onClick={() => setPreviewItem(null)}
         >
           <div
-            className="relative w-full max-w-6xl aspect-video rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-black"
+            className="relative w-full max-w-6xl max-h-[90vh] aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-black"
             onClick={(e) => e.stopPropagation()}
           >
             <iframe
@@ -605,7 +605,7 @@ export default function TabletTrailerPlayer() {
               allowFullScreen
               className="absolute inset-0 w-full h-full"
             />
-            <div className="absolute top-3 right-3 flex items-center gap-2">
+            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex items-center gap-1.5 sm:gap-2">
               <button
                 type="button"
                 onClick={() => {
@@ -613,20 +613,21 @@ export default function TabletTrailerPlayer() {
                   setCurrent(previewItem);
                   setPreviewItem(null);
                 }}
-                className="px-3 py-1.5 rounded-full text-[11px] uppercase tracking-widest bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur"
+                className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-[11px] uppercase tracking-widest bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur"
               >
-                Lire sur la tablette
+                <span className="hidden sm:inline">Lire sur la tablette</span>
+                <span className="sm:hidden">Lire</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPreviewItem(null)}
                 aria-label="Fermer"
-                className="w-9 h-9 grid place-items-center rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur text-lg leading-none"
+                className="w-8 h-8 sm:w-9 sm:h-9 grid place-items-center rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/25 backdrop-blur text-lg leading-none"
               >
                 ×
               </button>
             </div>
-            <div className="absolute bottom-3 left-4 right-4 text-white text-sm truncate pointer-events-none">
+            <div className="absolute bottom-2 sm:bottom-3 left-3 right-3 sm:left-4 sm:right-4 text-white text-xs sm:text-sm truncate pointer-events-none">
               {previewItem.title}
             </div>
           </div>
