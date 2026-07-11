@@ -298,7 +298,7 @@ export default function TabletTrailerPlayer() {
         />
         {/* Screen — full video area */}
         <div
-          className="relative w-full rounded-2xl overflow-hidden bg-black"
+          className="relative w-full rounded-2xl overflow-hidden bg-black/60"
           style={{ height: "calc(100% - 26px)" }}
         >
           <div ref={playerHostRef} className="absolute inset-0 w-full h-full" />
