@@ -23,6 +23,7 @@ import { CartDrawer } from "./components/CartDrawer";
 import GoogleTranslate from "./components/GoogleTranslate";
 import YoutubeBrandSettings from "./components/YoutubeBrandSettings";
 import { HologramOverlay } from "./components/HologramOverlay";
+import { LocalizedHead } from "./components/LocalizedHead";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
     <TooltipProvider>
       <BrowserRouter>
         <CartProvider>
+        <LocalizedHead />
         <Toaster />
         <Sonner />
         <Routes>
