@@ -7,6 +7,21 @@ export const Footer = () => {
   const [email, setEmail] = useState("");
   return (
     <footer className="border-t border-border bg-card/40 mt-24">
+      {/* SEO — Sitelinks empilés (rendu accessible, structure crawlable) */}
+      <nav aria-label="Lovanet — Plateforme officielle dédiée à l'anime" className="container mx-auto px-4 lg:px-8 pt-10">
+        <p className="sr-only">Lovanet — Plateforme officielle dédiée à l'anime · Anime.Moments.officiel &amp; AnimemomentsAnimeofficiel · Animés à venir, Catalogue, Boutique.</p>
+        <ul className="grid gap-1 text-sm text-muted-foreground">
+          <li><Link to="/" className="hover:text-primary">Lovanet Plateforme officielle dédiée →</Link></li>
+          <li><Link to="/decouvrir" className="hover:text-primary">Univers Lovanet →</Link></li>
+          <li><Link to="/chaine-youtube" className="hover:text-primary">AnimemomentsAnimeofficiel →</Link></li>
+          <li><Link to="/prime-video" className="hover:text-primary">Anime.Moments.officiel → Prime Video</Link></li>
+          <li><Link to="/chaine-youtube" className="hover:text-primary">AnimemomentsAnimeofficiel → YouTube</Link></li>
+          <li><Link to="/tiktok" className="hover:text-primary">Anime.Moments.officiel → TikTok</Link></li>
+          <li><Link to="/shop" className="hover:text-primary">Boutique →</Link></li>
+          <li><Link to="/anime-countdown" className="hover:text-primary">À venir →</Link></li>
+          <li><Link to="/anime-catalog" className="hover:text-primary">Catalogue →</Link></li>
+        </ul>
+      </nav>
       <div className="container mx-auto px-4 lg:px-8 py-12 grid gap-10 md:grid-cols-4">
         <div className="space-y-3">
           <Link to="/" className="font-display font-extrabold tracking-wider text-lg">
