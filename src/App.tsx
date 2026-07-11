@@ -17,6 +17,7 @@ import AnimeCountdown from "./pages/AnimeCountdown";
 import AnimeCatalog from "./pages/AnimeCatalog";
 import Discover from "./pages/Discover";
 import OAuthConsent from "./pages/OAuthConsent";
+import Hologrammes from "./pages/Hologrammes";
 import { ThemeBubble } from "./components/ThemeBubble";
 import { CartProvider } from "./context/CartContext";
 import { CartDrawer } from "./components/CartDrawer";
@@ -46,6 +47,7 @@ const APP_ROUTES: Array<{ path: string; element: JSX.Element }> = [
   { path: "/anime-countdown", element: <AnimeCountdown /> },
   { path: "/anime-catalog", element: <AnimeCatalog /> },
   { path: "/decouvrir", element: <Discover /> },
+  { path: "/hologrammes", element: <Hologrammes /> },
 ];
 
 const App = () => (
