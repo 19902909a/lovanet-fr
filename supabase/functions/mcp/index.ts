@@ -3,7 +3,7 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
 
 // src/lib/mcp/tools/echo.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
@@ -471,11 +471,16 @@ var search_shop_products_default = defineTool4({
 });
 
 // src/lib/mcp/index.ts
+var projectRef = "pvgfxzzwuhjhfqsiylpr";
 var mcp_default = defineMcp({
   name: "lovanet-mcp",
   title: "Lovanet MCP",
   version: "0.1.0",
   instructions: "Tools exposing the public Lovanet catalog. Use `echo` to test connectivity, `list_shop_categories` to discover categories, `list_shop_products` to browse products, and `search_shop_products` to search by keyword, price, source, type, stock, and category.",
+  auth: auth.oauth.issuer({
+    issuer: `https://${projectRef}.supabase.co/auth/v1`,
+    acceptedAudiences: "authenticated"
+  }),
   tools: [echo_default, list_shop_categories_default, list_shop_products_default, search_shop_products_default]
 });
 

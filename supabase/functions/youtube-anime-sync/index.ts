@@ -143,6 +143,52 @@ async function analyseThumbnail(imageUrl: string): Promise<{ commentator: boolea
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
+  // --- Auth guard --------------------------------------------------------
+  // Either a shared SYNC_SECRET (cron / trusted jobs) or an admin JWT is
+  // required. The GET path runs expensive YouTube + vision-AI crawls and
+  // the POST path mutates the moderation blacklist — both must be gated.
+  const SYNC_SECRET = Deno.env.get('SYNC_SECRET');
+  const sharedHeader = req.headers.get('x-sync-secret');
+  let authorized = !!SYNC_SECRET && !!sharedHeader && sharedHeader === SYNC_SECRET;
+
+  if (!authorized) {
+    const authHeader = req.headers.get('Authorization') ?? '';
+    if (authHeader.startsWith('Bearer ')) {
+      try {
+        const authClient = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_ANON_KEY')!,
+          { global: { headers: { Authorization: authHeader } } },
+        );
+        const token = authHeader.slice('Bearer '.length);
+        const { data: claimsData } = await authClient.auth.getClaims(token);
+        const userId = claimsData?.claims?.sub;
+        if (userId) {
+          const adminCheck = createClient(
+            Deno.env.get('SUPABASE_URL')!,
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+          );
+          const { data: roleRow } = await adminCheck
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userId)
+            .eq('role', 'admin')
+            .maybeSingle();
+          authorized = !!roleRow;
+        }
+      } catch (_err) {
+        authorized = false;
+      }
+    }
+  }
+
+  if (!authorized) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   const apiKey = Deno.env.get('YOUTUBE_API_KEY');
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'YOUTUBE_API_KEY not configured' }), {
@@ -424,7 +470,8 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (e) {
-    return new Response(JSON.stringify({ error: (e as Error).message }), {
+    console.error('youtube-anime-sync error:', e);
+    return new Response(JSON.stringify({ error: 'Sync failed' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

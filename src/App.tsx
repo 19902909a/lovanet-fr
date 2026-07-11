@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import AnimeCountdown from "./pages/AnimeCountdown";
 import AnimeCatalog from "./pages/AnimeCatalog";
 import Discover from "./pages/Discover";
+import OAuthConsent from "./pages/OAuthConsent";
 import { ThemeBubble } from "./components/ThemeBubble";
 import { CartProvider } from "./context/CartContext";
 import { CartDrawer } from "./components/CartDrawer";
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/anime-countdown" element={<AnimeCountdown />} />
           <Route path="/anime-catalog" element={<AnimeCatalog />} />
           <Route path="/decouvrir" element={<Discover />} />
+          <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

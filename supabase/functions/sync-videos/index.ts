@@ -114,6 +114,52 @@ async function fetchTikTok(): Promise<Row[]> {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
+  // --- Auth guard --------------------------------------------------------
+  // Callers must either present the shared SYNC_SECRET (used by cron and
+  // internal jobs) or a Supabase JWT belonging to an admin. This prevents
+  // any anonymous user from exhausting external API quotas / DB writes.
+  const SYNC_SECRET = Deno.env.get('SYNC_SECRET');
+  const sharedHeader = req.headers.get('x-sync-secret');
+  let authorized = !!SYNC_SECRET && !!sharedHeader && sharedHeader === SYNC_SECRET;
+
+  if (!authorized) {
+    const authHeader = req.headers.get('Authorization') ?? '';
+    if (authHeader.startsWith('Bearer ')) {
+      try {
+        const authClient = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_ANON_KEY')!,
+          { global: { headers: { Authorization: authHeader } } },
+        );
+        const token = authHeader.slice('Bearer '.length);
+        const { data: claimsData } = await authClient.auth.getClaims(token);
+        const userId = claimsData?.claims?.sub;
+        if (userId) {
+          const admin = createClient(
+            Deno.env.get('SUPABASE_URL')!,
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+          );
+          const { data: roleRow } = await admin
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userId)
+            .eq('role', 'admin')
+            .maybeSingle();
+          authorized = !!roleRow;
+        }
+      } catch (_err) {
+        authorized = false;
+      }
+    }
+  }
+
+  if (!authorized) {
+    return new Response(JSON.stringify({ ok: false, error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   try {
     const YOUTUBE_API_KEY = Deno.env.get('YOUTUBE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -129,7 +175,8 @@ Deno.serve(async (req) => {
         allRows.push(...yt);
         results.push({ source: 'youtube', count: yt.length });
       } catch (e) {
-        results.push({ source: 'youtube', count: 0, error: String(e) });
+        console.error('sync-videos youtube failed', e);
+        results.push({ source: 'youtube', count: 0, error: 'Sync failed' });
       }
     }
 
@@ -138,7 +185,8 @@ Deno.serve(async (req) => {
       allRows.push(...tt);
       results.push({ source: 'tiktok', count: tt.length });
     } catch (e) {
-      results.push({ source: 'tiktok', count: 0, error: String(e) });
+      console.error('sync-videos tiktok failed', e);
+      results.push({ source: 'tiktok', count: 0, error: 'Sync failed' });
     }
 
     if (allRows.length > 0) {
@@ -167,7 +215,7 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error('sync-videos failed', e);
-    return new Response(JSON.stringify({ ok: false, error: String(e) }), {
+    return new Response(JSON.stringify({ ok: false, error: 'Sync failed' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
