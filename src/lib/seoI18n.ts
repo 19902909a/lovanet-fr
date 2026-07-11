@@ -22,8 +22,7 @@ export type RouteKey =
   | "/prime-video"
   | "/tiktok"
   | "/contact"
-  | "/legals"
-  | "/hologrammes";
+  | "/legals";
 
 export const ROUTES: RouteKey[] = [
   "/",
@@ -36,7 +35,6 @@ export const ROUTES: RouteKey[] = [
   "/tiktok",
   "/contact",
   "/legals",
-  "/hologrammes",
 ];
 
 type Meta = { title: string; description: string };
@@ -85,10 +83,6 @@ export const SEO_I18N: Record<Locale, Record<RouteKey, Meta>> = {
       title: "Mentions légales — Lovanet",
       description: "Mentions légales, CGV et politique de confidentialité Lovanet / AnimemomentsAnimeofficiel.",
     },
-    "/hologrammes": {
-      title: "100 Hologrammes premium — Lovanet",
-      description: "Showcase premium : 100 personnages holographiques animés (natation, foot, roller, skate, danse, magie) avec décors et effets néon.",
-    },
   },
   en: {
     "/": {
@@ -130,10 +124,6 @@ export const SEO_I18N: Record<Locale, Record<RouteKey, Meta>> = {
     "/legals": {
       title: "Legal notice — Lovanet",
       description: "Legal notice, terms of sale and privacy policy for Lovanet / AnimemomentsAnimeofficiel.",
-    },
-    "/hologrammes": {
-      title: "100 Premium holograms — Lovanet",
-      description: "Premium showcase: 100 animated holographic characters (swimming, football, roller, skate, dance, magic) with decor and neon effects.",
     },
   },
   es: {
@@ -177,10 +167,6 @@ export const SEO_I18N: Record<Locale, Record<RouteKey, Meta>> = {
       title: "Aviso legal — Lovanet",
       description: "Aviso legal, condiciones de venta y política de privacidad de Lovanet / AnimemomentsAnimeofficiel.",
     },
-    "/hologrammes": {
-      title: "100 Hologramas premium — Lovanet",
-      description: "Escaparate premium: 100 personajes holográficos animados (natación, fútbol, patines, skate, danza, magia) con decorados y efectos neón.",
-    },
   },
   de: {
     "/": {
@@ -222,10 +208,6 @@ export const SEO_I18N: Record<Locale, Record<RouteKey, Meta>> = {
     "/legals": {
       title: "Impressum — Lovanet",
       description: "Impressum, AGB und Datenschutzerklärung Lovanet / AnimemomentsAnimeofficiel.",
-    },
-    "/hologrammes": {
-      title: "100 Premium-Hologramme — Lovanet",
-      description: "Premium-Showcase: 100 animierte Hologramm-Figuren (Schwimmen, Fußball, Roller, Skate, Tanz, Magie) mit Kulissen und Neon-Effekten.",
     },
   },
   it: {
@@ -269,10 +251,6 @@ export const SEO_I18N: Record<Locale, Record<RouteKey, Meta>> = {
       title: "Note legali — Lovanet",
       description: "Note legali, condizioni di vendita e privacy policy di Lovanet / AnimemomentsAnimeofficiel.",
     },
-    "/hologrammes": {
-      title: "100 Ologrammi premium — Lovanet",
-      description: "Showcase premium: 100 personaggi olografici animati (nuoto, calcio, roller, skate, danza, magia) con scenografie ed effetti neon.",
-    },
   },
   pt: {
     "/": {
@@ -314,10 +292,6 @@ export const SEO_I18N: Record<Locale, Record<RouteKey, Meta>> = {
     "/legals": {
       title: "Aviso legal — Lovanet",
       description: "Aviso legal, termos de venda e política de privacidade da Lovanet / AnimemomentsAnimeofficiel.",
-    },
-    "/hologrammes": {
-      title: "100 Hologramas premium — Lovanet",
-      description: "Vitrine premium: 100 personagens holográficos animados (natação, futebol, patins, skate, dança, magia) com cenários e efeitos neon.",
     },
   },
   ja: {
@@ -361,10 +335,6 @@ export const SEO_I18N: Record<Locale, Record<RouteKey, Meta>> = {
       title: "法的通知 — Lovanet",
       description: "Lovanet / AnimemomentsAnimeofficiel の法的通知、販売条件、プライバシーポリシー。",
     },
-    "/hologrammes": {
-      title: "100体のプレミアム・ホログラム — Lovanet",
-      description: "プレミアム・ショーケース：100体のアニメーション・ホログラム（水泳、サッカー、ローラー、スケート、ダンス、魔法）、装飾とネオン演出付き。",
-    },
   },
   zh: {
     "/": {
@@ -406,10 +376,6 @@ export const SEO_I18N: Record<Locale, Record<RouteKey, Meta>> = {
     "/legals": {
       title: "法律声明 — Lovanet",
       description: "Lovanet / AnimemomentsAnimeofficiel 的法律声明、销售条款与隐私政策。",
-    },
-    "/hologrammes": {
-      title: "100 个高级全息影像 — Lovanet",
-      description: "高级展示：100 个动态全息角色（游泳、足球、轮滑、滑板、舞蹈、魔法），配有场景与霓虹特效。",
     },
   },
 };
