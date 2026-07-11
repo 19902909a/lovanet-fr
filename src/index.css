@@ -123,18 +123,7 @@
   }
 
   html {
-    background: hsl(220 30% 8% / 0.72);
-  }
-
-  html::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    background: radial-gradient(ellipse at 20% 10%, hsl(280 60% 55% / 0.15) 0%, transparent 40%),
-                radial-gradient(ellipse at 80% 80%, hsl(211 100% 55% / 0.12) 0%, transparent 45%),
-                hsl(220 30% 8% / 0.55);
-    backdrop-filter: blur(18px) saturate(1.1);
+    background: hsl(220 30% 8% / 0.92);
   }
 
   h1, h2, h3, h4, h5, h6 {
