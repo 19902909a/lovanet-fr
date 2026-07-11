@@ -12,27 +12,14 @@
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 import { resolve, join } from "node:path";
 import type { Plugin } from "vite";
+import { SEO_I18N, SUPPORTED_LOCALES, DEFAULT_LOCALE, ROUTES, type Locale, type RouteKey } from "../src/lib/seoI18n";
 
-// Duplicated locally (not imported from src/) to keep this plugin runnable
-// during `vite build` without pulling the whole app graph.
-const SUPPORTED_LOCALES = ["fr", "en", "es", "de", "it", "pt", "ja", "zh"] as const;
-type Locale = (typeof SUPPORTED_LOCALES)[number];
-const DEFAULT_LOCALE: Locale = "fr";
 const OG_LOCALE: Record<Locale, string> = {
   fr: "fr_FR", en: "en_US", es: "es_ES", de: "de_DE",
   it: "it_IT", pt: "pt_BR", ja: "ja_JP", zh: "zh_CN",
 };
 
-const ROUTES = [
-  "/", "/decouvrir", "/shop", "/anime-catalog", "/anime-countdown",
-  "/chaine-youtube", "/prime-video", "/tiktok", "/contact", "/legals",
-] as const;
-
 type Meta = { title: string; description: string };
-// Source of truth for prerendered heads — must stay in sync with
-// src/lib/seoI18n.ts. Kept minimal to avoid double-maintenance; if you add
-// a locale or route in seoI18n.ts, mirror it here.
-const SEO: Record<Locale, Record<string, Meta>> = require("../src/lib/seoI18n.prerender.json");
 
 const SITE = "https://lovanet.fr";
 
@@ -153,7 +140,7 @@ export default function prerenderLocalesPlugin(): Plugin {
       for (const locale of SUPPORTED_LOCALES) {
         if (locale === DEFAULT_LOCALE) continue;
         for (const route of ROUTES) {
-          const meta = SEO?.[locale]?.[route];
+          const meta = SEO_I18N?.[locale]?.[route as RouteKey];
           if (!meta) continue;
           const rel = route === "/" ? `/${locale}` : `/${locale}${route}`;
           const outDir = join(distDir, rel);
