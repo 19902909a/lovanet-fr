@@ -457,13 +457,15 @@ export const HeroCarousel = () => {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      {/* Background color cycling behind the roulette (changes every 10s) */}
+      {/* Transparent glass-like background behind the roulette (matches menu) */}
       <div
         aria-hidden
         className="absolute inset-0 pointer-events-none"
         style={{
-          backgroundColor: VARIANTS[variantIdx].bg,
-          transition: "background-color 1.2s ease",
+          background: "linear-gradient(180deg, hsl(0 0% 100% / 0.03) 0%, hsl(0 0% 100% / 0.06) 50%, hsl(0 0% 100% / 0.03) 100%)",
+          backdropFilter: "blur(20px) saturate(1.1)",
+          WebkitBackdropFilter: "blur(20px) saturate(1.1)",
+          transition: "background 1.2s ease",
           zIndex: 0,
         }}
       />
