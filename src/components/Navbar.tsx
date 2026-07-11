@@ -22,15 +22,18 @@ const extraItems = [
 ];
 
 const megaSections = [
-  { to: "/shop", label: "Boutique", desc: "Affiches, collectors, vêtements", icon: ShoppingBag, tint: "from-pink-500 to-fuchsia-600" },
-  { to: "/tiktok", label: "TikTok", desc: "Shorts & réactions", icon: Music2, tint: "from-rose-500 to-red-600" },
-  { to: "/chaine-youtube", label: "YouTube", desc: "Vidéos & shorts officiels", icon: Youtube, tint: "from-red-500 to-orange-600" },
-  { to: "/prime-video", label: "Prime Vidéo", desc: "Lecture immersive multi-plateforme", icon: Play, tint: "from-sky-500 to-blue-600" },
-  { to: "/lecteurs-video", label: "Lecteur vidéo", desc: "Player immersif anime", icon: Film, tint: "from-purple-500 to-violet-600" },
-  { to: "/anime-countdown", label: "Animés à venir", desc: "Countdown live des prochains épisodes", icon: Play, tint: "from-fuchsia-500 to-cyan-500" },
-  { to: "/anime-catalog", label: "Catalogue Animés", desc: "Carrousel 3D tendances", icon: Film, tint: "from-cyan-500 to-violet-600" },
-  { to: "/decouvrir", label: "Univers Lovanet", desc: "Vitrine SEO produits & vidéos", icon: Compass, tint: "from-amber-500 to-pink-600" },
-  { to: "/contact", label: "Contact", desc: "Écrire à l'équipe", icon: Mail, tint: "from-emerald-500 to-teal-600" },
+  { to: "/", label: "Accueil", desc: "Page d'accueil Lovanet", icon: Compass },
+  { to: "/shop", label: "Boutique", desc: "Affiches, collectors, vêtements", icon: ShoppingBag },
+  { to: "/tiktok", label: "TikTok", desc: "Shorts & réactions", icon: Music2 },
+  { to: "/chaine-youtube", label: "YouTube", desc: "Vidéos & shorts officiels", icon: Youtube },
+  { to: "/chaine-youtube/manga", label: "YouTube Manga", desc: "Chaîne dédiée manga", icon: Youtube },
+  { to: "/prime-video", label: "Prime Vidéo", desc: "Lecture immersive multi-plateforme", icon: Play },
+  { to: "/lecteurs-video", label: "Lecteur vidéo", desc: "Player immersif anime", icon: Film },
+  { to: "/anime-countdown", label: "Animés à venir", desc: "Countdown live des prochains épisodes", icon: Play },
+  { to: "/anime-catalog", label: "Catalogue Animés", desc: "Carrousel 3D tendances", icon: Film },
+  { to: "/decouvrir", label: "Univers Lovanet", desc: "Vitrine SEO produits & vidéos", icon: Compass },
+  { to: "/contact", label: "Contact", desc: "Écrire à l'équipe", icon: Mail },
+  { to: "/legals", label: "Mentions légales", desc: "CGV & confidentialité", icon: Mail },
 ];
 
 
@@ -160,12 +163,16 @@ export const Navbar = () => {
           className="absolute left-0 right-0 top-full mt-2 mx-auto px-4 lg:px-8 animate-in fade-in slide-in-from-top-2 duration-200"
         >
           <div className="container mx-auto">
-            <div className="rounded-2xl border border-border bg-background/95 backdrop-blur-xl shadow-[0_20px_60px_-15px_hsl(var(--neon-magenta)/0.35)] p-4 sm:p-6">
+            <div className="relative rounded-3xl border border-white/15 bg-white/[0.06] backdrop-blur-2xl shadow-[0_20px_80px_-20px_hsl(var(--neon-magenta)/0.35),0_0_0_1px_rgba(255,255,255,0.04)_inset] p-4 sm:p-6 overflow-hidden">
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5" />
+              <div className="pointer-events-none absolute -top-24 -left-24 h-56 w-56 rounded-full bg-fuchsia-400/20 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-24 -right-24 h-56 w-56 rounded-full bg-cyan-400/20 blur-3xl" />
+              <div className="relative">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-xs uppercase tracking-[0.25em] text-primary">Navigation rapide</p>
+                <p className="text-[10px] uppercase tracking-[0.35em] text-white/70 font-display">Menu</p>
                 <button
                   onClick={() => setMegaOpen(false)}
-                  className="p-1 rounded-md hover:bg-secondary text-muted-foreground"
+                  className="p-1.5 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-white/80 backdrop-blur transition-all"
                   aria-label="Fermer le méga-menu"
                 >
                   <X className="w-4 h-4" />
@@ -178,26 +185,22 @@ export const Navbar = () => {
                     to={s.to}
                     role="menuitem"
                     onClick={() => setMegaOpen(false)}
-                    className="group flex items-start gap-3 p-3 rounded-xl border border-border/60 bg-card/60 hover:bg-card hover:border-primary/60 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_-12px_hsl(var(--neon-cyan)/0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                    className="group relative flex items-start gap-3 p-3 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.09] hover:border-white/25 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_34px_-14px_hsl(var(--neon-cyan)/0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                   >
-                    <span
-                      className={cn(
-                        "shrink-0 w-10 h-10 rounded-lg flex items-center justify-center text-white bg-gradient-to-br shadow-md transition-transform duration-300 group-hover:scale-110",
-                        s.tint
-                      )}
-                    >
-                      <s.icon className="w-5 h-5" />
+                    <span className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-white/90 bg-white/5 border border-white/15 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/30 group-hover:scale-110 group-hover:text-white">
+                      <s.icon className="w-[18px] h-[18px]" strokeWidth={1.5} />
                     </span>
                     <span className="min-w-0">
-                      <span className="block font-display font-bold text-sm text-foreground group-hover:text-primary transition-colors">
+                      <span className="block font-display font-semibold text-sm text-white/95 group-hover:text-white transition-colors">
                         {s.label}
                       </span>
-                      <span className="block text-xs text-muted-foreground mt-0.5 truncate">
+                      <span className="block text-[11px] text-white/60 mt-0.5 truncate">
                         {s.desc}
                       </span>
                     </span>
                   </Link>
                 ))}
+              </div>
               </div>
             </div>
           </div>
