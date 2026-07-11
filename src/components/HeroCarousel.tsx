@@ -457,12 +457,12 @@ export const HeroCarousel = () => {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      {/* Transparent glass-like background behind the roulette (matches menu) */}
+      {/* Transparent dark glass background behind the roulette (same family as menu) */}
       <div
         aria-hidden
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: "linear-gradient(180deg, hsl(0 0% 100% / 0.03) 0%, hsl(0 0% 100% / 0.06) 50%, hsl(0 0% 100% / 0.03) 100%)",
+          background: "linear-gradient(180deg, hsl(220 30% 8% / 0.45) 0%, hsl(220 25% 12% / 0.55) 50%, hsl(220 30% 8% / 0.45) 100%)",
           backdropFilter: "blur(20px) saturate(1.1)",
           WebkitBackdropFilter: "blur(20px) saturate(1.1)",
           transition: "background 1.2s ease",
