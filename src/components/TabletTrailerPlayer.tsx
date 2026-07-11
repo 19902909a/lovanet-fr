@@ -528,7 +528,7 @@ export default function TabletTrailerPlayer() {
         {/* Background customization panel */}
         <div className="absolute bottom-2 right-2 z-30 flex flex-col items-end gap-2">
           {showBgPanel && (
-            <div className="rounded-xl bg-black/70 backdrop-blur border border-white/15 p-3 flex flex-col gap-2 text-white text-xs">
+            <div className="rounded-xl bg-white/[0.08] backdrop-blur border border-white/15 p-3 flex flex-col gap-2 text-white text-xs">
               <div className="flex items-center gap-2">
                 <label className="uppercase tracking-widest text-[10px] text-white/70">Couleur</label>
                 <input
