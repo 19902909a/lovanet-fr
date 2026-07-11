@@ -13,6 +13,7 @@
     "seo:ping": "node scripts/ping-search-engines.mjs",
     "seo:validate": "node scripts/validate-jsonld.mjs",
     "seo:monitor": "node scripts/seo-monitor-i18n.mjs",
+    "seo:inspect-i18n": "node scripts/gsc-inspect-i18n.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
