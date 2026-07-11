@@ -508,11 +508,13 @@ const HumanoidFigure = ({
     const keys = Object.keys(actions || {});
     if (!keys.length) return;
     const loco = glb.loco as Record<string, string | undefined>;
-    const target = loco[action] || glb.extra[Math.floor(Math.random() * (glb.extra.length || 1))] || keys[0];
-    const wanted = (target || "").toLowerCase();
+    // 1) direct match on requested action, 2) mapped clip via loco table,
+    // 3) any extra clip, 4) first available clip.
+    const wanted = (loco[action] || action || "").toLowerCase();
     const key =
       keys.find((n) => n.toLowerCase() === wanted) ||
       keys.find((n) => n.toLowerCase().includes(wanted)) ||
+      keys.find((n) => glb.extra.includes(n)) ||
       keys[0];
     const clip = actions[key];
     clip?.reset().fadeIn(0.25).play();
