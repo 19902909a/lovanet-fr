@@ -5,23 +5,35 @@ import {
   HREFLANG_MAP,
   DEFAULT_LOCALE,
   detectLocale,
+  localeFromPathname,
   normalizeRoute,
   metaFor,
 } from "@/lib/seoI18n";
 
 const SITE = "https://lovanet.fr";
 
+// Build the canonical URL for a (route, locale) pair. The default locale
+// (French) uses the bare path; every other locale uses a `/xx` prefix so
+// Google indexes distinct pages per language instead of a single URL with
+// a query string.
+function localizedPath(route: string, locale: string) {
+  const suffix = route === "/" ? "" : route;
+  return locale === DEFAULT_LOCALE ? `${suffix || "/"}` : `/${locale}${suffix}`;
+}
+
 // Emits per-route <title>, <meta description>, canonical, og:*, twitter:*,
-// html lang, and a full <link rel="alternate" hreflang="..."> set. Selection
-// is driven by ?hl=<code> (explicit) or navigator.language (implicit) and
-// stays in sync with react-router navigation.
+// html lang, JSON-LD, and a full <link rel="alternate" hreflang="..."> set.
+// Locale is resolved in priority order: URL path prefix (/en/…) → ?hl=xx
+// → navigator.language → default. Prefix routes are the ones Google will
+// index as separate pages per language.
 export function LocalizedHead() {
   const location = useLocation();
   const navLang = typeof navigator !== "undefined" ? navigator.language : undefined;
-  const locale = detectLocale(location.search, navLang);
+  const pathLocale = localeFromPathname(location.pathname);
+  const locale = pathLocale ?? detectLocale(location.search, navLang);
   const route = normalizeRoute(location.pathname);
   const { title, description } = metaFor(locale, route);
-  const canonicalPath = route === "/" ? "/" : route;
+  const canonicalPath = localizedPath(route, locale);
   const canonical = `${SITE}${canonicalPath}`;
 
   return (
@@ -63,10 +75,21 @@ export function LocalizedHead() {
           key={`hreflang-${l}`}
           rel="alternate"
           hrefLang={HREFLANG_MAP[l]}
-          href={`${SITE}${canonicalPath}${l === DEFAULT_LOCALE ? "" : `?hl=${l}`}`}
+          href={`${SITE}${localizedPath(route, l)}`}
         />
       ))}
-      <link rel="alternate" hrefLang="x-default" href={`${SITE}${canonicalPath}`} />
+      <link rel="alternate" hrefLang="x-default" href={`${SITE}${route === "/" ? "/" : route}`} />
+      {/* Multilingual JSON-LD — WebPage node whose title/description follow
+          the active locale so Google can display richer, translated snippets. */}
+      <script type="application/ld+json">{JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: title,
+        description,
+        url: canonical,
+        inLanguage: HREFLANG_MAP[locale],
+        isPartOf: { "@type": "WebSite", "@id": "https://lovanet.fr/#website" },
+      })}</script>
     </Helmet>
   );
 }

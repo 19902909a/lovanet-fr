@@ -24,8 +24,29 @@ import GoogleTranslate from "./components/GoogleTranslate";
 import YoutubeBrandSettings from "./components/YoutubeBrandSettings";
 import { HologramOverlay } from "./components/HologramOverlay";
 import { LocalizedHead } from "./components/LocalizedHead";
+import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "@/lib/seoI18n";
 
 const queryClient = new QueryClient();
+
+// Every localized language other than the default (French) gets its own URL
+// prefix so Google indexes distinct pages per language: /en/shop, /ja/,
+// /es/anime-catalog, etc. LocalizedHead reads the prefix and swaps meta.
+const LOCALE_PREFIXES = SUPPORTED_LOCALES.filter((l) => l !== DEFAULT_LOCALE);
+
+const APP_ROUTES: Array<{ path: string; element: JSX.Element }> = [
+  { path: "/", element: <Index /> },
+  { path: "/chaine-youtube", element: <ChaineYoutube /> },
+  { path: "/chaine-youtube/manga", element: <ChaineYoutubeManga /> },
+  { path: "/lecteurs-video", element: <LecteursVideo /> },
+  { path: "/prime-video", element: <PrimeVideo /> },
+  { path: "/tiktok", element: <Tiktok /> },
+  { path: "/shop", element: <Shop /> },
+  { path: "/contact", element: <Contact /> },
+  { path: "/legals", element: <Legals /> },
+  { path: "/anime-countdown", element: <AnimeCountdown /> },
+  { path: "/anime-catalog", element: <AnimeCatalog /> },
+  { path: "/decouvrir", element: <Discover /> },
+];
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -36,18 +57,18 @@ const App = () => (
         <Toaster />
         <Sonner />
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/chaine-youtube" element={<ChaineYoutube />} />
-          <Route path="/chaine-youtube/manga" element={<ChaineYoutubeManga />} />
-          <Route path="/lecteurs-video" element={<LecteursVideo />} />
-          <Route path="/prime-video" element={<PrimeVideo />} />
-          <Route path="/tiktok" element={<Tiktok />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/legals" element={<Legals />} />
-          <Route path="/anime-countdown" element={<AnimeCountdown />} />
-          <Route path="/anime-catalog" element={<AnimeCatalog />} />
-          <Route path="/decouvrir" element={<Discover />} />
+          {APP_ROUTES.map((r) => (
+            <Route key={r.path} path={r.path} element={r.element} />
+          ))}
+          {LOCALE_PREFIXES.flatMap((lang) =>
+            APP_ROUTES.map((r) => (
+              <Route
+                key={`${lang}-${r.path}`}
+                path={r.path === "/" ? `/${lang}` : `/${lang}${r.path}`}
+                element={r.element}
+              />
+            )),
+          )}
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
