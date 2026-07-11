@@ -236,13 +236,13 @@ const Index = () => {
     <PageShell>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        {/* Transparent glass background — matches the menu's glassmorphism */}
+        {/* Transparent dark glass background — same family as the menu */}
         <div
           className="absolute inset-0 -z-10"
           style={{
-            background: "linear-gradient(135deg, hsl(0 0% 100% / 0.04) 0%, hsl(0 0% 100% / 0.07) 50%, hsl(0 0% 100% / 0.04) 100%)",
-            backdropFilter: "blur(24px) saturate(1.15)",
-            WebkitBackdropFilter: "blur(24px) saturate(1.15)",
+            background: "linear-gradient(135deg, hsl(220 30% 8% / 0.55) 0%, hsl(220 25% 12% / 0.65) 50%, hsl(220 30% 8% / 0.55) 100%)",
+            backdropFilter: "blur(20px) saturate(1.1)",
+            WebkitBackdropFilter: "blur(20px) saturate(1.1)",
           }}
         />
         {/* Animated gradient blobs */}
@@ -255,7 +255,7 @@ const Index = () => {
           {[...Array(6)].map((_, i) => (
             <span
               key={i}
-              className="sparkle absolute w-1 h-1 rounded-full bg-white/50"
+              className="sparkle absolute w-1 h-1 rounded-full bg-white/40"
               style={{
                 left: `${10 + i * 15}%`,
                 bottom: '10%',
