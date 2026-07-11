@@ -62,7 +62,7 @@ export default function TabletTrailerPlayer() {
   // Customizable background behind the 3D carousel + interactive spotlights.
   type BgMode = "color" | "image" | "video";
   const [bgMode, setBgMode] = useState<BgMode>("color");
-  const [bgColor, setBgColor] = useState<string>("#0b0b16");
+  const [bgColor, setBgColor] = useState<string>("transparent");
   const [bgMedia, setBgMedia] = useState<string>("");
   const [showBgPanel, setShowBgPanel] = useState(false);
   const [spots, setSpots] = useState<boolean[]>([true, true, true]);
