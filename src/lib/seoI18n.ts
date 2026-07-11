@@ -402,8 +402,22 @@ export function detectLocale(search: string, navLang: string | undefined): Local
 }
 
 export function normalizeRoute(pathname: string): RouteKey {
-  const key = pathname.split("?")[0].replace(/\/+$/, "") || "/";
+  // Strip a locale prefix ("/en/shop" → "/shop") and trailing slashes before
+  // matching against the known route table.
+  let key = pathname.split("?")[0].replace(/\/+$/, "") || "/";
+  const parts = key.split("/").filter(Boolean);
+  if (parts.length > 0 && (SUPPORTED_LOCALES as readonly string[]).includes(parts[0].toLowerCase())) {
+    key = "/" + parts.slice(1).join("/");
+    if (key === "/") return "/";
+  }
   return (ROUTES.includes(key as RouteKey) ? (key as RouteKey) : "/");
+}
+
+export function localeFromPathname(pathname: string): Locale | null {
+  const parts = pathname.split("?")[0].split("/").filter(Boolean);
+  const first = parts[0]?.toLowerCase();
+  if (first && (SUPPORTED_LOCALES as readonly string[]).includes(first)) return first as Locale;
+  return null;
 }
 
 export function metaFor(locale: Locale, route: RouteKey): Meta {
