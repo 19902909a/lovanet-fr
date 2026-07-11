@@ -22,7 +22,8 @@ export type RouteKey =
   | "/prime-video"
   | "/tiktok"
   | "/contact"
-  | "/legals";
+  | "/legals"
+  | "/hologrammes";
 
 export const ROUTES: RouteKey[] = [
   "/",
@@ -35,6 +36,7 @@ export const ROUTES: RouteKey[] = [
   "/tiktok",
   "/contact",
   "/legals",
+  "/hologrammes",
 ];
 
 type Meta = { title: string; description: string };
