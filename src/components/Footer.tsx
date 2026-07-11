@@ -13,10 +13,22 @@ export const Footer = () => {
         <ul className="grid gap-1 text-sm text-muted-foreground">
           <li><Link to="/" className="hover:text-primary">Lovanet Plateforme officielle dédiée →</Link></li>
           <li><Link to="/decouvrir" className="hover:text-primary">Univers Lovanet →</Link></li>
-          <li><Link to="/chaine-youtube" className="hover:text-primary">AnimemomentsAnimeofficiel →</Link></li>
-          <li><Link to="/prime-video" className="hover:text-primary">Anime.Moments.officiel → Prime Video</Link></li>
-          <li><Link to="/chaine-youtube" className="hover:text-primary">AnimemomentsAnimeofficiel → YouTube</Link></li>
-          <li><Link to="/tiktok" className="hover:text-primary">Anime.Moments.officiel → TikTok</Link></li>
+          <li>
+            <Link to="/chaine-youtube" className="hover:text-primary">AnimemomentsAnimeofficiel →</Link>{" "}
+            <a href="https://www.youtube.com/@animemomentsanimeofficiel" target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-wider text-primary/80 hover:text-primary">↗ partenaire</a>
+          </li>
+          <li>
+            <Link to="/prime-video" className="hover:text-primary">Anime.Moments.officiel → Prime Video</Link>{" "}
+            <a href="https://www.primevideo.com/search/ref=atv_nb_sr?phrase=anime" target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-wider text-primary/80 hover:text-primary">↗ partenaire</a>
+          </li>
+          <li>
+            <Link to="/chaine-youtube" className="hover:text-primary">AnimemomentsAnimeofficiel → YouTube</Link>{" "}
+            <a href="https://www.youtube.com/@animemomentsanimeofficiel" target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-wider text-primary/80 hover:text-primary">↗ partenaire</a>
+          </li>
+          <li>
+            <Link to="/tiktok" className="hover:text-primary">Anime.Moments.officiel → TikTok</Link>{" "}
+            <a href="https://www.tiktok.com/@animemomentsanimeofficiel" target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-wider text-primary/80 hover:text-primary">↗ partenaire</a>
+          </li>
           <li><Link to="/shop" className="hover:text-primary">Boutique →</Link></li>
           <li><Link to="/anime-countdown" className="hover:text-primary">À venir →</Link></li>
           <li><Link to="/anime-catalog" className="hover:text-primary">Catalogue →</Link></li>
