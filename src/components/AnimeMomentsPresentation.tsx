@@ -389,7 +389,7 @@ export const AnimeMomentsPresentation = () => {
           {/* Background customization panel */}
           <div className="absolute bottom-16 right-4 sm:right-6 z-30 flex flex-col items-end gap-2">
             {showBgPanel && (
-              <div className="rounded-xl bg-black/70 backdrop-blur border border-white/15 p-3 flex flex-col gap-2 text-white text-xs">
+              <div className="rounded-xl bg-white/[0.08] backdrop-blur border border-white/15 p-3 flex flex-col gap-2 text-white text-xs">
                 <div className="flex items-center gap-2">
                   <label className="uppercase tracking-widest text-[10px] text-white/70">Couleur</label>
                   <input
@@ -462,14 +462,14 @@ export const AnimeMomentsPresentation = () => {
               </span>
               LIVE · Anime Moments
             </span>
-            <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur border border-white/10 text-white/90 text-[10px] font-bold tracking-widest uppercase">
+            <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/[0.08] backdrop-blur border border-white/10 text-white/90 text-[10px] font-bold tracking-widest uppercase">
               Officiel Lovanet
             </span>
           </div>
 
           <button
             onClick={() => setMuted((m) => !m)}
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur border border-white/15 flex items-center justify-center text-white transition-colors"
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 z-30 w-10 h-10 rounded-full bg-white/[0.08] hover:bg-white/[0.14] backdrop-blur border border-white/15 flex items-center justify-center text-white transition-colors"
             aria-label={muted ? "Activer le son" : "Couper le son"}
           >
             {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
@@ -563,7 +563,7 @@ export const AnimeMomentsPresentation = () => {
                 <Link
                   key={s.to}
                   to={s.to}
-                  className="group relative p-4 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 hover:border-fuchsia-400/60 hover:bg-black/80 transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(236,72,153,0.5)]"
+                  className="group relative p-4 rounded-2xl bg-white/[0.05] backdrop-blur-xl border border-white/10 hover:border-fuchsia-400/60 hover:bg-white/[0.10] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(236,72,153,0.5)]"
                   aria-label={s.title}
                 >
                   <div
@@ -585,7 +585,7 @@ export const AnimeMomentsPresentation = () => {
         </div>
 
         {/* Footer bar: reactions + share + social */}
-        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 px-6 sm:px-10 lg:px-14 py-5 border-t border-white/5 bg-gradient-to-t from-black/70 to-transparent">
+        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 px-6 sm:px-10 lg:px-14 py-5 border-t border-white/5 bg-gradient-to-t from-white/[0.06] to-transparent">
           <div className="flex flex-wrap items-center gap-2">
             {reactions.map((r) => (
               <button
