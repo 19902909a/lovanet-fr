@@ -309,7 +309,7 @@ export default function TabletTrailerPlayer() {
           )}
           {current && (
             <div className="absolute bottom-2 left-3 right-3 flex items-center gap-2 text-[11px] text-white/80 pointer-events-none z-10">
-              <span className="px-1.5 py-0.5 rounded-full bg-black/60 uppercase tracking-widest text-[9px]">
+              <span className="px-1.5 py-0.5 rounded-full bg-white/[0.10] backdrop-blur border border-white/15 uppercase tracking-widest text-[9px]">
                 {current.source === "catalog" ? "Catalogue" : "Site"}
               </span>
               <span className="truncate">{current.title}</span>
@@ -593,11 +593,11 @@ export default function TabletTrailerPlayer() {
           role="dialog"
           aria-modal="true"
           aria-label={`Aperçu : ${previewItem.title}`}
-          className="fixed inset-0 z-[2147483600] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4"
+          className="fixed inset-0 z-[2147483600] bg-black/70 backdrop-blur-md flex items-center justify-center p-2 sm:p-4"
           onClick={() => setPreviewItem(null)}
         >
           <div
-            className="relative w-full max-w-6xl max-h-[90vh] aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-black"
+            className="relative w-full max-w-6xl max-h-[90vh] aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-black/80"
             onClick={(e) => e.stopPropagation()}
           >
             <iframe
