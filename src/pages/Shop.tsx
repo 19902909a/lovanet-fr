@@ -37,19 +37,19 @@ const MarqueeRail = ({
 }) => {
   const loop = [...items, ...items];
   return (
-    <section className="container mx-auto px-4 lg:px-8 py-4">
-      <header className="flex items-center gap-2 mb-3">
+    <section className="container mx-auto px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
+      <header className="flex items-center gap-2 mb-2 sm:mb-3">
         {icon}
-        <h2 className="font-display font-bold text-xl">{title}</h2>
-        <span className="ml-auto text-xs text-muted-foreground">Défile automatiquement →</span>
+        <h2 className="font-display font-bold text-base sm:text-xl">{title}</h2>
+        <span className="ml-auto text-[10px] sm:text-xs text-muted-foreground hidden xs:inline">Défile auto →</span>
       </header>
-      <div className="marquee-viewport overflow-hidden">
-        <div className="marquee-track gap-3" style={{ ["--marquee-duration" as string]: `${duration}s` }}>
+      <div className="marquee-viewport overflow-hidden [perspective:1200px]">
+        <div className="marquee-track gap-2 sm:gap-3" style={{ ["--marquee-duration" as string]: `${duration}s` }}>
           {loop.map((p, i) => (
             <button
               key={`${p.id}-${i}`}
               onClick={() => onOpen(p)}
-              className="shrink-0 w-44 rounded-2xl border border-border/60 bg-card overflow-hidden text-left hover:border-primary/60 hover:-translate-y-0.5 transition-all"
+              className="shrink-0 w-36 sm:w-44 lg:w-48 rounded-2xl border border-border/60 bg-card overflow-hidden text-left hover:border-primary/60 hover:-translate-y-1 hover:shadow-[0_20px_40px_-20px_hsl(var(--neon-magenta)/0.7)] hover:[transform:translateY(-4px)_rotateX(4deg)_rotateY(-4deg)] transition-all duration-300"
             >
               <div className="relative aspect-square">
                 <ProductArtwork seed={p.id} category={p.category} label={p.name} />
@@ -64,8 +64,8 @@ const MarqueeRail = ({
                   </span>
                 )}
               </div>
-              <div className="p-2">
-                <p className="text-[11px] font-medium line-clamp-2 min-h-[2.2rem]">{p.name}</p>
+              <div className="p-2 sm:p-2.5">
+                <p className="text-[10px] sm:text-[11px] font-medium line-clamp-2 min-h-[2rem] sm:min-h-[2.2rem]">{p.name}</p>
                 <div className="mt-1 flex items-baseline gap-2">
                   <p className="font-display font-bold text-primary text-sm">{p.price} €</p>
                   {p.compareAt && p.compareAt > p.price && (
@@ -171,7 +171,7 @@ const Shop = () => {
     document.getElementById("shop-itemlist-jsonld")?.remove();
     document.head.appendChild(tag);
     const prev = document.title;
-    document.title = "Boutique AnimemomentsAnimeofficiel — 1500+ produits Anime, Manga, Collectors & Numériques";
+    document.title = "Boutique — Lovanet · Anime.Moments.officiel & AnimemomentsAnimeofficiel";
     return () => { tag.remove(); document.title = prev; };
   }, [uniqueProducts]);
 
@@ -192,13 +192,13 @@ const Shop = () => {
       />
 
       {/* SEARCH BAR */}
-      <section className="container mx-auto px-4 lg:px-8 pt-6">
-        <div className="flex flex-wrap gap-3 items-center">
-          <div className="relative flex-1 min-w-[220px] max-w-lg">
+      <section className="container mx-auto px-3 sm:px-4 lg:px-8 pt-4 sm:pt-6">
+        <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
+          <div className="relative flex-1 min-w-[180px] sm:min-w-[220px] max-w-lg">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input className="pl-9 h-11 text-sm" placeholder="Rechercher un produit, un tag…" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <Input className="pl-9 h-10 sm:h-11 text-sm" placeholder="Rechercher un produit, un tag…" value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
-          <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className="rounded-md border border-border bg-background px-3 h-11 text-sm">
+          <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className="rounded-md border border-border bg-background px-2 sm:px-3 h-10 sm:h-11 text-xs sm:text-sm">
             <option value="pop">Populaires</option>
             <option value="rating">Mieux notés</option>
             <option value="asc">Prix ↑</option>
@@ -208,13 +208,13 @@ const Shop = () => {
       </section>
 
       {/* CATEGORY CHIPS */}
-      <section className="container mx-auto px-4 lg:px-8 pb-2">
-        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar pt-4">
+      <section className="container mx-auto px-3 sm:px-4 lg:px-8 pb-2">
+        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 no-scrollbar pt-3 sm:pt-4">
           {[{ id: "all" as const, label: "Tous" }, ...SHOP_CATEGORIES].map((c) => {
             const isActive = filter === c.id;
             return (
               <button key={c.id} onClick={() => setFilter(c.id as ShopCategory | "all")}
-                className={`shrink-0 px-4 py-2 rounded-full text-xs uppercase tracking-wider transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary shadow-[0_0_18px_hsl(var(--neon-magenta)/0.55)]" : "bg-card border-border text-muted-foreground hover:text-primary hover:border-primary/50"}`}>
+                className={`shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-[10px] sm:text-xs uppercase tracking-wider transition-all border ${isActive ? "bg-primary text-primary-foreground border-primary shadow-[0_0_18px_hsl(var(--neon-magenta)/0.55)]" : "bg-card border-border text-muted-foreground hover:text-primary hover:border-primary/50"}`}>
                 {c.label}
               </button>
             );
@@ -228,9 +228,9 @@ const Shop = () => {
       <MarqueeRail title="Produits numériques" icon={<Zap className="w-5 h-5 text-primary" />} items={digitalPicks} onOpen={setActive} duration={65} />
 
       {/* GRID */}
-      <section className="container mx-auto px-4 lg:px-8 pb-8">
+      <section className="container mx-auto px-3 sm:px-4 lg:px-8 pb-8">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
             {filtered.length.toLocaleString()} produits · page {page}/{pages}
           </p>
           <div className="flex items-center gap-1">
@@ -239,7 +239,7 @@ const Shop = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4">
           {pageItems.map((p) => (
             <article key={p.id} id={p.id} itemScope itemType="https://schema.org/Product"
               className="rgb-card group overflow-hidden bg-card rounded-2xl">

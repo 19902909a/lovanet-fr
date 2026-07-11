@@ -45,11 +45,27 @@ export const ShopHeroBanner = ({
 
   return (
     <section
-      className="container mx-auto px-4 lg:px-8 pt-8"
+      className="container mx-auto px-3 sm:px-4 lg:px-8 pt-4 sm:pt-8"
       onMouseEnter={() => { paused.current = true; }}
       onMouseLeave={() => { paused.current = false; }}
     >
-      <div className="relative rounded-3xl overflow-hidden border border-border bg-card min-h-[340px] sm:min-h-[420px]">
+      {/* Premium heading */}
+      <header className="mb-4 sm:mb-6 text-center sm:text-left">
+        <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.35em] text-primary">
+          <Sparkles className="w-3 h-3" /> Boutique officielle Lovanet
+        </span>
+        <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-extrabold mt-2 gradient-text leading-[1.05]">
+          Boutique
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-2 max-w-2xl mx-auto sm:mx-0">
+          Anime.Moments.officiel &amp; AnimemomentsAnimeofficiel — collectors, posters, vêtements, sneakers, manga, musique &amp; numériques.
+        </p>
+      </header>
+
+      <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-primary/30 bg-card min-h-[280px] sm:min-h-[420px] shadow-[0_20px_80px_-30px_hsl(var(--neon-magenta)/0.55)]">
+        {/* premium ambient decor */}
+        <div className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[hsl(var(--neon-magenta)/0.35)] blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-[hsl(var(--neon-cyan)/0.3)] blur-3xl" />
         {slides.map((s, i) => (
           <div
             key={i}
@@ -66,12 +82,12 @@ export const ShopHeroBanner = ({
                   loading="eager"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
-                <div className="relative z-10 p-6 sm:p-10 flex flex-col justify-end h-full max-w-xl">
+                <div className="relative z-10 p-4 sm:p-8 lg:p-10 flex flex-col justify-end h-full max-w-xl">
                   <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-primary mb-3">
                     <Play className="w-3.5 h-3.5" /> Vidéo · Anime Moments
                   </span>
-                  <h2 className="font-display text-3xl sm:text-5xl font-extrabold mb-2 gradient-text">{s.title}</h2>
-                  <p className="text-sm sm:text-base text-muted-foreground mb-4">{s.subtitle}</p>
+                  <h2 className="font-display text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 gradient-text leading-tight">{s.title}</h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2">{s.subtitle}</p>
                   <div className="flex flex-wrap gap-2">
                     <Button className="rounded-full btn-interactive" onClick={onOpenCart}>
                       <ShoppingCart className="w-4 h-4 mr-2" /> Panier ({cartCount})
@@ -93,15 +109,15 @@ export const ShopHeroBanner = ({
                   <ProductArtwork seed={s.product.id} category={s.product.category} label={s.product.name} className="w-full h-full block scale-110 blur-[2px] opacity-90" />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/50 to-transparent" />
-                <div className="relative z-10 grid sm:grid-cols-[1fr,auto] items-center gap-6 p-6 sm:p-10 h-full">
+                <div className="relative z-10 grid sm:grid-cols-[1fr,auto] items-center gap-4 sm:gap-6 p-4 sm:p-8 lg:p-10 h-full">
                   <div className="max-w-xl">
                     <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-primary mb-3">
                       <Sparkles className="w-3.5 h-3.5" /> Nouveauté · {s.product.tag}
                     </span>
-                    <h2 className="font-display text-3xl sm:text-5xl font-extrabold mb-2">{s.product.name}</h2>
-                    <p className="text-sm sm:text-base text-muted-foreground mb-4 line-clamp-3">{s.product.description}</p>
+                    <h2 className="font-display text-xl sm:text-3xl lg:text-4xl font-extrabold mb-2 leading-tight line-clamp-2">{s.product.name}</h2>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">{s.product.description}</p>
                     <div className="flex items-center gap-4 mb-4">
-                      <span className="font-display text-2xl sm:text-3xl font-extrabold gradient-text">{s.product.price} €</span>
+                      <span className="font-display text-xl sm:text-3xl font-extrabold gradient-text">{s.product.price} €</span>
                       {s.product.compareAt && s.product.compareAt > s.product.price && (
                         <>
                           <span className="text-muted-foreground line-through text-sm">{s.product.compareAt} €</span>
@@ -120,8 +136,8 @@ export const ShopHeroBanner = ({
                       </Button>
                     </div>
                   </div>
-                  <div className="hidden sm:block relative w-64 h-64 shrink-0">
-                    <div className="absolute inset-0 rounded-2xl overflow-hidden border border-primary/40 shadow-[0_20px_60px_-20px_hsl(var(--neon-magenta)/0.6)]">
+                  <div className="hidden md:block relative w-56 h-56 lg:w-72 lg:h-72 shrink-0">
+                    <div className="absolute inset-0 rounded-2xl overflow-hidden border border-primary/40 shadow-[0_20px_60px_-20px_hsl(var(--neon-magenta)/0.6)] rotate-3 hover:rotate-0 transition-transform duration-500">
                       <ProductArtwork seed={s.product.id} category={s.product.category} label={s.product.name} />
                     </div>
                   </div>
@@ -132,12 +148,12 @@ export const ShopHeroBanner = ({
         ))}
 
         {/* dots */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-20">
           {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => setIdx(i)}
-              className={`h-1.5 rounded-full transition-all ${i === idx ? "w-8 bg-primary" : "w-3 bg-white/40"}`}
+              className={`h-1.5 rounded-full transition-all ${i === idx ? "w-6 sm:w-8 bg-primary" : "w-2.5 sm:w-3 bg-white/40"}`}
               aria-label={`Slide ${i + 1}`}
             />
           ))}
@@ -145,7 +161,7 @@ export const ShopHeroBanner = ({
       </div>
 
       {/* trust ticker */}
-      <div className="mt-3 flex flex-wrap gap-4 text-xs text-muted-foreground">
+      <div className="mt-3 flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1"><Truck className="w-4 h-4 text-primary" /> Livraison suivie 3–7j</span>
         <span className="inline-flex items-center gap-1"><ShieldCheck className="w-4 h-4 text-primary" /> Paiement sécurisé</span>
         <span className="inline-flex items-center gap-1"><Star className="w-4 h-4 text-primary" /> 4,8/5 · +12 000 clients</span>
