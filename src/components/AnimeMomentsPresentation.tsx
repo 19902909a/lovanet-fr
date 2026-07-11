@@ -548,7 +548,7 @@ export const AnimeMomentsPresentation = () => {
               {tags.map((t) => (
                 <span
                   key={t}
-                  className="px-3 py-1.5 rounded-lg bg-zinc-800/60 border border-white/10 text-zinc-300 text-xs hover:text-white hover:border-fuchsia-400/60 transition-colors"
+                  className="px-3 py-1.5 rounded-lg bg-white/[0.06] backdrop-blur-xl border border-white/15 text-white/80 text-xs hover:text-white hover:bg-white/[0.12] hover:border-fuchsia-300/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] transition-all"
                 >
                   {t}
                 </span>
@@ -563,18 +563,21 @@ export const AnimeMomentsPresentation = () => {
                 <Link
                   key={s.to}
                   to={s.to}
-                  className="group relative p-4 rounded-2xl bg-white/[0.05] backdrop-blur-xl border border-white/10 hover:border-fuchsia-400/60 hover:bg-white/[0.10] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(236,72,153,0.5)]"
+                  className="group relative p-4 rounded-2xl bg-white/[0.04] backdrop-blur-2xl border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_30px_-15px_rgba(0,0,0,0.5)] hover:border-white/30 hover:bg-white/[0.08] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(236,72,153,0.45),inset_0_1px_0_rgba(255,255,255,0.18)]"
                   aria-label={s.title}
                 >
                   <div
-                    className={`w-10 h-10 rounded-xl mb-3 flex items-center justify-center text-white bg-gradient-to-br ${s.accent} shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-transform`}
+                    className={`relative w-10 h-10 rounded-xl mb-3 flex items-center justify-center text-white bg-white/[0.08] backdrop-blur-xl border border-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] overflow-hidden group-hover:scale-110 group-hover:rotate-3 transition-transform`}
                   >
+                    <span className={`absolute inset-0 opacity-60 mix-blend-screen bg-gradient-to-br ${s.accent}`} aria-hidden />
+                    <span className="relative">
                     <s.icon className="w-5 h-5" />
+                    </span>
                   </div>
                   <div className="text-sm font-bold text-white leading-tight">
                     {s.title}
                   </div>
-                  <div className="text-[11px] text-zinc-400 mt-0.5">{s.desc}</div>
+                  <div className="text-[11px] text-white/60 mt-0.5">{s.desc}</div>
                   <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-fuchsia-300 opacity-0 group-hover:opacity-100 -translate-y-1 group-hover:translate-y-0 transition-all">
                     {s.cta} <ArrowRight className="w-3 h-3" />
                   </div>
