@@ -608,9 +608,9 @@ export const HeroCarousel = () => {
 
       {/* Interactive spotlights — click to toggle on/off */}
       {[
-        { left: "22%", color: "255,80,220" },
-        { left: "50%", color: "120,200,255" },
-        { left: "78%", color: "255,220,120" },
+        { left: "22%", color: "255,40,235" },
+        { left: "50%", color: "80,220,255" },
+        { left: "78%", color: "255,235,80" },
       ].map((s, i) => (
         <button
           key={i}
@@ -624,9 +624,9 @@ export const HeroCarousel = () => {
             className="block w-5 h-5 rounded-full border border-white/40"
             style={{
               background: spots[i]
-                ? `radial-gradient(circle, rgb(${s.color}) 0%, rgba(${s.color},0.4) 70%)`
+                ? `radial-gradient(circle, #fff 0%, rgb(${s.color}) 40%, rgba(${s.color},0.6) 80%)`
                 : "rgba(255,255,255,0.15)",
-              boxShadow: spots[i] ? `0 0 18px rgba(${s.color},0.9)` : "none",
+              boxShadow: spots[i] ? `0 0 26px 4px rgba(${s.color},1), 0 0 60px 12px rgba(${s.color},0.6)` : "none",
             }}
           />
           {spots[i] && (
@@ -634,11 +634,12 @@ export const HeroCarousel = () => {
               aria-hidden
               className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2"
               style={{
-                width: 320,
-                height: 380,
-                background: `radial-gradient(ellipse at top, rgba(${s.color},0.55) 0%, rgba(${s.color},0.15) 40%, transparent 70%)`,
+                width: 380,
+                height: 460,
+                background: `radial-gradient(ellipse at top, rgba(255,255,255,0.85) 0%, rgba(${s.color},0.9) 20%, rgba(${s.color},0.45) 55%, transparent 80%)`,
                 clipPath: "polygon(45% 0%, 55% 0%, 100% 100%, 0% 100%)",
-                filter: "blur(2px)",
+                filter: "blur(1px) saturate(1.4)",
+                mixBlendMode: "screen",
               }}
             />
           )}
