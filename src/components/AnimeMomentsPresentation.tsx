@@ -280,7 +280,7 @@ export const AnimeMomentsPresentation = () => {
 
   return (
     <section className="container mx-auto px-4 lg:px-8 py-10 lg:py-14">
-      <div className="relative w-full rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_80px_-20px_hsl(var(--neon-magenta)/0.35)]">
+      <div className="relative w-full rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_80px_-20px_hsl(var(--neon-magenta)/0.35)] bg-white/[0.04] backdrop-blur-2xl">
         {/* PRO VIDEO BANNER */}
         <div className="relative w-full aspect-[21/9] sm:aspect-[21/8] overflow-hidden border-b border-white/10">
           {/* Custom background layer (color / user image / user video) */}
