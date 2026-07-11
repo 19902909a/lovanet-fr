@@ -171,7 +171,7 @@ const Shop = () => {
     document.getElementById("shop-itemlist-jsonld")?.remove();
     document.head.appendChild(tag);
     const prev = document.title;
-    document.title = "Boutique AnimemomentsAnimeofficiel — 1500+ produits Anime, Manga, Collectors & Numériques";
+    document.title = "Boutique — Lovanet · Anime.Moments.officiel & AnimemomentsAnimeofficiel";
     return () => { tag.remove(); document.title = prev; };
   }, [uniqueProducts]);
 
