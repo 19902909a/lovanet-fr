@@ -236,10 +236,18 @@ const Index = () => {
     <PageShell>
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10" style={{ background: "var(--gradient-hero)" }} />
+        {/* Transparent dark glass background — same family as the menu */}
+        <div
+          className="absolute inset-0 -z-10"
+          style={{
+            background: "linear-gradient(135deg, hsl(220 30% 8% / 0.55) 0%, hsl(220 25% 12% / 0.65) 50%, hsl(220 30% 8% / 0.55) 100%)",
+            backdropFilter: "blur(20px) saturate(1.1)",
+            WebkitBackdropFilter: "blur(20px) saturate(1.1)",
+          }}
+        />
         {/* Animated gradient blobs */}
         <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full blur-3xl opacity-[0.06] animate-blob animation-delay-4000"
+          <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full blur-3xl opacity-[0.05] animate-blob animation-delay-4000"
             style={{ background: "radial-gradient(circle, hsl(var(--neon-cyan)), transparent 70%)" }} />
         </div>
         {/* Floating sparkles */}
@@ -247,7 +255,7 @@ const Index = () => {
           {[...Array(6)].map((_, i) => (
             <span
               key={i}
-              className="sparkle absolute w-1 h-1 rounded-full bg-white/60"
+              className="sparkle absolute w-1 h-1 rounded-full bg-white/40"
               style={{
                 left: `${10 + i * 15}%`,
                 bottom: '10%',

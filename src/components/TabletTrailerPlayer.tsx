@@ -62,7 +62,7 @@ export default function TabletTrailerPlayer() {
   // Customizable background behind the 3D carousel + interactive spotlights.
   type BgMode = "color" | "image" | "video";
   const [bgMode, setBgMode] = useState<BgMode>("color");
-  const [bgColor, setBgColor] = useState<string>("#0b0b16");
+  const [bgColor, setBgColor] = useState<string>("transparent");
   const [bgMedia, setBgMedia] = useState<string>("");
   const [showBgPanel, setShowBgPanel] = useState(false);
   const [spots, setSpots] = useState<boolean[]>([true, true, true]);
@@ -282,10 +282,12 @@ export default function TabletTrailerPlayer() {
           borderRadius: 32,
           padding: 14,
           background:
-            "linear-gradient(145deg, #1a1a24 0%, #0b0b12 50%, #1a1a24 100%)",
+            "linear-gradient(145deg, hsl(0 0% 100% / 0.06) 0%, hsl(0 0% 100% / 0.03) 50%, hsl(0 0% 100% / 0.06) 100%)",
+          backdropFilter: "blur(20px) saturate(1.1)",
+          WebkitBackdropFilter: "blur(20px) saturate(1.1)",
           border: "1px solid rgba(255,255,255,0.12)",
           boxShadow:
-            "0 30px 80px -20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 40px rgba(217,70,239,0.25)",
+            "0 30px 80px -20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08), 0 0 40px rgba(217,70,239,0.25)",
         }}
       >
         {/* Speaker slit */}
@@ -296,7 +298,7 @@ export default function TabletTrailerPlayer() {
         />
         {/* Screen — full video area */}
         <div
-          className="relative w-full rounded-2xl overflow-hidden bg-black"
+          className="relative w-full rounded-2xl overflow-hidden bg-black/60"
           style={{ height: "calc(100% - 26px)" }}
         >
           <div ref={playerHostRef} className="absolute inset-0 w-full h-full" />
@@ -307,7 +309,7 @@ export default function TabletTrailerPlayer() {
           )}
           {current && (
             <div className="absolute bottom-2 left-3 right-3 flex items-center gap-2 text-[11px] text-white/80 pointer-events-none z-10">
-              <span className="px-1.5 py-0.5 rounded-full bg-black/60 uppercase tracking-widest text-[9px]">
+              <span className="px-1.5 py-0.5 rounded-full bg-white/[0.10] backdrop-blur border border-white/15 uppercase tracking-widest text-[9px]">
                 {current.source === "catalog" ? "Catalogue" : "Site"}
               </span>
               <span className="truncate">{current.title}</span>
@@ -526,7 +528,7 @@ export default function TabletTrailerPlayer() {
         {/* Background customization panel */}
         <div className="absolute bottom-2 right-2 z-30 flex flex-col items-end gap-2">
           {showBgPanel && (
-            <div className="rounded-xl bg-black/70 backdrop-blur border border-white/15 p-3 flex flex-col gap-2 text-white text-xs">
+            <div className="rounded-xl bg-white/[0.08] backdrop-blur border border-white/15 p-3 flex flex-col gap-2 text-white text-xs">
               <div className="flex items-center gap-2">
                 <label className="uppercase tracking-widest text-[10px] text-white/70">Couleur</label>
                 <input
@@ -591,11 +593,11 @@ export default function TabletTrailerPlayer() {
           role="dialog"
           aria-modal="true"
           aria-label={`Aperçu : ${previewItem.title}`}
-          className="fixed inset-0 z-[2147483600] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4"
+          className="fixed inset-0 z-[2147483600] bg-black/70 backdrop-blur-md flex items-center justify-center p-2 sm:p-4"
           onClick={() => setPreviewItem(null)}
         >
           <div
-            className="relative w-full max-w-6xl max-h-[90vh] aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-black"
+            className="relative w-full max-w-6xl max-h-[90vh] aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-black/80"
             onClick={(e) => e.stopPropagation()}
           >
             <iframe

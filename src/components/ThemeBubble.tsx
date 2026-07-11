@@ -293,7 +293,7 @@ const applyAccent = (a: Accent) => {
 export const ThemeBubble = () => {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<ThemeKey>("default");
-  const [accent, setAccent] = useState<string>("white");
+  const [accent, setAccent] = useState<string>("off");
 
   useEffect(() => {
     const saved = (localStorage.getItem(STORAGE_KEY) as ThemeKey | null) ?? "default";
@@ -301,9 +301,10 @@ export const ThemeBubble = () => {
     applyTheme(t);
     setActive(t.key);
 
-    // Default to white background on first visit (per user request).
-    const savedAccent = localStorage.getItem(ACCENT_STORAGE_KEY) ?? "white";
-    const a = ACCENTS.find((x) => x.key === savedAccent) ?? ACCENTS.find((x) => x.key === "white")!;
+    // Default to transparent theme background on first visit so the menu's
+    // glassmorphism and the page background share the same dark family.
+    const savedAccent = localStorage.getItem(ACCENT_STORAGE_KEY) ?? "off";
+    const a = ACCENTS.find((x) => x.key === savedAccent) ?? ACCENTS.find((x) => x.key === "off")!;
     applyAccent(a);
     setAccent(a.key);
   }, []);
