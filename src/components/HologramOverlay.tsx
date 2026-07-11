@@ -169,6 +169,79 @@ const OBJECT_BUILDERS = {
     addMesh(g, new THREE.CircleGeometry(0.18, 20), tint, [0, -0.3, 0.36]);
     return g;
   },
+  dog: (tint: string) => {
+    const g = new THREE.Group();
+    addMesh(g, new THREE.BoxGeometry(1.1, 0.45, 0.4), tint, [0, 0, 0]);
+    addMesh(g, new THREE.BoxGeometry(0.4, 0.4, 0.35), tint, [0.62, 0.22, 0]);
+    addMesh(g, new THREE.ConeGeometry(0.09, 0.2, 4), tint, [0.72, 0.5, 0.1]);
+    addMesh(g, new THREE.ConeGeometry(0.09, 0.2, 4), tint, [0.72, 0.5, -0.1]);
+    for (const x of [-0.35, 0.35]) for (const z of [-0.15, 0.15])
+      addMesh(g, new THREE.CylinderGeometry(0.07, 0.07, 0.4, 6), tint, [x, -0.32, z]);
+    addMesh(g, new THREE.CylinderGeometry(0.05, 0.02, 0.5, 6), tint, [-0.65, 0.15, 0], [0, 0, Math.PI / 3]);
+    return g;
+  },
+  cat: (tint: string) => {
+    const g = new THREE.Group();
+    addMesh(g, new THREE.BoxGeometry(0.85, 0.35, 0.35), tint, [0, 0, 0]);
+    addMesh(g, new THREE.SphereGeometry(0.24, 10, 8), tint, [0.5, 0.22, 0]);
+    addMesh(g, new THREE.ConeGeometry(0.09, 0.22, 3), tint, [0.6, 0.48, 0.08]);
+    addMesh(g, new THREE.ConeGeometry(0.09, 0.22, 3), tint, [0.6, 0.48, -0.08]);
+    for (const x of [-0.28, 0.28]) for (const z of [-0.12, 0.12])
+      addMesh(g, new THREE.CylinderGeometry(0.05, 0.05, 0.32, 6), tint, [x, -0.27, z]);
+    addMesh(g, new THREE.CylinderGeometry(0.04, 0.02, 0.7, 6), tint, [-0.55, 0.1, 0], [0, 0, Math.PI / 4]);
+    return g;
+  },
+  bird: (tint: string) => {
+    const g = new THREE.Group();
+    addMesh(g, new THREE.SphereGeometry(0.28, 12, 10), tint, [0, 0, 0]);
+    addMesh(g, new THREE.SphereGeometry(0.18, 10, 8), tint, [0.28, 0.18, 0]);
+    addMesh(g, new THREE.ConeGeometry(0.06, 0.18, 4), tint, [0.45, 0.18, 0], [0, 0, -Math.PI / 2]);
+    addMesh(g, new THREE.PlaneGeometry(0.55, 0.25), tint, [0, 0.05, 0.18], [0, 0, Math.PI / 8]);
+    addMesh(g, new THREE.PlaneGeometry(0.55, 0.25), tint, [0, 0.05, -0.18], [0, 0, -Math.PI / 8]);
+    return g;
+  },
+  horse: (tint: string) => {
+    const g = new THREE.Group();
+    addMesh(g, new THREE.BoxGeometry(1.3, 0.55, 0.45), tint, [0, 0, 0]);
+    addMesh(g, new THREE.BoxGeometry(0.35, 0.55, 0.4), tint, [0.75, 0.35, 0]);
+    addMesh(g, new THREE.BoxGeometry(0.2, 0.55, 0.3), tint, [0.8, 0.75, 0]);
+    for (const x of [-0.45, 0.45]) for (const z of [-0.18, 0.18])
+      addMesh(g, new THREE.CylinderGeometry(0.08, 0.08, 0.7, 6), tint, [x, -0.5, z]);
+    return g;
+  },
+  dolphin: (tint: string) => {
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 12), holoMat(tint));
+    body.scale.set(1.8, 0.6, 0.6); body.renderOrder = 10000; g.add(body);
+    addMesh(g, new THREE.ConeGeometry(0.15, 0.35, 6), tint, [-0.85, 0, 0], [0, 0, Math.PI / 2]);
+    addMesh(g, new THREE.ConeGeometry(0.18, 0.35, 4), tint, [0.2, 0.3, 0], [Math.PI, 0, 0]);
+    return g;
+  },
+  drone: (tint: string) => {
+    const g = new THREE.Group();
+    addMesh(g, new THREE.BoxGeometry(0.5, 0.14, 0.5), tint, [0, 0, 0]);
+    for (const [x, z] of [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]]) {
+      addMesh(g, new THREE.CylinderGeometry(0.02, 0.02, 0.35, 4), tint, [x, 0.1, z]);
+      addMesh(g, new THREE.TorusGeometry(0.18, 0.02, 4, 12), tint, [x, 0.28, z], [Math.PI / 2, 0, 0]);
+    }
+    return g;
+  },
+  rocket: (tint: string) => {
+    const g = new THREE.Group();
+    addMesh(g, new THREE.CylinderGeometry(0.28, 0.28, 1.4, 12), tint, [0, 0, 0]);
+    addMesh(g, new THREE.ConeGeometry(0.28, 0.55, 12), tint, [0, 0.95, 0]);
+    addMesh(g, new THREE.ConeGeometry(0.18, 0.35, 3), tint, [0.35, -0.55, 0]);
+    addMesh(g, new THREE.ConeGeometry(0.18, 0.35, 3), tint, [-0.35, -0.55, 0]);
+    addMesh(g, new THREE.ConeGeometry(0.28, 0.5, 12), tint, [0, -0.95, 0], [Math.PI, 0, 0]);
+    return g;
+  },
+  crystal: (tint: string) => {
+    const g = new THREE.Group();
+    addMesh(g, new THREE.OctahedronGeometry(0.6, 0), tint, [0, 0, 0]);
+    addMesh(g, new THREE.OctahedronGeometry(0.28, 0), tint, [0.55, -0.3, 0]);
+    addMesh(g, new THREE.OctahedronGeometry(0.35, 0), tint, [-0.5, -0.25, 0.2]);
+    return g;
+  },
 };
 
 type ObjectKey = keyof typeof OBJECT_BUILDERS;
@@ -181,31 +254,89 @@ type Variant = {
   glbIndex?: number;
   tint: string;
   scaleMul: number;
-  preferredAction?: "dance" | "walk" | "run" | "idle" | "wave" | "jump";
+  preferredAction?: PreferredAction;
 };
+
+type PreferredAction =
+  | "dance" | "walk" | "run" | "idle" | "wave" | "jump"
+  | "salute" | "greet" | "pushup" | "yes" | "no" | "thumbsup"
+  | "punch" | "kick" | "sit" | "stand" | "sport";
 
 const buildVariants = (): Variant[] => {
   const out: Variant[] = [];
-  const labels = ["dancer", "young", "man", "woman", "robot"];
-  labels.forEach((label, i) => {
-    for (let k = 0; k < 14; k++) {
-      out.push({
-        id: `${label}-${k}`,
-        category: "human",
-        label,
-        glbIndex: i % GLBS.length,
-        tint: TINTS[(i * 3 + k) % TINTS.length],
-        scaleMul: 0.55 + Math.random() * 0.25,
-        preferredAction:
-          label === "dancer" ? "dance"
-          : label === "young" ? "run"
-          : label === "robot" ? (Math.random() < 0.5 ? "wave" : "jump")
-          : Math.random() < 0.6 ? "walk" : "idle",
-      });
-    }
+  // 100 humanoid personas across three GLBs (robot / soldier / human).
+  // Each has a preferred gesture drawn from a rich set: greeting, salute,
+  // dance, run, jump, thumbs-up, boxing, kick, pushups, sit/stand… giving
+  // Google-visible variety while the strict concurrency cap (2 humans + 1
+  // object) keeps the stage uncluttered.
+  const PERSONAS: Array<[string, number, PreferredAction]> = [
+    ["greeter",   0, "greet"],   ["saluter",   0, "salute"],
+    ["dancer",    0, "dance"],   ["runner",    1, "run"],
+    ["walker",    1, "walk"],    ["sprinter",  1, "run"],
+    ["boxer",     0, "punch"],   ["karateka",  0, "kick"],
+    ["yogi",      2, "idle"],    ["thinker",   2, "sit"],
+    ["athlete",   1, "sport"],   ["footballer",1, "kick"],
+    ["basketballer",0, "jump"],  ["skater",    1, "walk"],
+    ["breakdancer",0,"dance"],   ["ninja",     0, "jump"],
+    ["samurai",   1, "punch"],   ["hero",      0, "salute"],
+    ["worker",    1, "walk"],    ["engineer",  0, "thumbsup"],
+    ["gardener",  1, "walk"],    ["chef",      0, "wave"],
+    ["magician",  0, "wave"],    ["dj",        0, "dance"],
+    ["singer",    0, "wave"],    ["conductor", 0, "wave"],
+    ["artist",    0, "wave"],    ["scientist", 2, "idle"],
+    ["astronaut", 0, "wave"],    ["pilot",     1, "salute"],
+    ["captain",   1, "salute"],  ["officer",   1, "salute"],
+    ["guardian",  1, "idle"],    ["cyborg",    0, "punch"],
+    ["android",   0, "yes"],     ["mech",      0, "punch"],
+    ["gamer",     0, "thumbsup"],["gymnast",   0, "jump"],
+    ["marathoner",1, "run"],     ["hiker",     1, "walk"],
+    ["climber",   0, "jump"],    ["surfer",    0, "dance"],
+    ["swimmer",   2, "idle"],    ["cyclist",   1, "walk"],
+    ["rollerblader",1,"run"],    ["fencer",    0, "punch"],
+    ["archer",    0, "punch"],   ["bowler",    0, "throw"] as any,
+    ["golfer",    1, "idle"],    ["photographer",0,"wave"],
+    ["reporter",  0, "wave"],    ["dancer2",   0, "dance"],
+    ["performer", 0, "dance"],   ["acrobat",   0, "jump"],
+    ["clown",     0, "wave"],    ["mime",      2, "idle"],
+    ["priest",    2, "idle"],    ["monk",      2, "idle"],
+    ["teacher",   0, "wave"],    ["student",   1, "walk"],
+    ["doctor",    0, "wave"],    ["nurse",     0, "wave"],
+    ["firefighter",1,"salute"],  ["police",    1, "salute"],
+    ["explorer",  1, "walk"],    ["diver",     0, "idle"],
+    ["mountaineer",1,"walk"],    ["driver",    1, "idle"],
+    ["rider",     1, "walk"],    ["cowboy",    1, "salute"],
+    ["knight",    1, "punch"],   ["wizard",    0, "wave"],
+    ["princess",  0, "wave"],    ["prince",    0, "salute"],
+    ["dj2",       0, "dance"],   ["breaker",   0, "dance"],
+    ["popper",    0, "dance"],   ["locker",    0, "dance"],
+    ["hiphop",    0, "dance"],   ["ballerina", 0, "dance"],
+    ["fitness",   0, "pushup"],  ["coach",     1, "salute"],
+    ["trainer",   0, "pushup"],  ["bodybuilder",0,"punch"],
+    ["yogini",    2, "idle"],    ["meditator", 2, "idle"],
+    ["gpsrunner", 1, "run"],     ["parkour",   0, "jump"],
+    ["skater2",   1, "walk"],    ["biker",     1, "walk"],
+    ["driver2",   1, "idle"],    ["racer",     1, "run"],
+    ["mascot",    0, "wave"],    ["celebrity", 0, "wave"],
+    ["influencer",0, "thumbsup"],["streamer",  0, "thumbsup"],
+    ["speaker",   0, "wave"],    ["host",      0, "wave"],
+    ["greeter2",  0, "greet"],   ["salute2",   1, "salute"],
+    ["dancer3",   0, "dance"],   ["jumper",    0, "jump"],
+    ["thumbs",    0, "thumbsup"],["nodder",    0, "yes"],
+    ["shaker",    0, "no"],      ["robotdance",0, "dance"],
+  ];
+  PERSONAS.slice(0, 100).forEach(([label, glbIndex, action], i) => {
+    out.push({
+      id: `${label}-${i}`,
+      category: "human",
+      label,
+      glbIndex: glbIndex % GLBS.length,
+      tint: TINTS[i % TINTS.length],
+      scaleMul: 0.6 + ((i * 37) % 30) / 100,
+      preferredAction: action,
+    });
   });
   (Object.keys(OBJECT_BUILDERS) as ObjectKey[]).forEach((key) => {
-    for (let k = 0; k < 4; k++) {
+    for (let k = 0; k < 3; k++) {
       out.push({
         id: `${key}-${k}`,
         category: "object",
@@ -241,13 +372,27 @@ const pickAction = (v: Variant): { action: string; speed: number; spin: number }
   if (v.category === "object") {
     return { action: "idle", speed: 0, spin: (Math.random() - 0.5) * 0.4 };
   }
-  const p = v.preferredAction ?? (Math.random() < 0.5 ? "walk" : "idle");
-  if (p === "run") return { action: "run", speed: 2.1, spin: 0 };
-  if (p === "walk") return { action: "walk", speed: 1.1, spin: 0 };
-  if (p === "dance") return { action: "dance", speed: 0, spin: 0 };
-  if (p === "wave") return { action: "wave", speed: 0, spin: 0 };
-  if (p === "jump") return { action: "jump", speed: 0, spin: 0 };
-  return { action: "idle", speed: 0, spin: (Math.random() - 0.5) * 0.3 };
+  const p = v.preferredAction ?? "idle";
+  // Map extended gestures → base clip name (see GlbDef.loco + .extra).
+  switch (p) {
+    case "run":      return { action: "run", speed: 2.1, spin: 0 };
+    case "sport":    return { action: "run", speed: 1.7, spin: 0 };
+    case "walk":     return { action: "walk", speed: 1.1, spin: 0 };
+    case "dance":    return { action: "dance", speed: 0, spin: 0 };
+    case "jump":     return { action: "jump", speed: 0, spin: 0 };
+    case "punch":    return { action: "punch", speed: 0, spin: 0 };
+    case "kick":     return { action: "jump", speed: 0, spin: 0.3 };
+    case "pushup":   return { action: "jump", speed: 0, spin: 0 };
+    case "salute":
+    case "greet":
+    case "wave":     return { action: "wave", speed: 0, spin: 0 };
+    case "yes":      return { action: "yes", speed: 0, spin: 0 };
+    case "no":       return { action: "no", speed: 0, spin: 0 };
+    case "thumbsup": return { action: "thumbsup", speed: 0, spin: 0 };
+    case "sit":      return { action: "sitting", speed: 0, spin: 0 };
+    case "stand":    return { action: "standing", speed: 0, spin: 0 };
+    default:         return { action: "idle", speed: 0, spin: (Math.random() - 0.5) * 0.3 };
+  }
 };
 
 const spawnOne = (): Spawn => {
