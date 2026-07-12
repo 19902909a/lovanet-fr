@@ -426,12 +426,11 @@ type Burst = { id: number; pos: THREE.Vector3; color: string; bornAt: number };
  */
 const BackgroundFurniture = () => {
   return (
-    // Ancrés dans la zone du carrousel (haut de l'écran), à gauche/droite,
-    // sans chevauchement avec le centre. L'overlay est en position:fixed,
-    // donc le décor reste immobile.
+    // L'overlay est position:fixed → tout ce décor reste immobile à l'écran.
+    // Ancré dans le cadre gris opaque du hero (haut), collé aux bords G/D.
     <group position={[0, 2.6, -4]} scale={0.6} renderOrder={-1}>
-      {/* Canapé (gauche) */}
-      <group position={[-7.2, -1.9, 0]} rotation={[0, 0.35, 0]}>
+      {/* Canapé — bord gauche */}
+      <group position={[-8.6, -1.9, 0]} rotation={[0, 0.35, 0]}>
         {/* socle */}
         <mesh position={[0, 0, 0]}>
           <boxGeometry args={[4.2, 0.7, 1.5]} />
@@ -466,8 +465,8 @@ const BackgroundFurniture = () => {
       </group>
 
       {/* Grand aquarium (droite) */}
-      {/* Aquarium (droite) */}
-      <group position={[7.2, -1.4, 0]} rotation={[0, -0.35, 0]}>
+      {/* Aquarium — bord droit */}
+      <group position={[8.6, -1.4, 0]} rotation={[0, -0.35, 0]}>
         {/* meuble support */}
         <mesh position={[0, -1.1, 0]}>
           <boxGeometry args={[3.0, 0.8, 1.3]} />
@@ -521,7 +520,7 @@ const BackgroundFurniture = () => {
       </group>
 
       {/* Table basse centre-arrière */}
-      <group position={[0, -2.1, -1.2]} visible={false}>
+      <group position={[0, -2.1, -1.2]}>
         <mesh>
           <boxGeometry args={[2.2, 0.15, 1.1]} />
           <meshStandardMaterial color="#1a1a22" roughness={0.3} metalness={0.6} />
@@ -535,7 +534,7 @@ const BackgroundFurniture = () => {
       </group>
 
       {/* Lampadaire gauche */}
-      <group position={[-8.2, -1.2, -0.5]} visible={false}>
+      <group position={[-11.5, -1.2, -0.5]}>
         <mesh position={[0, 0, 0]}>
           <cylinderGeometry args={[0.06, 0.06, 3.2, 12]} />
           <meshStandardMaterial color="#0f0f14" roughness={0.4} metalness={0.8} />
@@ -547,7 +546,7 @@ const BackgroundFurniture = () => {
       </group>
 
       {/* Plante droite */}
-      <group position={[8.5, -1.8, -0.5]} visible={false}>
+      <group position={[11.5, -1.8, -0.5]}>
         <mesh position={[0, -0.35, 0]}>
           <cylinderGeometry args={[0.45, 0.35, 0.6, 16]} />
           <meshStandardMaterial color="#3a2418" roughness={0.85} />
