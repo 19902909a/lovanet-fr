@@ -58,7 +58,8 @@ export default function AnimeCatalog() {
   const [minYear, setMinYear] = useState<number>(0);
   const [sortBy, setSortBy] = useState<"default" | "newest" | "score" | "alpha">("default");
   const rafRef = useRef<number>();
-  const draggingRef = useRef<{ x: number; a: number } | null>(null);
+  const draggingRef = useRef<{ x: number; a: number; lastX: number; lastT: number; vx: number } | null>(null);
+  const flingRef = useRef<number>(0); // angular velocity (deg/s) from swipe release
   const stageRef = useRef<HTMLDivElement>(null);
   // Viewport-adaptive scaling: keep the original wheel geometry (cards not squeezed together)
   // and shrink the whole 3D stage on tablet/mobile via CSS scale so proportions are preserved.
@@ -203,6 +204,61 @@ export default function AnimeCatalog() {
       } catch (e) {
         console.error("Jikan enrichment error", e);
       }
+      // Tertiary source: Kitsu — public JSON:API, no key. Pull many pages, dedupe by title.
+      try {
+        const pageSize = 20;
+        for (let offset = 0; offset < 8000; offset += pageSize) {
+          const url = `https://kitsu.io/api/edge/anime?page[limit]=${pageSize}&page[offset]=${offset}&sort=-userCount`;
+          const r = await fetch(url, { headers: { Accept: "application/vnd.api+json" } }).catch(() => null);
+          if (!r || !r.ok) break;
+          const j = await r.json().catch(() => null);
+          const data = j?.data ?? [];
+          if (!data.length) break;
+          for (const a of data) {
+            const attr = a.attributes ?? {};
+            const pseudoId = 2_000_000_000 + Number(a.id ?? 0);
+            if (dedup.has(pseudoId)) continue;
+            const titleKey = (attr.canonicalTitle || attr.titles?.en || "").toLowerCase().trim();
+            if (titleKey) {
+              let dup = false;
+              for (const existing of dedup.values()) {
+                const t = (existing.title.english || existing.title.romaji || "").toLowerCase().trim();
+                if (t && t === titleKey) { dup = true; break; }
+              }
+              if (dup) continue;
+            }
+            const media: Media = {
+              id: pseudoId,
+              title: {
+                romaji: attr.titles?.en_jp || attr.canonicalTitle,
+                english: attr.titles?.en || attr.canonicalTitle,
+                native: attr.titles?.ja_jp || undefined,
+              },
+              coverImage: {
+                extraLarge: attr.posterImage?.large || attr.posterImage?.medium,
+                large: attr.posterImage?.medium || attr.posterImage?.small,
+                color: undefined,
+              },
+              averageScore: attr.averageRating ? Math.round(Number(attr.averageRating)) : undefined,
+              episodes: attr.episodeCount ?? undefined,
+              genres: [],
+              format: attr.subtype,
+              seasonYear: attr.startDate ? Number(String(attr.startDate).slice(0, 4)) : undefined,
+              description: attr.synopsis ?? undefined,
+              trailer: attr.youtubeVideoId ? { id: attr.youtubeVideoId, site: "youtube" } : null,
+            };
+            dedup.set(pseudoId, media);
+          }
+          // Push snapshot every few pages to keep UI responsive without thrashing state.
+          if ((offset / pageSize) % 5 === 0) {
+            setGridItems(Array.from(dedup.values()));
+          }
+          await new Promise((r) => setTimeout(r, 150));
+        }
+        setGridItems(Array.from(dedup.values()));
+      } catch (e) {
+        console.error("Kitsu enrichment error", e);
+      }
     } catch (e) {
       console.error("AniList grid fetch error", e);
     } finally {
@@ -241,7 +297,14 @@ export default function AnimeCatalog() {
       const dt = (t - last) / 1000;
       last = t;
       if (!draggingRef.current) {
-        setAngle((a) => a + dt * 8);
+        // Apply swipe fling with exponential friction, then fall back to gentle auto-spin.
+        if (Math.abs(flingRef.current) > 0.5) {
+          setAngle((a) => a + flingRef.current * dt);
+          flingRef.current *= Math.pow(0.06, dt); // ~decays over ~1.2s
+        } else {
+          flingRef.current = 0;
+          setAngle((a) => a + dt * 8);
+        }
       }
       rafRef.current = requestAnimationFrame(tick);
     };
@@ -420,17 +483,30 @@ export default function AnimeCatalog() {
         className="relative h-[46vh] min-h-[300px] sm:h-[58vh] sm:min-h-[420px] md:h-[70vh] md:min-h-[520px] w-full select-none touch-pan-y overflow-hidden"
         style={{ perspective: "1400px" }}
         onPointerDown={(e) => {
-          draggingRef.current = { x: e.clientX, a: angle };
-          (e.target as HTMLElement).setPointerCapture(e.pointerId);
+          flingRef.current = 0;
+          draggingRef.current = { x: e.clientX, a: angle, lastX: e.clientX, lastT: performance.now(), vx: 0 };
+          try { (e.target as HTMLElement).setPointerCapture(e.pointerId); } catch {}
         }}
         onPointerMove={(e) => {
-          if (!draggingRef.current) return;
-          const dx = e.clientX - draggingRef.current.x;
-          setAngle(draggingRef.current.a + dx * 0.3);
+          const d = draggingRef.current;
+          if (!d) return;
+          const now = performance.now();
+          const dt = Math.max(1, now - d.lastT);
+          d.vx = (e.clientX - d.lastX) / dt; // px per ms
+          d.lastX = e.clientX;
+          d.lastT = now;
+          const dx = e.clientX - d.x;
+          setAngle(d.a + dx * 0.3);
         }}
         onPointerUp={() => {
+          const d = draggingRef.current;
+          if (d) {
+            // Convert horizontal velocity into angular fling (deg/s).
+            flingRef.current = d.vx * 1000 * 0.3;
+          }
           draggingRef.current = null;
         }}
+        onPointerCancel={() => { draggingRef.current = null; }}
       >
         {/* background aura */}
         <div
