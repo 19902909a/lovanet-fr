@@ -60,6 +60,19 @@ export default function AnimeCatalog() {
   const rafRef = useRef<number>();
   const draggingRef = useRef<{ x: number; a: number } | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  // Viewport-adaptive sizing so the circular carousel fits mobile/tablet/desktop.
+  const [vw, setVw] = useState<number>(typeof window !== "undefined" ? window.innerWidth : 1280);
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  const isMobile = vw < 640;
+  const isTablet = vw >= 640 && vw < 1024;
+  const cardW = isMobile ? 96 : isTablet ? 150 : 200;
+  const cardH = isMobile ? 144 : isTablet ? 224 : 300;
+  const promoCardW = isMobile ? 54 : isTablet ? 72 : 90;
+  const promoCardH = isMobile ? 80 : isTablet ? 108 : 135;
 
   const fetchData = async () => {
     try {
@@ -242,13 +255,17 @@ export default function AnimeCatalog() {
   }, []);
 
   const radius = useMemo(() => {
-    if (items.length < 8) return 380;
-    return Math.max(420, items.length * 32);
-  }, [items.length]);
+    // Cap radius by viewport so cards don't drift off screen on mobile/tablet.
+    const maxByViewport = isMobile ? vw * 0.42 : isTablet ? vw * 0.38 : Math.min(vw * 0.34, 720);
+    const base = items.length < 8 ? (isMobile ? 160 : isTablet ? 260 : 380) : Math.max(isMobile ? 180 : isTablet ? 300 : 420, items.length * (isMobile ? 14 : isTablet ? 22 : 32));
+    return Math.min(base, maxByViewport);
+  }, [items.length, vw, isMobile, isTablet]);
 
   const promotedRadius = useMemo(() => {
-    return Math.max(180, Math.min(260, promoted.length * 24));
-  }, [promoted.length]);
+    const cap = isMobile ? vw * 0.36 : isTablet ? 220 : 260;
+    const base = Math.max(isMobile ? 110 : 180, Math.min(cap, promoted.length * (isMobile ? 14 : 24)));
+    return base;
+  }, [promoted.length, vw, isMobile, isTablet]);
 
   // Auto-rotate promoted carousel
   useEffect(() => {
