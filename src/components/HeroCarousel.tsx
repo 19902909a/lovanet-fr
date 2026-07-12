@@ -445,7 +445,7 @@ export const HeroCarousel = () => {
     <div
       ref={containerRef}
       data-hologram-block
-      className={`relative w-full h-[380px] sm:h-[560px] lg:h-[640px] overflow-hidden touch-pan-y select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 rounded-xl ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
+      className={`rgb-neon relative w-full h-[380px] sm:h-[560px] lg:h-[640px] overflow-hidden touch-pan-y select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 rounded-xl ${dragging ? "cursor-grabbing" : "cursor-grab"}`}
       style={{ perspective: isConstrained ? 900 : 1400, perspectiveOrigin: "50% 50%" }}
       role="region"
       aria-roledescription="carrousel"

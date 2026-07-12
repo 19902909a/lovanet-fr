@@ -62,7 +62,7 @@ export const ShopHeroBanner = ({
         </p>
       </header>
 
-      <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-primary/30 bg-card min-h-[280px] sm:min-h-[420px] shadow-[0_20px_80px_-30px_hsl(var(--neon-magenta)/0.55)]">
+      <div className="rgb-neon relative rounded-2xl sm:rounded-3xl overflow-hidden bg-card min-h-[280px] sm:min-h-[420px] shadow-[0_20px_80px_-30px_hsl(var(--neon-magenta)/0.55)]">
         {/* premium ambient decor */}
         <div className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full bg-[hsl(var(--neon-magenta)/0.35)] blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-[hsl(var(--neon-cyan)/0.3)] blur-3xl" />
