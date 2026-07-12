@@ -877,6 +877,10 @@
       0 12px 40px -14px hsl(var(--neon-cyan) / 0.45);
   }
 
+  /* Hide native scrollbar (used by the horizontally scrolling filter row on mobile). */
+  .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+
   /* Outer card: animated rainbow conic border + soft pulsing glow */
   .rgb-card {
     position: relative;
