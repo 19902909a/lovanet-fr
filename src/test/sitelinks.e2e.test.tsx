@@ -8,15 +8,15 @@ import { Footer } from "@/components/Footer";
 // keep their absolute href + open in a new tab.
 
 const InternalSitelinks: Array<[RegExp, string]> = [
-  [/^Lovanet Plateforme officielle dédiée →$/i, "/"],
+  [/^Lovanet Plateforme officiel →$/i, "/"],
+  [/^Catalogue →$/i, "/anime-catalog"],
   [/^Univers Lovanet →$/i, "/decouvrir"],
   [/^Boutique →$/i, "/shop"],
-  [/^À venir →$/i, "/anime-countdown"],
-  [/^Catalogue →$/i, "/anime-catalog"],
+  [/^AnimemomentsAnimeofficiel → YouTube$/i, "/chaine-youtube"],
   [/^AnimemomentsAnimeofficiel →$/i, "/chaine-youtube"],
   [/^Anime\.Moments\.officiel → Prime Video$/i, "/prime-video"],
-  [/^AnimemomentsAnimeofficiel → YouTube$/i, "/chaine-youtube"],
   [/^Anime\.Moments\.officiel → TikTok$/i, "/tiktok"],
+  [/^À venir →$/i, "/anime-countdown"],
 ];
 
 const PartnerLinks: Array<[string, string]> = [
