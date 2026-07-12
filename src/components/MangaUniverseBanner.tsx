@@ -30,7 +30,7 @@ export const MangaUniverseBanner = () => {
   return (
     <section className="container mx-auto px-4 lg:px-8 pb-16">
       <div
-        className="group relative block overflow-hidden rounded-3xl border border-border shadow-[0_40px_120px_-40px_hsl(var(--neon-magenta)/0.5)]"
+        className="rgb-neon group relative block overflow-hidden rounded-3xl shadow-[0_40px_120px_-40px_hsl(var(--neon-magenta)/0.5)]"
         style={{ background: bgMode === "color" ? bgColor : undefined }}
       >
         {bgMode === "image" && (
