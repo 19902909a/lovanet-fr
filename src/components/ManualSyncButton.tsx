@@ -17,21 +17,38 @@ type Props = {
   className?: string;
 };
 
-// Client-side cache keys that must be wiped on a "full sync" so the pages
-// re-fetch fresh rows (with regenerated TikTok signed thumbnails, refreshed
-// YouTube titles, etc.) instead of showing stale localStorage snapshots.
-const CLIENT_CACHE_KEYS = [
-  "lovanet.cache.yt.manga.v1",
-  "lovanet.cache.prime.anime.v1",
-];
-const CLIENT_CACHE_PREFIX = "lovanet.cache.";
+// Client-side cache keys wiped on a "full sync". We keep the mapping narrow
+// per platform so a full-sync on /tiktok does NOT nuke the Prime or catalog
+// caches (that used to force every page to refetch heavy data pointlessly).
+//
+// Each entry is either an exact localStorage key or a prefix ending in ".".
+const CACHE_MAP: Record<Platform, readonly string[]> = {
+  youtube: [
+    "lovanet.cache.yt.",       // yt.manga.v1, yt.anime.*, etc.
+    "lovanet.cache.ytIds",
+  ],
+  tiktok: [
+    "lovanet.cache.tiktok.",   // reserved for future TikTok client cache
+  ],
+  prime: [
+    "lovanet.cache.prime.",
+  ],
+  all: [
+    "lovanet.cache.",          // wipe everything under the app prefix
+  ],
+};
 
-function clearClientCaches() {
+function matchesAny(key: string, patterns: readonly string[]): boolean {
+  return patterns.some((p) => (p.endsWith(".") ? key.startsWith(p) : key === p));
+}
+
+/** Purge only the localStorage caches belonging to a given platform. */
+export function clearClientCaches(platform: Platform = "all") {
+  const patterns = CACHE_MAP[platform] ?? CACHE_MAP.all;
   try {
-    for (const k of CLIENT_CACHE_KEYS) localStorage.removeItem(k);
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i);
-      if (key && key.startsWith(CLIENT_CACHE_PREFIX)) localStorage.removeItem(key);
+      if (key && matchesAny(key, patterns)) localStorage.removeItem(key);
     }
   } catch { /* ignore quota / privacy-mode errors */ }
 }
@@ -82,7 +99,7 @@ export const ManualSyncButton = ({
         setMsg(failed.length ? "Sync partielle" : full ? "Full sync OK" : "Sync OK");
       }
       if (full) {
-        clearClientCaches();
+        clearClientCaches(platform);
       }
       onDone?.();
     } catch (e) {
