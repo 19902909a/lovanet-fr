@@ -670,7 +670,7 @@ export default function AnimeCatalog() {
 
       {/* Barre RGB fluo sous le carrousel cercle */}
       <div className="px-4 md:px-10 pt-2">
-        <NeonFooterBar inline height={22} className="rounded-full overflow-hidden" />
+        <MangaNeonBar height={26} className="rounded-full overflow-hidden" />
       </div>
       <CardSkinBubble />
 
