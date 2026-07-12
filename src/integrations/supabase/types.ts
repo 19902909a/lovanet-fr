@@ -386,6 +386,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      sync_secret_header_value: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
