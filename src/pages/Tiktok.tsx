@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminRemoveVideo } from "@/components/AdminRemoveVideo";
 import { MangaUniverseBanner } from "@/components/MangaUniverseBanner";
+import { ManualSyncButton } from "@/components/ManualSyncButton";
 
 type TTItem = {
   id: string;
