@@ -479,7 +479,9 @@ const CaptureSofa = () => {
 };
 
 
-// (SofaZone is rendered directly from HologramOverlay)
+const FixedCaptureFurniture = ({ hidden, onToggle }: { hidden: boolean; onToggle: () => void }) => {
+  return <SofaZone hidden={hidden} onToggle={onToggle} />;
+};
 
 type MorphArch =
   | "robot" | "mech" | "cyborg"
@@ -491,10 +493,9 @@ type MorphArch =
 type MorphMotion = "spin" | "bob" | "pulse" | "wave" | "shake";
 
 const MORPH_ARCHES: MorphArch[] = [
-  "robot","dragonIce","dragonFire","phoenix","mech",
-  "orbGuardian","crystalKnight","wolf","tigerCyber","eagle",
-  "samurai","ninjaShade","wizard","angel","demon",
-  "cyborg","alienGrey","ghost","kraken","unicornStar",
+  // Uniquement les archétypes présents sur les captures fournies :
+  // sphère/orb à anneaux et cristal/octaèdre.
+  "orbGuardian","ghost","crystalKnight","unicornStar",
 ];
 const MORPH_MOTIONS: MorphMotion[] = ["spin","bob","pulse","wave","shake"];
 const MORPH_COLORS = [
@@ -1027,19 +1028,134 @@ const spawnFromVariant = (v: Variant): Spawn => {
 };
 
 export const HologramOverlay = () => {
-  // Persist sofa visibility across reloads.
-  const [hidden, setHidden] = useState<boolean>(() => {
+  const [figures, setFigures] = useState<Spawn[]>([]);
+  const [bursts, setBursts] = useState<Burst[]>([]);
+  const [visible, setVisible] = useState<boolean>(typeof document === "undefined" ? true : !document.hidden);
+  const [clipPath, setClipPath] = useState<string | undefined>(undefined);
+  const [sofaHidden, setSofaHidden] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("lovanet.sofa.hidden") === "1";
   });
-  const toggle = useCallback(() => {
-    setHidden((h) => {
+  const toggleSofa = useCallback(() => {
+    setSofaHidden((h) => {
       const next = !h;
       try { localStorage.setItem("lovanet.sofa.hidden", next ? "1" : "0"); } catch {}
       return next;
     });
   }, []);
-  return <SofaZone hidden={hidden} onToggle={toggle} />;
+
+  useEffect(() => {
+    let raf = 0;
+    const compute = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const selectors = "video, iframe, [data-hologram-block]";
+      const rects: DOMRect[] = [];
+      document.querySelectorAll<HTMLElement>(selectors).forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.width < 24 || r.height < 24) return;
+        if (r.bottom < 0 || r.top > h || r.right < 0 || r.left > w) return;
+        rects.push(r);
+      });
+      if (!rects.length) { setClipPath(undefined); return; }
+      let d = `M0 0 H${w} V${h} H0 Z`;
+      for (const r of rects) {
+        const x1 = Math.max(0, r.left);
+        const y1 = Math.max(0, r.top);
+        const x2 = Math.min(w, r.right);
+        const y2 = Math.min(h, r.bottom);
+        d += ` M${x1} ${y1} V${y2} H${x2} V${y1} Z`;
+      }
+      setClipPath(`path(evenodd, "${d}")`);
+    };
+    const schedule = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(compute);
+    };
+    schedule();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    const interval = window.setInterval(schedule, 500);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearInterval(interval);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onVis = () => setVisible(!document.hidden);
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const tick = () => {
+      if (cancelled) return;
+      setFigures((arr) => {
+        const humans = arr.filter((f) => f.variant.category === "human").length;
+        const objects = arr.filter((f) => f.variant.category === "object").length;
+        let next = arr;
+        if (humans < MAX_HUMANS && Math.random() < 0.7) next = [...next, spawnHuman()];
+        if (objects < MAX_OBJECTS && Math.random() < 0.5) next = [...next, spawnObject()];
+        return next;
+      });
+      window.setTimeout(tick, 1400 + Math.random() * 1800);
+    };
+    setFigures([spawnHuman()]);
+    const first = window.setTimeout(tick, 1200);
+    return () => { cancelled = true; window.clearTimeout(first); };
+  }, []);
+
+  const removeFigure = useCallback(
+    (id: number) => setFigures((arr) => arr.filter((f) => f.id !== id)),
+    []
+  );
+  const removeBurst = useCallback(
+    (id: number) => setBursts((arr) => arr.filter((b) => b.id !== id)),
+    []
+  );
+  const addBurst = useCallback((id: number, pos: THREE.Vector3, color: string) => {
+    setBursts((arr) => [...arr.slice(-8), { id: uid++, pos, color, bornAt: performance.now() }]);
+  }, []);
+
+  return (
+    <>
+      <FixedCaptureFurniture hidden={sofaHidden} onToggle={toggleSofa} />
+      <div
+        aria-hidden
+        data-hologram-overlay
+        className="fixed inset-0 h-screen w-screen overflow-visible"
+        style={{
+          isolation: "isolate",
+          zIndex: 2147483000,
+          pointerEvents: "none",
+          clipPath,
+          WebkitClipPath: clipPath,
+        }}
+      >
+        <Canvas
+          dpr={[1, 2]}
+          frameloop={visible ? "always" : "never"}
+          gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+          camera={{ position: [0, 0.4, 6], fov: 45 }}
+          eventSource={typeof document !== "undefined" ? document.body : undefined}
+          eventPrefix="client"
+          style={{ width: "100vw", height: "100vh", background: "transparent", pointerEvents: "none" }}
+        >
+          <Stage
+            figures={figures}
+            bursts={bursts}
+            removeFigure={removeFigure}
+            removeBurst={removeBurst}
+            addBurst={addBurst}
+          />
+        </Canvas>
+      </div>
+    </>
+  );
 };
 
 export default HologramOverlay;
