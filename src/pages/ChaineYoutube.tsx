@@ -9,6 +9,7 @@ import { HoverPreview } from "@/components/HoverPreview";
 import { cn } from "@/lib/utils";
 import { AdminRemoveVideo } from "@/components/AdminRemoveVideo";
 import { MangaUniverseBanner } from "@/components/MangaUniverseBanner";
+import { ManualSyncButton } from "@/components/ManualSyncButton";
 
 type ImportedVideo = {
   id: string;
@@ -84,6 +85,7 @@ const ChaineYoutube = () => {
 
   return (
     <PageShell>
+      <ManualSyncButton platform="youtube" label="Sync YouTube" onDone={() => window.location.reload()} />
     <section className="container mx-auto px-4 lg:px-8 py-16">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-12 h-12 rounded-2xl bg-primary/15 text-primary flex items-center justify-center">
