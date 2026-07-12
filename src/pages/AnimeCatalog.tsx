@@ -58,7 +58,8 @@ export default function AnimeCatalog() {
   const [minYear, setMinYear] = useState<number>(0);
   const [sortBy, setSortBy] = useState<"default" | "newest" | "score" | "alpha">("default");
   const rafRef = useRef<number>();
-  const draggingRef = useRef<{ x: number; a: number } | null>(null);
+  const draggingRef = useRef<{ x: number; a: number; lastX: number; lastT: number; vx: number } | null>(null);
+  const flingRef = useRef<number>(0); // angular velocity (deg/s) from swipe release
   const stageRef = useRef<HTMLDivElement>(null);
   // Viewport-adaptive scaling: keep the original wheel geometry (cards not squeezed together)
   // and shrink the whole 3D stage on tablet/mobile via CSS scale so proportions are preserved.
@@ -241,7 +242,14 @@ export default function AnimeCatalog() {
       const dt = (t - last) / 1000;
       last = t;
       if (!draggingRef.current) {
-        setAngle((a) => a + dt * 8);
+        // Apply swipe fling with exponential friction, then fall back to gentle auto-spin.
+        if (Math.abs(flingRef.current) > 0.5) {
+          setAngle((a) => a + flingRef.current * dt);
+          flingRef.current *= Math.pow(0.06, dt); // ~decays over ~1.2s
+        } else {
+          flingRef.current = 0;
+          setAngle((a) => a + dt * 8);
+        }
       }
       rafRef.current = requestAnimationFrame(tick);
     };
