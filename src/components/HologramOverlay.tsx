@@ -420,38 +420,38 @@ const spawnOne = (): Spawn => {
 type Burst = { id: number; pos: THREE.Vector3; color: string; bornAt: number };
 
 const CaptureSofa = () => (
-  <group position={[0, -0.15, 0]} rotation={[0, 0.28, 0]} scale={0.92}>
+  <group position={[0, -0.15, 0]} rotation={[0, 0.28, 0]} scale={1.15}>
     <mesh position={[0, -0.25, 0]}>
       <boxGeometry args={[3.9, 0.62, 1.25]} />
-      <meshStandardMaterial color="#4a2a5c" roughness={0.7} metalness={0.15} />
+      <meshStandardMaterial color="#1e3a8a" roughness={0.65} metalness={0.25} emissive="#1e3a8a" emissiveIntensity={0.15} />
     </mesh>
     <mesh position={[0, 0.45, -0.42]}>
       <boxGeometry args={[3.9, 1.05, 0.34]} />
-      <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
+      <meshStandardMaterial color="#2563eb" roughness={0.6} metalness={0.25} emissive="#1d4ed8" emissiveIntensity={0.18} />
     </mesh>
     {[-1.85, 1.85].map((x) => (
       <mesh key={x} position={[x, 0.1, 0]}>
         <boxGeometry args={[0.36, 0.78, 1.25]} />
-        <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
+        <meshStandardMaterial color="#2563eb" roughness={0.6} metalness={0.25} emissive="#1d4ed8" emissiveIntensity={0.18} />
       </mesh>
     ))}
     {[-1.15, 0, 1.15].map((x) => (
       <mesh key={x} position={[x, 0.15, 0.2]}>
         <boxGeometry args={[1.02, 0.36, 0.88]} />
-        <meshStandardMaterial color="#8552a8" roughness={0.55} metalness={0.1} />
+        <meshStandardMaterial color="#3b82f6" roughness={0.55} metalness={0.2} emissive="#3b82f6" emissiveIntensity={0.2} />
       </mesh>
     ))}
     {[[-1.65, -0.45], [1.65, -0.45], [-1.65, 0.45], [1.65, 0.45]].map(([x, z], i) => (
       <mesh key={i} position={[x, -0.68, z]}>
         <cylinderGeometry args={[0.06, 0.06, 0.22, 10]} />
-        <meshStandardMaterial color="#111111" roughness={0.4} metalness={0.7} />
+        <meshStandardMaterial color="#0a0a12" roughness={0.4} metalness={0.8} />
       </mesh>
     ))}
   </group>
 );
 
 const CaptureAquarium = () => (
-  <group position={[0, -0.02, 0]} rotation={[0, -0.28, 0]} scale={0.92}>
+  <group position={[0, -0.02, 0]} rotation={[0, -0.28, 0]} scale={1.15}>
     <mesh position={[0, -1.0, 0]}>
       <boxGeometry args={[2.8, 0.72, 1.12]} />
       <meshStandardMaterial color="#22222c" roughness={0.55} metalness={0.4} />
@@ -500,35 +500,255 @@ const CaptureAquarium = () => (
 );
 
 const FixedCaptureFurniture = () => {
+  return renderFurnitureZones();
+};
+
+type MorphArch =
+  | "robot" | "mech" | "cyborg"
+  | "dragonIce" | "dragonFire" | "kraken"
+  | "phoenix" | "eagle" | "angel"
+  | "orbGuardian" | "ghost"
+  | "crystalKnight" | "wizard" | "alienGrey" | "demon" | "samurai" | "ninjaShade" | "unicornStar"
+  | "wolf" | "tigerCyber";
+type MorphMotion = "spin" | "bob" | "pulse" | "wave" | "shake";
+
+const MORPH_ARCHES: MorphArch[] = [
+  "robot","dragonIce","dragonFire","phoenix","mech",
+  "orbGuardian","crystalKnight","wolf","tigerCyber","eagle",
+  "samurai","ninjaShade","wizard","angel","demon",
+  "cyborg","alienGrey","ghost","kraken","unicornStar",
+];
+const MORPH_MOTIONS: MorphMotion[] = ["spin","bob","pulse","wave","shake"];
+const MORPH_COLORS = [
+  "#22d3ee","#60a5fa","#a78bfa","#f472b6","#34d399",
+  "#fbbf24","#f87171","#e879f9","#38bdf8","#fde047",
+];
+
+type MorphSpec = { arch: MorphArch; motion: MorphMotion; color: string; label: string };
+const MORPH_SPECS: MorphSpec[] = (() => {
+  const arr: MorphSpec[] = [];
+  MORPH_ARCHES.forEach((a, ai) =>
+    MORPH_MOTIONS.forEach((m, mi) => {
+      arr.push({
+        arch: a,
+        motion: m,
+        color: MORPH_COLORS[(ai * 5 + mi) % MORPH_COLORS.length],
+        label: `${a}·${m}`,
+      });
+    })
+  );
+  return arr; // 20 × 5 = 100
+})();
+
+const buildMorph = (spec: MorphSpec): THREE.Group => {
+  const g = new THREE.Group();
+  const color = spec.color;
+  const add = (
+    geo: THREE.BufferGeometry,
+    pos: [number, number, number] = [0, 0, 0],
+    rot: [number, number, number] = [0, 0, 0],
+    s = 1
+  ) => {
+    const wire = new THREE.Mesh(
+      geo,
+      new THREE.MeshBasicMaterial({
+        color,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.95,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    );
+    wire.position.set(...pos);
+    wire.rotation.set(...rot);
+    wire.scale.setScalar(s);
+    wire.renderOrder = 10000;
+    g.add(wire);
+    const glow = new THREE.Mesh(
+      geo,
+      new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.28,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      })
+    );
+    glow.position.set(...pos);
+    glow.rotation.set(...rot);
+    glow.scale.setScalar(s * 1.08);
+    glow.renderOrder = 9999;
+    g.add(glow);
+  };
+  switch (spec.arch) {
+    case "robot":
+    case "mech":
+    case "cyborg": {
+      add(new THREE.BoxGeometry(1, 1.5, 0.6), [0, 0.2, 0]);
+      add(new THREE.BoxGeometry(0.8, 0.7, 0.6), [0, 1.2, 0]);
+      add(new THREE.SphereGeometry(0.12, 8, 6), [0.2, 1.3, 0.3]);
+      add(new THREE.SphereGeometry(0.12, 8, 6), [-0.2, 1.3, 0.3]);
+      add(new THREE.CylinderGeometry(0.12, 0.12, 1, 8), [-0.75, 0.1, 0]);
+      add(new THREE.CylinderGeometry(0.12, 0.12, 1, 8), [0.75, 0.1, 0]);
+      add(new THREE.CylinderGeometry(0.16, 0.16, 1, 8), [-0.3, -1, 0]);
+      add(new THREE.CylinderGeometry(0.16, 0.16, 1, 8), [0.3, -1, 0]);
+      break;
+    }
+    case "dragonIce":
+    case "dragonFire":
+    case "kraken": {
+      add(new THREE.CylinderGeometry(0.45, 0.2, 2.4, 8), [0, 0, 0], [0, 0, Math.PI / 2]);
+      add(new THREE.SphereGeometry(0.5, 10, 8), [1.25, 0.15, 0]);
+      add(new THREE.ConeGeometry(0.12, 0.3, 4), [1.55, 0.5, 0.15]);
+      add(new THREE.ConeGeometry(0.12, 0.3, 4), [1.55, 0.5, -0.15]);
+      add(new THREE.PlaneGeometry(1.5, 0.9), [0, 0.5, 0.35], [0, 0, Math.PI / 8]);
+      add(new THREE.PlaneGeometry(1.5, 0.9), [0, 0.5, -0.35], [0, 0, -Math.PI / 8]);
+      add(new THREE.ConeGeometry(0.2, 1, 6), [-1.55, 0, 0], [0, 0, Math.PI / 2]);
+      break;
+    }
+    case "phoenix":
+    case "eagle":
+    case "angel": {
+      add(new THREE.SphereGeometry(0.5, 12, 10), [0, 0.5, 0]);
+      add(new THREE.PlaneGeometry(2.4, 1.1), [0, 0.5, 0]);
+      add(new THREE.ConeGeometry(0.28, 1.1, 6), [0, -0.4, 0], [Math.PI, 0, 0]);
+      add(new THREE.ConeGeometry(0.1, 0.3, 4), [0.35, 0.7, 0.3]);
+      add(new THREE.ConeGeometry(0.1, 0.3, 4), [-0.35, 0.7, 0.3]);
+      break;
+    }
+    case "orbGuardian":
+    case "ghost": {
+      add(new THREE.SphereGeometry(0.9, 20, 16), [0, 0.2, 0]);
+      add(new THREE.TorusGeometry(1.15, 0.05, 6, 32), [0, 0.2, 0], [Math.PI / 2, 0, 0]);
+      add(new THREE.TorusGeometry(1.15, 0.05, 6, 32), [0, 0.2, 0], [0, Math.PI / 2, 0]);
+      add(new THREE.TorusGeometry(1.35, 0.03, 6, 32), [0, 0.2, 0], [Math.PI / 3, 0, 0]);
+      break;
+    }
+    case "crystalKnight":
+    case "wizard":
+    case "alienGrey":
+    case "demon":
+    case "samurai":
+    case "ninjaShade":
+    case "unicornStar": {
+      add(new THREE.OctahedronGeometry(0.7, 0), [0, 0.55, 0]);
+      add(new THREE.ConeGeometry(0.45, 1.3, 6), [0, -0.4, 0], [Math.PI, 0, 0]);
+      add(new THREE.OctahedronGeometry(0.25, 0), [0.6, 0.35, 0]);
+      add(new THREE.OctahedronGeometry(0.25, 0), [-0.6, 0.35, 0]);
+      add(new THREE.ConeGeometry(0.08, 0.6, 6), [0, 1.35, 0]);
+      break;
+    }
+    case "wolf":
+    case "tigerCyber": {
+      add(new THREE.BoxGeometry(1.5, 0.6, 0.55), [0, 0, 0]);
+      add(new THREE.BoxGeometry(0.55, 0.55, 0.5), [0.8, 0.28, 0]);
+      add(new THREE.ConeGeometry(0.12, 0.28, 4), [0.9, 0.6, 0.14]);
+      add(new THREE.ConeGeometry(0.12, 0.28, 4), [0.9, 0.6, -0.14]);
+      [[-0.55, -0.22], [0.55, -0.22], [-0.55, 0.22], [0.55, 0.22]].forEach(([x, z]) =>
+        add(new THREE.CylinderGeometry(0.1, 0.1, 0.55, 6), [x, -0.5, z])
+      );
+      add(new THREE.CylinderGeometry(0.07, 0.03, 0.8, 6), [-0.8, 0.2, 0], [0, 0, Math.PI / 3]);
+      break;
+    }
+  }
+  return g;
+};
+
+const MorphCreature = ({
+  initialFurniture,
+}: {
+  initialFurniture: "sofa" | "aquarium";
+}) => {
+  const [idx, setIdx] = useState<number>(-1);
+  const group = useRef<THREE.Group>(null!);
+  const current = idx >= 0 ? MORPH_SPECS[idx] : null;
+  const built = useMemo(() => (current ? buildMorph(current) : null), [current]);
+
+  useFrame((_, dt) => {
+    const g = group.current;
+    if (!g) return;
+    const t = performance.now() / 1000;
+    if (!current) {
+      g.rotation.y = Math.sin(t * 0.7) * 0.15;
+      g.position.y = 0;
+      g.scale.set(1, 1, 1);
+      return;
+    }
+    switch (current.motion) {
+      case "spin":
+        g.rotation.y += dt * 1.4;
+        g.position.y = 0;
+        break;
+      case "bob":
+        g.position.y = Math.sin(t * 2) * 0.2;
+        g.rotation.y += dt * 0.5;
+        break;
+      case "pulse": {
+        const s = 1 + Math.sin(t * 3) * 0.1;
+        g.scale.set(s, s, s);
+        g.rotation.y += dt * 0.4;
+        break;
+      }
+      case "wave":
+        g.rotation.z = Math.sin(t * 2.2) * 0.3;
+        g.rotation.y += dt * 0.7;
+        break;
+      case "shake":
+        g.position.x = Math.sin(t * 18) * 0.06;
+        g.position.y = Math.cos(t * 15) * 0.04;
+        g.rotation.y += dt * 0.8;
+        break;
+    }
+  });
+
+  const onClick = useCallback((e: any) => {
+    e.stopPropagation();
+    setIdx((i) => (i + 1) % MORPH_SPECS.length);
+  }, []);
+
+  return (
+    <group ref={group} onClick={onClick}>
+      {idx < 0 ? (
+        initialFurniture === "sofa" ? <CaptureSofa /> : <CaptureAquarium />
+      ) : built ? (
+        <primitive object={built} />
+      ) : null}
+    </group>
+  );
+};
+
+const renderFurnitureZones = () => {
   const zoneBase: CSSProperties = {
-    top: "clamp(78px, 6.6vh, 118px)",
-    width: "clamp(138px, 16vw, 320px)",
-    height: "clamp(118px, 18vh, 220px)",
+    top: "clamp(210px, 28vh, 400px)",
+    width: "clamp(240px, 26vw, 480px)",
+    height: "clamp(220px, 30vh, 400px)",
     contain: "layout paint",
   };
 
   const renderZone = (side: "left" | "right") => (
     <div
-      className="pointer-events-none fixed"
+      className="fixed"
       style={{
         ...zoneBase,
         zIndex: 2147483001,
+        pointerEvents: "none",
         ...(side === "left"
-          ? { left: "clamp(8px, 2.2vw, 46px)" }
-          : { right: "clamp(8px, 2.2vw, 46px)" }),
+          ? { left: "clamp(4px, 1.6vw, 40px)" }
+          : { right: "clamp(4px, 1.6vw, 40px)" }),
       }}
     >
       <Canvas
         orthographic
         dpr={[1, 1.5]}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-        camera={{ position: [0, 0, 8], zoom: 76 }}
-        style={{ width: "100%", height: "100%", background: "transparent", pointerEvents: "none" }}
+        camera={{ position: [0, 0, 8], zoom: 62 }}
+        style={{ width: "100%", height: "100%", background: "transparent", pointerEvents: "auto", cursor: "pointer" }}
       >
         <ambientLight intensity={0.82} />
         <directionalLight position={[3, 4, 6]} intensity={1.35} color="#ffffff" />
-        <pointLight position={side === "left" ? [-3, 2, 5] : [3, 2, 5]} intensity={1.1} color={side === "left" ? "#ff66ff" : "#66ffff"} />
-        {side === "left" ? <CaptureSofa /> : <CaptureAquarium />}
+        <pointLight position={side === "left" ? [-3, 2, 5] : [3, 2, 5]} intensity={1.15} color={side === "left" ? "#66aaff" : "#66ffff"} />
+        <MorphCreature initialFurniture={side === "left" ? "sofa" : "aquarium"} />
       </Canvas>
     </div>
   );
