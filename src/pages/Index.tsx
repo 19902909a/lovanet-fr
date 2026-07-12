@@ -296,7 +296,7 @@ const Index = () => {
           {/* Tablette lecteur — 1500 bandes-annonces catalogue + site, lecture aléatoire non-répétée */}
           <TabletTrailerPlayer />
           <div className="container mx-auto px-4 lg:px-8 mt-3">
-            <NeonFooterBar inline height={22} className="rounded-full overflow-hidden" />
+            <MangaNeonBar height={26} className="rounded-full overflow-hidden" />
           </div>
         </div>
 
