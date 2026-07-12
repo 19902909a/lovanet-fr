@@ -252,17 +252,13 @@ export default function AnimeCatalog() {
   }, []);
 
   const radius = useMemo(() => {
-    // Cap radius by viewport so cards don't drift off screen on mobile/tablet.
-    const maxByViewport = isMobile ? vw * 0.42 : isTablet ? vw * 0.38 : Math.min(vw * 0.34, 720);
-    const base = items.length < 8 ? (isMobile ? 160 : isTablet ? 260 : 380) : Math.max(isMobile ? 180 : isTablet ? 300 : 420, items.length * (isMobile ? 14 : isTablet ? 22 : 32));
-    return Math.min(base, maxByViewport);
-  }, [items.length, vw, isMobile, isTablet]);
+    if (items.length < 8) return 380;
+    return Math.max(420, items.length * 32);
+  }, [items.length]);
 
   const promotedRadius = useMemo(() => {
-    const cap = isMobile ? vw * 0.36 : isTablet ? 220 : 260;
-    const base = Math.max(isMobile ? 110 : 180, Math.min(cap, promoted.length * (isMobile ? 14 : 24)));
-    return base;
-  }, [promoted.length, vw, isMobile, isTablet]);
+    return Math.max(180, Math.min(260, promoted.length * 24));
+  }, [promoted.length]);
 
   // Auto-rotate promoted carousel
   useEffect(() => {
