@@ -670,16 +670,14 @@ const renderFurnitureZones = () => {
     contain: "layout paint",
   };
 
-  const renderZone = (side: "left" | "right") => (
+  return (
     <div
       className="fixed"
       style={{
         ...zoneBase,
+        left: "clamp(4px, 1.6vw, 40px)",
         zIndex: 2147483001,
         pointerEvents: "none",
-        ...(side === "left"
-          ? { left: "clamp(4px, 1.6vw, 40px)" }
-          : { right: "clamp(4px, 1.6vw, 40px)" }),
       }}
     >
       <Canvas
@@ -691,17 +689,10 @@ const renderFurnitureZones = () => {
       >
         <ambientLight intensity={0.82} />
         <directionalLight position={[3, 4, 6]} intensity={1.35} color="#ffffff" />
-        <pointLight position={side === "left" ? [-3, 2, 5] : [3, 2, 5]} intensity={1.15} color={side === "left" ? "#66aaff" : "#66ffff"} />
-        <MorphCreature initialFurniture={side === "left" ? "sofa" : "aquarium"} />
+        <pointLight position={[-3, 2, 5]} intensity={1.15} color="#66aaff" />
+        <MorphCreature />
       </Canvas>
     </div>
-  );
-
-  return (
-    <>
-      {renderZone("left")}
-      {renderZone("right")}
-    </>
   );
 };
 
