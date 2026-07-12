@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import ChaineYoutube from "./pages/ChaineYoutube";
 import ChaineYoutubeManga from "./pages/ChaineYoutubeManga";
@@ -17,6 +17,7 @@ import AnimeCountdown from "./pages/AnimeCountdown";
 import AnimeCatalog from "./pages/AnimeCatalog";
 import Discover from "./pages/Discover";
 import OAuthConsent from "./pages/OAuthConsent";
+import SyncDashboard from "./pages/SyncDashboard";
 import { ThemeBubble } from "./components/ThemeBubble";
 import { CartProvider } from "./context/CartContext";
 import { CartDrawer } from "./components/CartDrawer";
@@ -48,6 +49,26 @@ const APP_ROUTES: Array<{ path: string; element: JSX.Element }> = [
   { path: "/decouvrir", element: <Discover /> },
 ];
 
+// Legacy / friendly aliases -> canonical branded routes. Keeps old inbound
+// links working and matches the Google sitelinks ordering (YouTube, Discover,
+// Prime Video, TikTok, Shop, Countdown, Catalog).
+const REDIRECTS: Array<{ from: string; to: string }> = [
+  { from: "/youtube", to: "/chaine-youtube" },
+  { from: "/anime-moments-youtube", to: "/chaine-youtube" },
+  { from: "/animemoments", to: "/chaine-youtube" },
+  { from: "/animemomentsanimeofficiel", to: "/chaine-youtube" },
+  { from: "/discover", to: "/decouvrir" },
+  { from: "/prime", to: "/prime-video" },
+  { from: "/amazon-prime", to: "/prime-video" },
+  { from: "/tik-tok", to: "/tiktok" },
+  { from: "/boutique", to: "/shop" },
+  { from: "/catalogue", to: "/anime-catalog" },
+  { from: "/anime", to: "/anime-catalog" },
+  { from: "/a-venir", to: "/anime-countdown" },
+  { from: "/countdown", to: "/anime-countdown" },
+  { from: "/admin", to: "/admin/sync" },
+];
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -69,6 +90,10 @@ const App = () => (
               />
             )),
           )}
+          {REDIRECTS.map((r) => (
+            <Route key={`redir-${r.from}`} path={r.from} element={<Navigate to={r.to} replace />} />
+          ))}
+          <Route path="/admin/sync" element={<SyncDashboard />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

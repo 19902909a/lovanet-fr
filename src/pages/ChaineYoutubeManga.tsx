@@ -3,6 +3,7 @@ import { PageShell } from "@/components/PageShell";
 import { Link } from "react-router-dom";
 import { EyeOff, Eye, Play, RefreshCw, ArrowLeft, X, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeVideo } from "@/lib/normalizeVideo";
 
 type Video = {
   id: string;
@@ -94,19 +95,22 @@ export default function ChaineYoutubeManga() {
         if (lastInserted === 0) break; // plus rien de neuf, on s'arrête
       }
       if (list.length) {
+        // Normalise titles, descriptions and thumbnails so every card carries
+        // the brand keywords (anime · AnimeMoments · Animer officiel · manga).
+        const normalized = list.map((v) => normalizeVideo(v));
         // Merge with local cache — the catalogue must only grow, never shrink,
         // even if the backend returns a smaller list on a given run.
         setVideos((prev) => {
           const byId = new Map<string, Video>();
           for (const v of prev) byId.set(v.id, v);
-          for (const v of list) byId.set(v.id, v); // fresh data wins on overlap
+          for (const v of normalized) byId.set(v.id, v); // fresh data wins on overlap
           const merged = Array.from(byId.values()).sort((a, b) =>
             a.publishedAt < b.publishedAt ? -1 : 1,
           );
           try { localStorage.setItem(CACHE_KEY, JSON.stringify(merged)); } catch {}
           return merged;
         });
-        setActive((a) => a || list[0]?.id || "");
+        setActive((a) => a || normalized[0]?.id || "");
       }
     } catch (e) {
       console.error("YouTube anime sync failed", e);
@@ -123,7 +127,7 @@ export default function ChaineYoutubeManga() {
       if (raw) {
         const arr: Video[] = JSON.parse(raw);
         if (Array.isArray(arr) && arr.length) {
-          setVideos(arr);
+          setVideos(arr.map((v) => normalizeVideo(v)));
           setActive(arr[0]?.id ?? "");
           setLoading(false);
         }
