@@ -428,9 +428,11 @@ const BackgroundFurniture = () => {
   return (
     // L'overlay est position:fixed → tout ce décor reste immobile à l'écran.
     // Ancré dans le cadre gris opaque du hero (haut), collé aux bords G/D.
-    <group position={[0, 2.6, -4]} scale={0.6} renderOrder={-1}>
-      {/* Canapé — bord gauche */}
-      <group position={[-8.6, -1.9, 0]} rotation={[0, 0.35, 0]}>
+    // Cadré dans les deux zones bleues indiquées : bord gauche et bord droit
+    // du hero, au niveau du carrousel (moitié basse du cadre gris).
+    <group position={[0, 1.7, -4]} scale={0.55} renderOrder={-1}>
+      {/* Canapé — zone bleue gauche */}
+      <group position={[-10.2, -1.9, 0]} rotation={[0, 0.35, 0]}>
         {/* socle */}
         <mesh position={[0, 0, 0]}>
           <boxGeometry args={[4.2, 0.7, 1.5]} />
@@ -465,8 +467,8 @@ const BackgroundFurniture = () => {
       </group>
 
       {/* Grand aquarium (droite) */}
-      {/* Aquarium — bord droit */}
-      <group position={[8.6, -1.4, 0]} rotation={[0, -0.35, 0]}>
+      {/* Aquarium — zone bleue droite */}
+      <group position={[10.2, -1.4, 0]} rotation={[0, -0.35, 0]}>
         {/* meuble support */}
         <mesh position={[0, -1.1, 0]}>
           <boxGeometry args={[3.0, 0.8, 1.3]} />
