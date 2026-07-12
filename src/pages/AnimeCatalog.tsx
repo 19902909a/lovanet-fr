@@ -3,6 +3,7 @@ import NeonFooterBar from "@/components/NeonFooterBar";
 import { Navbar } from "@/components/Navbar";
 import CardSkinBubble from "@/components/CardSkinBubble";
 import YoutubeBrandCover from "@/components/YoutubeBrandCover";
+import { idbGet, idbSet, normalizeTitle } from "@/lib/animeCache";
 
 type Media = {
   id: number;
@@ -16,6 +17,9 @@ type Media = {
   seasonYear?: number;
   description?: string;
   trailer?: { id?: string; site?: string } | null;
+  // AniList: FINISHED | RELEASING | NOT_YET_RELEASED | CANCELLED | HIATUS.
+  // Normalized to: finished | releasing | upcoming | cancelled | hiatus.
+  status?: string;
 };
 
 const QUERY_SORTED = `
@@ -31,11 +35,25 @@ query ($page: Int, $perPage: Int, $sort: [MediaSort]) {
       genres
       format
       seasonYear
+      status
       description(asHtml: false)
       trailer { id site }
     }
   }
 }`;
+
+// Map heterogeneous status strings from AniList / Jikan / Kitsu into one vocabulary
+// so the status filter behaves consistently across sources.
+function normalizeStatus(raw: string | undefined | null): string | undefined {
+  if (!raw) return undefined;
+  const s = String(raw).toLowerCase();
+  if (s.includes("finish")) return "finished";
+  if (s.includes("releasing") || s.includes("airing") || s === "current") return "releasing";
+  if (s.includes("not_yet") || s.includes("not yet") || s === "upcoming" || s === "tba" || s === "unreleased") return "upcoming";
+  if (s.includes("cancel")) return "cancelled";
+  if (s.includes("hiatus")) return "hiatus";
+  return undefined;
+}
 
 /**
  * 3D rotating card carousel — original implementation.
@@ -57,6 +75,15 @@ export default function AnimeCatalog() {
   const [minScore, setMinScore] = useState<number>(0);
   const [minYear, setMinYear] = useState<number>(0);
   const [sortBy, setSortBy] = useState<"default" | "newest" | "score" | "alpha">("default");
+  const [search, setSearch] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [page, setPage] = useState<number>(0);
+  const PAGE_SIZE = 240; // ~24 rows × 10 columns on desktop
+  // Trailer playback failure state → swap iframe to a YouTube search fallback (bypasses region-locked video IDs).
+  const [trailerFailedFor, setTrailerFailedFor] = useState<number | null>(null);
+  // Cross-source dedup index by normalized title so AniList/Jikan/Kitsu never insert the same series twice.
+  const titleIndexRef = useRef<Map<string, number>>(new Map());
   const rafRef = useRef<number>();
   const draggingRef = useRef<{ x: number; a: number; lastX: number; lastT: number; vx: number } | null>(null);
   const flingRef = useRef<number>(0); // angular velocity (deg/s) from swipe release
@@ -82,8 +109,10 @@ export default function AnimeCatalog() {
       const json = await res.json();
       const list = json?.data?.Page?.media ?? [];
       if (list.length) {
-        setItems(list);
-        try { localStorage.setItem("lovanet.cache.catalog.top", JSON.stringify(list)); } catch {}
+        const normalized = list.map((m: Media) => ({ ...m, status: normalizeStatus(m.status) }));
+        setItems(normalized);
+        try { localStorage.setItem("lovanet.cache.catalog.top", JSON.stringify(normalized)); } catch {}
+        idbSet("catalog.top", normalized);
       }
     } catch (e) {
       console.error("AniList fetch error", e);
@@ -97,6 +126,17 @@ export default function AnimeCatalog() {
     setGridLoading(true);
     try {
       const dedup = new Map<number, Media>();
+      // O(1) cross-source dedup by normalized title (handles case/punctuation/season suffix variants).
+      const titleIndex = new Map<string, number>();
+      const tryInsert = (m: Media): boolean => {
+        if (dedup.has(m.id)) return false;
+        const key = normalizeTitle(m.title.english) || normalizeTitle(m.title.romaji) || normalizeTitle(m.title.native);
+        if (key && titleIndex.has(key)) return false;
+        dedup.set(m.id, m);
+        if (key) titleIndex.set(key, m.id);
+        return true;
+      };
+      const flush = () => setGridItems(Array.from(dedup.values()));
       // Combine multiple discovery axes so we surface every anime AniList exposes,
       // not just the trending pipeline. 100 pages × 50 × 4 sorts = 20 000 requests max,
       // deduplicated by id → ~15 000 unique titles in practice.
@@ -126,26 +166,10 @@ export default function AnimeCatalog() {
             const list = j?.data?.Page?.media ?? [];
             if (!list.length) stop = true;
             for (const m of list) {
-              if (!dedup.has(m.id)) dedup.set(m.id, m);
+              tryInsert({ ...m, status: normalizeStatus(m.status) });
             }
           }
-          const snapshot = Array.from(dedup.values());
-          setGridItems(snapshot);
-          // Persist up to 5000 items (localStorage quota-safe compact serialization)
-          try {
-            const slim = snapshot.slice(0, 5000).map((m) => ({
-              id: m.id,
-              title: m.title,
-              coverImage: { large: m.coverImage.large, color: m.coverImage.color },
-              averageScore: m.averageScore,
-              episodes: m.episodes,
-              genres: m.genres,
-              format: m.format,
-              seasonYear: m.seasonYear,
-              trailer: m.trailer,
-            }));
-            localStorage.setItem("lovanet.cache.catalog.grid", JSON.stringify(slim));
-          } catch {}
+          flush();
           if (stop) break;
           await new Promise((r) => setTimeout(r, 120));
         }
@@ -162,17 +186,6 @@ export default function AnimeCatalog() {
           for (const a of data) {
             // Namespace MAL IDs into a distinct range to avoid collisions with AniList IDs.
             const pseudoId = 1_000_000_000 + (a.mal_id ?? 0);
-            if (dedup.has(pseudoId)) continue;
-            // Skip if we already have an AniList entry with the same english/romaji title.
-            const titleKey = (a.title_english || a.title || "").toLowerCase().trim();
-            if (titleKey) {
-              let dup = false;
-              for (const existing of dedup.values()) {
-                const t = (existing.title.english || existing.title.romaji || "").toLowerCase().trim();
-                if (t && t === titleKey) { dup = true; break; }
-              }
-              if (dup) continue;
-            }
             const media: Media = {
               id: pseudoId,
               title: {
@@ -191,14 +204,14 @@ export default function AnimeCatalog() {
               format: a.type,
               seasonYear: a.aired?.prop?.from?.year ?? a.year ?? undefined,
               description: a.synopsis ?? undefined,
+              status: normalizeStatus(a.status),
               trailer: a.trailer?.youtube_id
                 ? { id: a.trailer.youtube_id, site: "youtube" }
                 : null,
             };
-            dedup.set(pseudoId, media);
+            tryInsert(media);
           }
-          const snapshot = Array.from(dedup.values());
-          setGridItems(snapshot);
+          flush();
           await new Promise((r) => setTimeout(r, 400)); // stay under Jikan rate limit
         }
       } catch (e) {
@@ -217,16 +230,6 @@ export default function AnimeCatalog() {
           for (const a of data) {
             const attr = a.attributes ?? {};
             const pseudoId = 2_000_000_000 + Number(a.id ?? 0);
-            if (dedup.has(pseudoId)) continue;
-            const titleKey = (attr.canonicalTitle || attr.titles?.en || "").toLowerCase().trim();
-            if (titleKey) {
-              let dup = false;
-              for (const existing of dedup.values()) {
-                const t = (existing.title.english || existing.title.romaji || "").toLowerCase().trim();
-                if (t && t === titleKey) { dup = true; break; }
-              }
-              if (dup) continue;
-            }
             const media: Media = {
               id: pseudoId,
               title: {
@@ -245,20 +248,22 @@ export default function AnimeCatalog() {
               format: attr.subtype,
               seasonYear: attr.startDate ? Number(String(attr.startDate).slice(0, 4)) : undefined,
               description: attr.synopsis ?? undefined,
+              status: normalizeStatus(attr.status),
               trailer: attr.youtubeVideoId ? { id: attr.youtubeVideoId, site: "youtube" } : null,
             };
-            dedup.set(pseudoId, media);
+            tryInsert(media);
           }
           // Push snapshot every few pages to keep UI responsive without thrashing state.
-          if ((offset / pageSize) % 5 === 0) {
-            setGridItems(Array.from(dedup.values()));
-          }
+          if ((offset / pageSize) % 5 === 0) flush();
           await new Promise((r) => setTimeout(r, 150));
         }
-        setGridItems(Array.from(dedup.values()));
+        flush();
       } catch (e) {
         console.error("Kitsu enrichment error", e);
       }
+      // Full snapshot → IndexedDB (no localStorage quota ceiling; supports 10 000+ titles).
+      titleIndexRef.current = titleIndex;
+      idbSet("catalog.grid", Array.from(dedup.values()));
     } catch (e) {
       console.error("AniList grid fetch error", e);
     } finally {
@@ -267,13 +272,20 @@ export default function AnimeCatalog() {
   };
 
   useEffect(() => {
-    // Hydrate from local backup so the page works even if AniList is unreachable.
-    try {
-      const t = localStorage.getItem("lovanet.cache.catalog.top");
-      const g = localStorage.getItem("lovanet.cache.catalog.grid");
-      if (t) { setItems(JSON.parse(t)); setLoading(false); }
-      if (g) { setGridItems(JSON.parse(g)); setGridLoading(false); }
-    } catch {}
+    // Hydrate from IndexedDB (preferred, unbounded) then localStorage (legacy fallback).
+    (async () => {
+      try {
+        const [tIdb, gIdb] = await Promise.all([idbGet<Media[]>("catalog.top"), idbGet<Media[]>("catalog.grid")]);
+        if (tIdb?.length) { setItems(tIdb); setLoading(false); }
+        if (gIdb?.length) { setGridItems(gIdb); setGridLoading(false); }
+      } catch {}
+      try {
+        if (!items.length) {
+          const t = localStorage.getItem("lovanet.cache.catalog.top");
+          if (t) { setItems(JSON.parse(t)); setLoading(false); }
+        }
+      } catch {}
+    })();
     fetchData();
     fetchGrid();
     const id = setInterval(fetchData, 1000 * 60 * 5); // auto-sync top every 5 min
@@ -347,10 +359,19 @@ export default function AnimeCatalog() {
   }, [gridItems]);
 
   const filteredSorted = useMemo(() => {
+    const q = normalizeTitle(debouncedSearch);
     let list = gridItems.filter((m) => {
       if (filterGenre !== "all" && !(m.genres ?? []).includes(filterGenre)) return false;
       if (minScore > 0 && (m.averageScore ?? 0) < minScore) return false;
       if (minYear > 0 && (m.seasonYear ?? 0) < minYear) return false;
+      if (filterStatus !== "all" && m.status !== filterStatus) return false;
+      if (q) {
+        const hay =
+          normalizeTitle(m.title.english) +
+          "|" + normalizeTitle(m.title.romaji) +
+          "|" + normalizeTitle(m.title.native);
+        if (!hay.includes(q)) return false;
+      }
       return true;
     });
     if (sortBy === "newest") {
@@ -365,15 +386,34 @@ export default function AnimeCatalog() {
       });
     }
     return list;
-  }, [gridItems, filterGenre, minScore, minYear, sortBy]);
+  }, [gridItems, filterGenre, minScore, minYear, sortBy, filterStatus, debouncedSearch]);
 
+  // Pagination: only render one PAGE_SIZE slice at a time so DOM never grows past ~240 cards.
+  const totalPages = Math.max(1, Math.ceil(filteredSorted.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const pagedItems = useMemo(
+    () => filteredSorted.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE),
+    [filteredSorted, safePage],
+  );
   const rows = useMemo(() => {
     const out: Media[][] = [];
-    for (let i = 0; i < filteredSorted.length; i += rowSize) {
-      out.push(filteredSorted.slice(i, i + rowSize));
+    for (let i = 0; i < pagedItems.length; i += rowSize) {
+      out.push(pagedItems.slice(i, i + rowSize));
     }
     return out;
-  }, [filteredSorted]);
+  }, [pagedItems]);
+
+  // Debounce the search input so typing across thousands of items stays smooth.
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 180);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  // Whenever the user opens a new modal, reset any previous trailer-fallback flag.
+  useEffect(() => { if (active) setTrailerFailedFor(null); }, [active?.id]);
+
+  // Reset to first page whenever any filter/search changes.
+  useEffect(() => { setPage(0); }, [debouncedSearch, filterGenre, filterStatus, minScore, minYear, sortBy]);
 
   const promoteRow = (rowItems: Media[]) => {
     setPromoted((prev) => {
@@ -619,6 +659,27 @@ export default function AnimeCatalog() {
             <span className="text-xs text-white/50">Chargement en cours…</span>
           )}
         </div>
+        {/* Search bar — debounced full-text across english / romaji / native */}
+        <div className="mb-3 relative">
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher un titre… (ex : demon slayer, jujutsu, one piece)"
+            className="w-full bg-black/50 border border-white/15 focus:border-fuchsia-400/60 rounded-full px-4 py-2 text-sm text-white placeholder:text-white/40 outline-none"
+            aria-label="Rechercher dans le catalogue"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Effacer la recherche"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white text-sm"
+            >
+              ×
+            </button>
+          )}
+        </div>
         {/* Quick filters + sort */}
         <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
           <select
@@ -631,6 +692,19 @@ export default function AnimeCatalog() {
             {allGenres.map((g) => (
               <option key={g} value={g}>{g}</option>
             ))}
+          </select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="bg-black/40 border border-white/15 rounded-full px-3 py-1.5 text-white/80"
+            aria-label="Filtrer par statut de diffusion"
+          >
+            <option value="all">Statut : tous</option>
+            <option value="releasing">En cours</option>
+            <option value="finished">Terminé</option>
+            <option value="upcoming">À venir</option>
+            <option value="hiatus">En pause</option>
+            <option value="cancelled">Annulé</option>
           </select>
           <select
             value={minScore}
@@ -672,10 +746,10 @@ export default function AnimeCatalog() {
             <option value="score">Meilleur score</option>
             <option value="alpha">A → Z</option>
           </select>
-          {(filterGenre !== "all" || minScore > 0 || minYear > 0 || sortBy !== "default") && (
+          {(filterGenre !== "all" || filterStatus !== "all" || minScore > 0 || minYear > 0 || sortBy !== "default" || search) && (
             <button
               type="button"
-              onClick={() => { setFilterGenre("all"); setMinScore(0); setMinYear(0); setSortBy("default"); }}
+              onClick={() => { setFilterGenre("all"); setFilterStatus("all"); setMinScore(0); setMinYear(0); setSortBy("default"); setSearch(""); }}
               className="text-white/60 hover:text-white underline"
             >
               Réinitialiser
@@ -752,6 +826,31 @@ export default function AnimeCatalog() {
             </div>
           ))}
         </div>
+        {/* Pager: only renders one page of ~240 cards so the DOM never inflates past a few hundred nodes */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-white/80">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={safePage === 0}
+              className="px-3 py-1.5 rounded-full border border-white/15 bg-black/40 hover:bg-white/10 disabled:opacity-40"
+            >
+              ← Précédent
+            </button>
+            <span className="px-2">
+              Page <strong className="text-fuchsia-300">{safePage + 1}</strong> / {totalPages}
+              <span className="ml-2 text-white/50">({filteredSorted.length} titres)</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={safePage >= totalPages - 1}
+              className="px-3 py-1.5 rounded-full border border-white/15 bg-black/40 hover:bg-white/10 disabled:opacity-40"
+            >
+              Suivant →
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Detail modal */}
@@ -765,21 +864,56 @@ export default function AnimeCatalog() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* In-modal video player — trailers first, banner fallback */}
-            {active.trailer?.id && active.trailer?.site === "youtube" ? (
-              <div className="relative w-full aspect-video bg-black">
-                <iframe
-                  key={active.trailer.id}
-                  src={`https://www.youtube-nocookie.com/embed/${active.trailer.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-                  title={active.title.english || active.title.romaji || "Trailer"}
-                  className="absolute inset-0 w-full h-full"
-                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                  allowFullScreen
-                />
-                <YoutubeBrandCover />
-              </div>
-            ) : active.bannerImage ? (
+            {(() => {
+              const queryStr = encodeURIComponent(`${active.title.english || active.title.romaji || ""} trailer anime`);
+              const searchEmbed = `https://www.youtube-nocookie.com/embed?listType=search&list=${queryStr}&autoplay=0&modestbranding=1&playsinline=1&hl=en`;
+              const hasTrailer = !!(active.trailer?.id && active.trailer?.site === "youtube");
+              const failed = trailerFailedFor === active.id;
+              const embedSrc = hasTrailer && !failed
+                ? `https://www.youtube-nocookie.com/embed/${active.trailer!.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&hl=en`
+                : searchEmbed;
+              return (
+                <div className="relative w-full aspect-video bg-black">
+                  <iframe
+                    key={`${active.id}-${failed ? "fb" : "primary"}`}
+                    src={embedSrc}
+                    title={active.title.english || active.title.romaji || "Trailer"}
+                    className="absolute inset-0 w-full h-full"
+                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    allowFullScreen
+                    referrerPolicy="strict-origin-when-cross-origin"
+                  />
+                  {hasTrailer && !failed && <YoutubeBrandCover />}
+                  {/* Region/blocked fallback controls — YouTube can't signal blocking via postMessage
+                       for privacy-enhanced embeds, so we expose a manual switch + open-on-youtube link. */}
+                  <div className="absolute bottom-2 right-2 z-10 flex items-center gap-2 text-[11px]">
+                    {hasTrailer && !failed && (
+                      <button
+                        type="button"
+                        onClick={() => setTrailerFailedFor(active.id)}
+                        className="px-2 py-1 rounded-full bg-black/70 border border-white/20 text-white/90 hover:bg-black/90 backdrop-blur"
+                        title="Basculer sur une recherche YouTube si la vidéo est bloquée dans votre région"
+                      >
+                        Vidéo bloquée ? Essayer une autre source
+                      </button>
+                    )}
+                    <a
+                      href={hasTrailer && !failed
+                        ? `https://www.youtube.com/watch?v=${active.trailer!.id}`
+                        : `https://www.youtube.com/results?search_query=${queryStr}`}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="px-2 py-1 rounded-full bg-fuchsia-600/80 border border-white/20 text-white hover:bg-fuchsia-500"
+                    >
+                      Ouvrir sur YouTube ↗
+                    </a>
+                  </div>
+                </div>
+              );
+            })()}
+            {active.bannerImage && !(active.trailer?.id) && (
               <img src={active.bannerImage} alt="" className="w-full h-40 object-cover" />
-            ) : null}
+            )}
             <div className="p-6">
               <h2 className="text-2xl font-bold mb-2">
                 {active.title.english || active.title.romaji}
