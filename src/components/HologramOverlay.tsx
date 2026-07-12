@@ -419,36 +419,64 @@ const spawnOne = (): Spawn => {
 
 type Burst = { id: number; pos: THREE.Vector3; color: string; bornAt: number };
 
-const CaptureSofa = () => (
-  <group position={[0, -0.15, 0]} rotation={[0, 0.28, 0]} scale={1.15}>
-    <mesh position={[0, -0.25, 0]}>
-      <boxGeometry args={[3.9, 0.62, 1.25]} />
-      <meshStandardMaterial color="#1e3a8a" roughness={0.65} metalness={0.25} emissive="#1e3a8a" emissiveIntensity={0.15} />
-    </mesh>
-    <mesh position={[0, 0.45, -0.42]}>
-      <boxGeometry args={[3.9, 1.05, 0.34]} />
-      <meshStandardMaterial color="#2563eb" roughness={0.6} metalness={0.25} emissive="#1d4ed8" emissiveIntensity={0.18} />
-    </mesh>
-    {[-1.85, 1.85].map((x) => (
-      <mesh key={x} position={[x, 0.1, 0]}>
-        <boxGeometry args={[0.36, 0.78, 1.25]} />
-        <meshStandardMaterial color="#2563eb" roughness={0.6} metalness={0.25} emissive="#1d4ed8" emissiveIntensity={0.18} />
+const CaptureSofa = () => {
+  const holoWire = (color: string, opacity = 0.9) => (
+    <meshBasicMaterial
+      color={color}
+      wireframe
+      transparent
+      opacity={opacity}
+      blending={THREE.AdditiveBlending}
+      depthWrite={false}
+    />
+  );
+  const holoGlow = (color: string, opacity = 0.22) => (
+    <meshBasicMaterial
+      color={color}
+      transparent
+      opacity={opacity}
+      blending={THREE.AdditiveBlending}
+      depthWrite={false}
+    />
+  );
+  const Part = ({
+    position,
+    args,
+    color,
+    kind = "box",
+  }: {
+    position: [number, number, number];
+    args: any;
+    color: string;
+    kind?: "box" | "cyl";
+  }) => (
+    <group position={position}>
+      <mesh renderOrder={10000}>
+        {kind === "box" ? <boxGeometry args={args} /> : <cylinderGeometry args={args} />}
+        {holoWire(color)}
       </mesh>
-    ))}
-    {[-1.15, 0, 1.15].map((x) => (
-      <mesh key={x} position={[x, 0.15, 0.2]}>
-        <boxGeometry args={[1.02, 0.36, 0.88]} />
-        <meshStandardMaterial color="#3b82f6" roughness={0.55} metalness={0.2} emissive="#3b82f6" emissiveIntensity={0.2} />
+      <mesh renderOrder={9999} scale={1.05}>
+        {kind === "box" ? <boxGeometry args={args} /> : <cylinderGeometry args={args} />}
+        {holoGlow(color)}
       </mesh>
-    ))}
-    {[[-1.65, -0.45], [1.65, -0.45], [-1.65, 0.45], [1.65, 0.45]].map(([x, z], i) => (
-      <mesh key={i} position={[x, -0.68, z]}>
-        <cylinderGeometry args={[0.06, 0.06, 0.22, 10]} />
-        <meshStandardMaterial color="#0a0a12" roughness={0.4} metalness={0.8} />
-      </mesh>
-    ))}
-  </group>
-);
+    </group>
+  );
+  return (
+    <group position={[0, -0.15, 0]} rotation={[0, 0.28, 0]} scale={1.15}>
+      <Part position={[0, -0.25, 0]} args={[3.9, 0.62, 1.25]} color="#3b82f6" />
+      <Part position={[0, 0.45, -0.42]} args={[3.9, 1.05, 0.34]} color="#60a5fa" />
+      {[-1.85, 1.85].map((x) => (
+        <Part key={x} position={[x, 0.1, 0]} args={[0.36, 0.78, 1.25]} color="#60a5fa" />
+      ))}
+      {[-1.15, 0, 1.15].map((x) => (
+        <Part key={x} position={[x, 0.15, 0.2]} args={[1.02, 0.36, 0.88]} color="#38bdf8" />
+      ))}
+      {[[-1.65, -0.45], [1.65, -0.45], [-1.65, 0.45], [1.65, 0.45]].map(([x, z], i) => (
+        <Part key={i} position={[x, -0.68, z]} args={[0.06, 0.06, 0.22, 10]} color="#22d3ee" kind="cyl" />
+      ))}
+    </group>
+  );
+};
 
 
 const FixedCaptureFurniture = () => {
@@ -608,26 +636,10 @@ const buildMorph = (spec: MorphSpec): THREE.Group => {
 };
 
 const MorphCreature = () => {
-  const [idx, setIdx] = useState<number>(0);
+  const [idx, setIdx] = useState<number>(-1);
   const group = useRef<THREE.Group>(null!);
   const current = idx >= 0 ? MORPH_SPECS[idx] : null;
   const built = useMemo(() => (current ? buildMorph(current) : null), [current]);
-  const autoRef = useRef<boolean>(true);
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      autoRef.current = !!detail?.auto;
-    };
-    window.addEventListener("morph-auto", handler as EventListener);
-    // Auto-cycle interval
-    const iv = window.setInterval(() => {
-      if (autoRef.current) setIdx((i) => (i + 1) % MORPH_SPECS.length);
-    }, 2200);
-    return () => {
-      window.removeEventListener("morph-auto", handler as EventListener);
-      window.clearInterval(iv);
-    };
-  }, []);
 
   useFrame((_, dt) => {
     const g = group.current;
@@ -670,14 +682,10 @@ const MorphCreature = () => {
     e.stopPropagation();
     setIdx((i) => (i + 1) % MORPH_SPECS.length);
   }, []);
-  const onOver = useCallback((e: any) => {
-    e.stopPropagation();
-    if (autoRef.current) setIdx((i) => (i + 1) % MORPH_SPECS.length);
-  }, []);
 
   return (
-    <group ref={group} onClick={onClick} onPointerOver={onOver}>
-      {built ? <primitive object={built} /> : <CaptureSofa />}
+    <group ref={group} onClick={onClick}>
+      {idx < 0 ? <CaptureSofa /> : built ? <primitive object={built} /> : null}
     </group>
   );
 };
@@ -712,41 +720,7 @@ const renderFurnitureZones = () => {
         <pointLight position={[-3, 2, 5]} intensity={1.15} color="#66aaff" />
         <MorphCreature />
       </Canvas>
-      <MorphAutoToggle />
     </div>
-  );
-};
-
-const MorphAutoToggle = () => {
-  const [auto, setAuto] = useState<boolean>(true);
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent("morph-auto", { detail: { auto } }));
-  }, [auto]);
-  return (
-    <button
-      type="button"
-      onClick={() => setAuto((v) => !v)}
-      style={{
-        position: "absolute",
-        bottom: 6,
-        left: 6,
-        pointerEvents: "auto",
-        padding: "4px 10px",
-        fontSize: 10,
-        fontWeight: 700,
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        borderRadius: 999,
-        border: `1px solid ${auto ? "#22d3ee" : "rgba(255,255,255,0.25)"}`,
-        background: auto ? "rgba(34,211,238,0.15)" : "rgba(0,0,0,0.35)",
-        color: auto ? "#67e8f9" : "rgba(255,255,255,0.75)",
-        backdropFilter: "blur(8px)",
-        cursor: "pointer",
-      }}
-      aria-label="Basculer le mode morph automatique"
-    >
-      {auto ? "Auto morph · ON" : "Auto morph · OFF"}
-    </button>
   );
 };
 
