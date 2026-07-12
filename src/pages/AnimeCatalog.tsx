@@ -5,6 +5,7 @@ import CardSkinBubble from "@/components/CardSkinBubble";
 import YoutubeBrandCover from "@/components/YoutubeBrandCover";
 import { idbGet, idbSet, normalizeTitle } from "@/lib/animeCache";
 import BlisterFrame from "@/components/BlisterFrame";
+import YouTubeEmbed from "@/components/YouTubeEmbed";
 
 type Media = {
   id: number;
@@ -83,6 +84,11 @@ export default function AnimeCatalog() {
   const PAGE_SIZE = 240; // ~24 rows × 10 columns on desktop
   // Trailer playback failure state → swap iframe to a YouTube search fallback (bypasses region-locked video IDs).
   const [trailerFailedFor, setTrailerFailedFor] = useState<number | null>(null);
+  // When the search-fallback ALSO fails, hide the player block entirely (last resort).
+  const [trailerHiddenFor, setTrailerHiddenFor] = useState<number | null>(null);
+  // Promoted (top) trailer: track hidden state so the black box disappears if nothing plays.
+  const [promotedHidden, setPromotedHidden] = useState(false);
+  useEffect(() => { setPromotedHidden(false); }, [trailerMedia?.id]);
   // Cross-source dedup index by normalized title so AniList/Jikan/Kitsu never insert the same series twice.
   const titleIndexRef = useRef<Map<string, number>>(new Map());
   const rafRef = useRef<number>();
@@ -411,7 +417,7 @@ export default function AnimeCatalog() {
   }, [search]);
 
   // Whenever the user opens a new modal, reset any previous trailer-fallback flag.
-  useEffect(() => { if (active) setTrailerFailedFor(null); }, [active?.id]);
+  useEffect(() => { if (active) { setTrailerFailedFor(null); setTrailerHiddenFor(null); } }, [active?.id]);
 
   // Reset to first page whenever any filter/search changes.
   useEffect(() => { setPage(0); }, [debouncedSearch, filterGenre, filterStatus, minScore, minYear, sortBy]);
@@ -437,21 +443,20 @@ export default function AnimeCatalog() {
         <section className="relative px-4 md:px-10 pt-4 pb-2">
           <div className="max-w-4xl mx-auto">
             <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-[0_0_60px_rgba(168,85,247,0.35)]">
-              {trailerMedia?.trailer?.id && trailerMedia.trailer.site === "youtube" ? (
-                <iframe
+              {trailerMedia?.trailer?.id && trailerMedia.trailer.site === "youtube" && !promotedHidden ? (
+                <YouTubeEmbed
                   key={trailerMedia.trailer.id}
-                  src={`https://www.youtube-nocookie.com/embed/${trailerMedia.trailer.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&mute=1`}
+                  videoId={trailerMedia.trailer.id}
+                  searchQuery={`${trailerMedia.title.english || trailerMedia.title.romaji || ""} trailer anime`}
                   title={trailerMedia.title.english || trailerMedia.title.romaji || "Trailer"}
-                  className="absolute inset-0 w-full h-full"
-                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                  allowFullScreen
+                  onExhausted={() => setPromotedHidden(true)}
                 />
               ) : null}
-              {trailerMedia?.trailer?.id && trailerMedia.trailer.site === "youtube" ? (
+              {trailerMedia?.trailer?.id && trailerMedia.trailer.site === "youtube" && !promotedHidden ? (
                 <YoutubeBrandCover />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center text-white/40 text-sm">
-                  Sélectionnez une carte pour lire le trailer
+                  {promotedHidden ? "Trailer indisponible" : "Sélectionnez une carte pour lire le trailer"}
                 </div>
               )}
             </div>
@@ -869,23 +874,22 @@ export default function AnimeCatalog() {
           >
             {/* In-modal video player — trailers first, banner fallback */}
             {(() => {
-              const queryStr = encodeURIComponent(`${active.title.english || active.title.romaji || ""} trailer anime`);
-              const searchEmbed = `https://www.youtube-nocookie.com/embed?listType=search&list=${queryStr}&autoplay=0&modestbranding=1&playsinline=1&hl=en`;
+              const rawQuery = `${active.title.english || active.title.romaji || ""} trailer anime`;
+              const queryStr = encodeURIComponent(rawQuery);
               const hasTrailer = !!(active.trailer?.id && active.trailer?.site === "youtube");
               const failed = trailerFailedFor === active.id;
-              const embedSrc = hasTrailer && !failed
-                ? `https://www.youtube-nocookie.com/embed/${active.trailer!.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&hl=en`
-                : searchEmbed;
+              const hidden = trailerHiddenFor === active.id;
+              // Last resort: no trailer id AND no meaningful search query → hide entirely.
+              if (hidden || (!hasTrailer && !rawQuery.trim())) return null;
               return (
                 <div className="relative w-full aspect-video bg-black">
-                  <iframe
+                  <YouTubeEmbed
                     key={`${active.id}-${failed ? "fb" : "primary"}`}
-                    src={embedSrc}
+                    videoId={hasTrailer && !failed ? active.trailer!.id : undefined}
+                    searchQuery={rawQuery}
                     title={active.title.english || active.title.romaji || "Trailer"}
-                    className="absolute inset-0 w-full h-full"
-                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                    allowFullScreen
-                    referrerPolicy="strict-origin-when-cross-origin"
+                    onUnavailable={() => setTrailerFailedFor(active.id)}
+                    onExhausted={() => setTrailerHiddenFor(active.id)}
                   />
                   {hasTrailer && !failed && <YoutubeBrandCover />}
                   {/* Region/blocked fallback controls — YouTube can't signal blocking via postMessage
