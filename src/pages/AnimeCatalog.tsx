@@ -509,6 +509,7 @@ export default function AnimeCatalog() {
                             draggable={false}
                           />
                         )}
+                        <BlisterFrame radius={8} intensity={0.85} />
                       </div>
                     </button>
                   );
