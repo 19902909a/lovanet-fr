@@ -9,6 +9,7 @@ import AnimeMomentsPresentation from "@/components/AnimeMomentsPresentation";
 import crystalCity from "@/assets/crystal-city.jpg.asset.json";
 
 import NeonFooterBar from "@/components/NeonFooterBar";
+import MangaNeonBar from "@/components/MangaNeonBar";
 import TabletTrailerPlayer from "@/components/TabletTrailerPlayer";
 
 import { Button } from "@/components/ui/button";
