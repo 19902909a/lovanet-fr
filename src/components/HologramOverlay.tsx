@@ -491,10 +491,9 @@ type MorphArch =
 type MorphMotion = "spin" | "bob" | "pulse" | "wave" | "shake";
 
 const MORPH_ARCHES: MorphArch[] = [
-  "robot","dragonIce","dragonFire","phoenix","mech",
-  "orbGuardian","crystalKnight","wolf","tigerCyber","eagle",
-  "samurai","ninjaShade","wizard","angel","demon",
-  "cyborg","alienGrey","ghost","kraken","unicornStar",
+  // Uniquement les archétypes présents sur les captures fournies :
+  // sphère/orb à anneaux et cristal/octaèdre.
+  "orbGuardian","ghost","crystalKnight","unicornStar",
 ];
 const MORPH_MOTIONS: MorphMotion[] = ["spin","bob","pulse","wave","shake"];
 const MORPH_COLORS = [
