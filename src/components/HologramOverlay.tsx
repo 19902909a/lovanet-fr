@@ -426,34 +426,31 @@ type Burst = { id: number; pos: THREE.Vector3; color: string; bornAt: number };
  */
 const BackgroundFurniture = () => {
   return (
-    // Décor fixé (l'overlay est position:fixed → ne bouge pas au scroll),
-    // remonté vers le haut de l'écran, derrière le carrousel et le cercle,
-    // aligné gauche/droite sans superposition avec le centre.
-    <group position={[0, 2.4, -5]} renderOrder={-1}>
-      {/* Canapé bleu (gauche) — taille d'origine */}
-      <group position={[-6.6, -1.9, 0]} rotation={[0, 0.35, 0]}>
+    <group position={[0, 0, -4]} renderOrder={-1}>
+      {/* Grand canapé (gauche) */}
+      <group position={[-6.2, -1.9, 0]} rotation={[0, 0.35, 0]}>
         {/* socle */}
         <mesh position={[0, 0, 0]}>
           <boxGeometry args={[4.2, 0.7, 1.5]} />
-          <meshStandardMaterial color="#1e3a8a" roughness={0.7} metalness={0.15} />
+          <meshStandardMaterial color="#4a2a5c" roughness={0.7} metalness={0.15} />
         </mesh>
         {/* dossier */}
         <mesh position={[0, 0.95, -0.55]}>
           <boxGeometry args={[4.2, 1.25, 0.4]} />
-          <meshStandardMaterial color="#2547a8" roughness={0.65} metalness={0.15} />
+          <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
         </mesh>
         {/* accoudoirs */}
         {[-2.0, 2.0].map((x) => (
           <mesh key={x} position={[x, 0.5, 0]}>
             <boxGeometry args={[0.4, 0.9, 1.5]} />
-            <meshStandardMaterial color="#2547a8" roughness={0.65} metalness={0.15} />
+            <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
           </mesh>
         ))}
         {/* coussins */}
         {[-1.25, 0, 1.25].map((x) => (
           <mesh key={x} position={[x, 0.55, 0.15]}>
             <boxGeometry args={[1.15, 0.45, 1.05]} />
-            <meshStandardMaterial color="#3b82f6" roughness={0.55} metalness={0.1} />
+            <meshStandardMaterial color="#8552a8" roughness={0.55} metalness={0.1} />
           </mesh>
         ))}
         {/* pieds */}
@@ -466,18 +463,18 @@ const BackgroundFurniture = () => {
       </group>
 
       {/* Grand aquarium (droite) */}
-      {/* Aquarium (droite) — réduit pour tenir dans le sous-cadre */}
-      <group position={[6.6, -1.6, 0]} rotation={[0, -0.35, 0]} scale={0.6}>
+      {/* Grand aquarium (droite) */}
+      <group position={[6.4, -1.4, 0]} rotation={[0, -0.35, 0]}>
         {/* meuble support */}
         <mesh position={[0, -1.1, 0]}>
           <boxGeometry args={[3.0, 0.8, 1.3]} />
-          <meshStandardMaterial color="#1a2a1a" roughness={0.55} metalness={0.4} />
+          <meshStandardMaterial color="#22222c" roughness={0.55} metalness={0.4} />
         </mesh>
         {/* cuve verre */}
         <mesh position={[0, 0.2, 0]}>
           <boxGeometry args={[2.8, 1.8, 1.15]} />
           <meshPhysicalMaterial
-            color="#34d399"
+            color="#7ce0ff"
             transparent
             opacity={0.35}
             roughness={0.05}
@@ -492,36 +489,36 @@ const BackgroundFurniture = () => {
         {[1.15, -0.72].map((y) => (
           <mesh key={y} position={[0, y, 0]}>
             <boxGeometry args={[2.9, 0.1, 1.22]} />
-            <meshStandardMaterial color="#0f2a1c" roughness={0.35} metalness={0.85} />
+            <meshStandardMaterial color="#0a0a0a" roughness={0.35} metalness={0.85} />
           </mesh>
         ))}
         {/* graviers */}
         <mesh position={[0, -0.55, 0]}>
           <boxGeometry args={[2.7, 0.18, 1.05]} />
-          <meshStandardMaterial color="#e6d9a2" roughness={0.95} metalness={0} />
+          <meshStandardMaterial color="#c9b98a" roughness={0.95} metalness={0} />
         </mesh>
         {/* poissons/décor */}
         <mesh position={[-0.6, 0.0, 0.1]}>
           <sphereGeometry args={[0.22, 14, 10]} />
-          <meshStandardMaterial color="#f472b6" roughness={0.4} metalness={0.1} emissive="#ec4899" emissiveIntensity={0.3} />
+          <meshStandardMaterial color="#ff7a2a" roughness={0.4} metalness={0.1} emissive="#ff5500" emissiveIntensity={0.25} />
         </mesh>
         <mesh position={[0.5, 0.3, 0.0]}>
           <sphereGeometry args={[0.18, 14, 10]} />
-          <meshStandardMaterial color="#a78bfa" roughness={0.4} metalness={0.1} emissive="#7c3aed" emissiveIntensity={0.3} />
+          <meshStandardMaterial color="#ffe14a" roughness={0.4} metalness={0.1} emissive="#ffaa00" emissiveIntensity={0.25} />
         </mesh>
         <mesh position={[0.9, -0.25, 0.2]}>
           <coneGeometry args={[0.3, 0.9, 6]} />
-          <meshStandardMaterial color="#16a34a" roughness={0.7} />
+          <meshStandardMaterial color="#2a8a4a" roughness={0.7} />
         </mesh>
         {/* surface d'eau */}
         <mesh position={[0, 1.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[2.7, 1.05]} />
-          <meshStandardMaterial color="#6ee7b7" transparent opacity={0.55} roughness={0.15} metalness={0.6} />
+          <meshStandardMaterial color="#88d8ff" transparent opacity={0.55} roughness={0.15} metalness={0.6} />
         </mesh>
       </group>
 
       {/* Table basse centre-arrière */}
-      <group position={[0, -2.1, -1.2]} scale={0.6} visible={false}>
+      <group position={[0, -2.1, -1.2]}>
         <mesh>
           <boxGeometry args={[2.2, 0.15, 1.1]} />
           <meshStandardMaterial color="#1a1a22" roughness={0.3} metalness={0.6} />
@@ -535,7 +532,7 @@ const BackgroundFurniture = () => {
       </group>
 
       {/* Lampadaire gauche */}
-      <group position={[-9.2, -1.2, -0.5]} scale={0.7}>
+      <group position={[-8.2, -1.2, -0.5]}>
         <mesh position={[0, 0, 0]}>
           <cylinderGeometry args={[0.06, 0.06, 3.2, 12]} />
           <meshStandardMaterial color="#0f0f14" roughness={0.4} metalness={0.8} />
@@ -547,7 +544,7 @@ const BackgroundFurniture = () => {
       </group>
 
       {/* Plante droite */}
-      <group position={[9.5, -1.8, -0.5]} scale={0.7}>
+      <group position={[8.5, -1.8, -0.5]}>
         <mesh position={[0, -0.35, 0]}>
           <cylinderGeometry args={[0.45, 0.35, 0.6, 16]} />
           <meshStandardMaterial color="#3a2418" roughness={0.85} />
