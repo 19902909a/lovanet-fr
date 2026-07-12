@@ -984,6 +984,7 @@
   /* Thin rainbow conic border around the frame — bright, brilliant */
   .rgb-frame {
     background:
+      linear-gradient(hsl(0 0% 100% / 0.95), hsl(0 0% 100% / 0.95)) padding-box,
       conic-gradient(from var(--rgb-angle),
         hsl(330 100% 65%),
         hsl(280 100% 70%),
@@ -995,9 +996,10 @@
     border: 1px solid transparent;
     animation: rgb-spin 5s linear infinite;
     box-shadow:
-      0 0 0 1px hsl(0 0% 100% / 0.08) inset,
-      0 0 10px hsl(0 0% 100% / 0.12),
-      0 8px 24px hsl(240 30% 5% / 0.35);
+      0 0 0 1px hsl(0 0% 100% / 0.25) inset,
+      0 0 14px hsl(var(--neon-magenta) / 0.35),
+      0 0 28px hsl(var(--neon-cyan) / 0.25),
+      0 0 42px hsl(var(--neon-purple) / 0.2);
   }
   .rgb-frame::before {
     content: "";
