@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import NeonFooterBar from "@/components/NeonFooterBar";
+import MangaNeonBar from "@/components/MangaNeonBar";
 import { Navbar } from "@/components/Navbar";
 import CardSkinBubble from "@/components/CardSkinBubble";
 import YoutubeBrandCover from "@/components/YoutubeBrandCover";
