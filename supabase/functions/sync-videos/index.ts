@@ -122,6 +122,22 @@ Deno.serve(async (req) => {
   const sharedHeader = req.headers.get('x-sync-secret');
   let authorized = !!SYNC_SECRET && !!sharedHeader && sharedHeader === SYNC_SECRET;
 
+  // Fallback: compare against the vault-stored SYNC_SECRET (kept in sync
+  // with cron header). Lets us recover if the edge-function env secret and
+  // the vault value drift apart.
+  if (!authorized && sharedHeader) {
+    try {
+      const admin = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      );
+      const { data } = await admin.rpc('sync_secret_header_value' as never);
+      if (typeof data === 'string' && data.length > 0 && data === sharedHeader) {
+        authorized = true;
+      }
+    } catch (_e) { /* ignore */ }
+  }
+
   if (!authorized) {
     const authHeader = req.headers.get('Authorization') ?? '';
     if (authHeader.startsWith('Bearer ')) {
