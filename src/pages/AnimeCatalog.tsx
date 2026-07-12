@@ -359,10 +359,19 @@ export default function AnimeCatalog() {
   }, [gridItems]);
 
   const filteredSorted = useMemo(() => {
+    const q = normalizeTitle(debouncedSearch);
     let list = gridItems.filter((m) => {
       if (filterGenre !== "all" && !(m.genres ?? []).includes(filterGenre)) return false;
       if (minScore > 0 && (m.averageScore ?? 0) < minScore) return false;
       if (minYear > 0 && (m.seasonYear ?? 0) < minYear) return false;
+      if (filterStatus !== "all" && m.status !== filterStatus) return false;
+      if (q) {
+        const hay =
+          normalizeTitle(m.title.english) +
+          "|" + normalizeTitle(m.title.romaji) +
+          "|" + normalizeTitle(m.title.native);
+        if (!hay.includes(q)) return false;
+      }
       return true;
     });
     if (sortBy === "newest") {
@@ -377,15 +386,31 @@ export default function AnimeCatalog() {
       });
     }
     return list;
-  }, [gridItems, filterGenre, minScore, minYear, sortBy]);
+  }, [gridItems, filterGenre, minScore, minYear, sortBy, filterStatus, debouncedSearch]);
 
+  // Pagination: only render one PAGE_SIZE slice at a time so DOM never grows past ~240 cards.
+  const totalPages = Math.max(1, Math.ceil(filteredSorted.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages - 1);
+  const pagedItems = useMemo(
+    () => filteredSorted.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE),
+    [filteredSorted, safePage],
+  );
   const rows = useMemo(() => {
     const out: Media[][] = [];
-    for (let i = 0; i < filteredSorted.length; i += rowSize) {
-      out.push(filteredSorted.slice(i, i + rowSize));
+    for (let i = 0; i < pagedItems.length; i += rowSize) {
+      out.push(pagedItems.slice(i, i + rowSize));
     }
     return out;
-  }, [filteredSorted]);
+  }, [pagedItems]);
+
+  // Debounce the search input so typing across thousands of items stays smooth.
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 180);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  // Reset to first page whenever any filter/search changes.
+  useEffect(() => { setPage(0); }, [debouncedSearch, filterGenre, filterStatus, minScore, minYear, sortBy]);
 
   const promoteRow = (rowItems: Media[]) => {
     setPromoted((prev) => {
