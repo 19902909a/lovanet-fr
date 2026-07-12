@@ -40,7 +40,7 @@ export const Footer = () => {
             Lovanet
           </Link>
           <p className="text-sm text-muted-foreground max-w-xs">
-            Plateforme officielle Lovanet — catalogue d'animés, épisodes en streaming, séries manga et éditions collector à découvrir sur Prime Video, YouTube et TikTok.
+            Plateforme officielle Lovanet — catalogue d'animés, épisodes en streaming et séries manga sur Prime Video, YouTube et TikTok.
           </p>
         </div>
 
