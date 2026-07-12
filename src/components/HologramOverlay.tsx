@@ -607,11 +607,7 @@ const buildMorph = (spec: MorphSpec): THREE.Group => {
   return g;
 };
 
-const MorphCreature = ({
-  initialFurniture,
-}: {
-  initialFurniture: "sofa" | "aquarium";
-}) => {
+const MorphCreature = () => {
   const [idx, setIdx] = useState<number>(-1);
   const group = useRef<THREE.Group>(null!);
   const current = idx >= 0 ? MORPH_SPECS[idx] : null;
@@ -661,11 +657,7 @@ const MorphCreature = ({
 
   return (
     <group ref={group} onClick={onClick}>
-      {idx < 0 ? (
-        initialFurniture === "sofa" ? <CaptureSofa /> : <CaptureAquarium />
-      ) : built ? (
-        <primitive object={built} />
-      ) : null}
+      {idx < 0 ? <CaptureSofa /> : built ? <primitive object={built} /> : null}
     </group>
   );
 };
