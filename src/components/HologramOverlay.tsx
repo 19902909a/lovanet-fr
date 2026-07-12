@@ -608,26 +608,10 @@ const buildMorph = (spec: MorphSpec): THREE.Group => {
 };
 
 const MorphCreature = () => {
-  const [idx, setIdx] = useState<number>(0);
+  const [idx, setIdx] = useState<number>(-1);
   const group = useRef<THREE.Group>(null!);
   const current = idx >= 0 ? MORPH_SPECS[idx] : null;
   const built = useMemo(() => (current ? buildMorph(current) : null), [current]);
-  const autoRef = useRef<boolean>(true);
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      autoRef.current = !!detail?.auto;
-    };
-    window.addEventListener("morph-auto", handler as EventListener);
-    // Auto-cycle interval
-    const iv = window.setInterval(() => {
-      if (autoRef.current) setIdx((i) => (i + 1) % MORPH_SPECS.length);
-    }, 2200);
-    return () => {
-      window.removeEventListener("morph-auto", handler as EventListener);
-      window.clearInterval(iv);
-    };
-  }, []);
 
   useFrame((_, dt) => {
     const g = group.current;
@@ -670,14 +654,10 @@ const MorphCreature = () => {
     e.stopPropagation();
     setIdx((i) => (i + 1) % MORPH_SPECS.length);
   }, []);
-  const onOver = useCallback((e: any) => {
-    e.stopPropagation();
-    if (autoRef.current) setIdx((i) => (i + 1) % MORPH_SPECS.length);
-  }, []);
 
   return (
-    <group ref={group} onClick={onClick} onPointerOver={onOver}>
-      {built ? <primitive object={built} /> : <CaptureSofa />}
+    <group ref={group} onClick={onClick}>
+      {idx < 0 ? <CaptureSofa /> : built ? <primitive object={built} /> : null}
     </group>
   );
 };
