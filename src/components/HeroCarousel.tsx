@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Link } from "react-router-dom";
 import { videos } from "@/data/videos";
@@ -232,7 +232,7 @@ const CaptureAquarium = () => (
 );
 
 const CaptureFurniture = () => {
-  const zoneBase: React.CSSProperties = {
+  const zoneBase: CSSProperties = {
     top: "clamp(24px, 8%, 58px)",
     width: "clamp(138px, 16.5vw, 320px)",
     height: "clamp(118px, 30%, 220px)",
