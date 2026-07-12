@@ -12,8 +12,9 @@ import { DropshipAdminPanel } from "@/components/DropshipAdminPanel";
 import { ShopHeroBanner } from "@/components/ShopHeroBanner";
 import { useCart } from "@/context/CartContext";
 import { useIsAdmin } from "@/hooks/use-is-admin";
-import { Search, Star, Flame, ShoppingCart, ChevronLeft, ChevronRight, Sparkles, Zap, EyeOff, ExternalLink, Play } from "lucide-react";
+import { Search, Star, Flame, ShoppingCart, ChevronLeft, ChevronRight, Sparkles, Zap, EyeOff, ExternalLink, Play, Heart, LayoutGrid, Package, Gamepad2 } from "lucide-react";
 import { videos as VIDEO_LIST } from "@/data/videos";
+import { WidgetDock, wishlistApi, recentApi } from "@/components/shop/WidgetDock";
 
 const PAGE_SIZE = 40;
 const SOURCE_LABEL: Record<ShopProduct["source"], string> = {
@@ -97,6 +98,13 @@ const Shop = () => {
   const [sort, setSort] = useState<"pop" | "asc" | "desc" | "rating">("pop");
   const [page, setPage] = useState(1);
   const [active, setActive] = useState<ShopProduct | null>(null);
+  const [wl, setWl] = useState<string[]>(() => wishlistApi.get());
+  useEffect(() => {
+    const h = () => setWl(wishlistApi.get());
+    window.addEventListener("shop:wishlist-changed", h);
+    return () => window.removeEventListener("shop:wishlist-changed", h);
+  }, []);
+  const openProduct = (p: ShopProduct) => { recentApi.push(p.id); setActive(p); };
 
   const products = useMemo(() => {
     const hset = new Set(hidden);
@@ -186,10 +194,36 @@ const Shop = () => {
       <ShopHeroBanner
         products={heroProducts}
         videoIds={heroVideoIds}
-        onOpen={setActive}
+        onOpen={openProduct}
         onOpenCart={() => openCart(true)}
         cartCount={count}
       />
+
+      {/* SUB-NAV — site dans le site */}
+      <nav className="sticky top-12 z-30 border-y border-border/60 bg-background/80 backdrop-blur">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-8 flex items-center gap-1 overflow-x-auto no-scrollbar py-2 text-xs">
+          {[
+            { href: "#dashboard", label: "Tableau de bord", icon: <LayoutGrid className="w-3.5 h-3.5" /> },
+            { href: "#rails",     label: "Sélections",       icon: <Sparkles className="w-3.5 h-3.5" /> },
+            { href: "#catalog",   label: "Catalogue",        icon: <Package className="w-3.5 h-3.5" /> },
+            { href: "#games",     label: "Jouer & gagner",   icon: <Gamepad2 className="w-3.5 h-3.5" /> },
+          ].map((l) => (
+            <a key={l.href} href={l.href} className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border/60 bg-card/60 hover:border-primary/60 hover:text-primary transition">
+              {l.icon}{l.label}
+            </a>
+          ))}
+          <div className="ml-auto flex items-center gap-2 shrink-0">
+            <span className="hidden sm:inline text-muted-foreground">{filtered.length.toLocaleString()} produits</span>
+            <span className="hidden md:inline text-muted-foreground">·</span>
+            <span className="inline-flex items-center gap-1 text-primary"><Heart className="w-3.5 h-3.5" /> {wl.length}</span>
+          </div>
+        </div>
+      </nav>
+
+      {/* WIDGET DASHBOARD */}
+      <div id="dashboard">
+        <WidgetDock onOpen={openProduct} />
+      </div>
 
       {/* SEARCH BAR */}
       <section className="container mx-auto px-3 sm:px-4 lg:px-8 pt-4 sm:pt-6">
@@ -222,13 +256,15 @@ const Shop = () => {
         </div>
       </section>
 
-      <MarqueeRail title="Flash Deals" icon={<Flame className="w-5 h-5 text-primary" />} items={flashDeals} onOpen={setActive} duration={55} />
-      <MarqueeRail title="Meilleures ventes" icon={<Star className="w-5 h-5 text-primary" />} items={bestSellers} onOpen={setActive} duration={70} />
-      <MarqueeRail title="Nouveautés" icon={<Sparkles className="w-5 h-5 text-primary" />} items={newArrivals} onOpen={setActive} duration={60} />
-      <MarqueeRail title="Produits numériques" icon={<Zap className="w-5 h-5 text-primary" />} items={digitalPicks} onOpen={setActive} duration={65} />
+      <div id="rails">
+        <MarqueeRail title="Flash Deals" icon={<Flame className="w-5 h-5 text-primary" />} items={flashDeals} onOpen={openProduct} duration={55} />
+        <MarqueeRail title="Meilleures ventes" icon={<Star className="w-5 h-5 text-primary" />} items={bestSellers} onOpen={openProduct} duration={70} />
+        <MarqueeRail title="Nouveautés" icon={<Sparkles className="w-5 h-5 text-primary" />} items={newArrivals} onOpen={openProduct} duration={60} />
+        <MarqueeRail title="Produits numériques" icon={<Zap className="w-5 h-5 text-primary" />} items={digitalPicks} onOpen={openProduct} duration={65} />
+      </div>
 
       {/* GRID */}
-      <section className="container mx-auto px-3 sm:px-4 lg:px-8 pb-8">
+      <section id="catalog" className="container mx-auto px-3 sm:px-4 lg:px-8 pb-8">
         <div className="flex items-center justify-between mb-3">
           <p className="text-[10px] sm:text-xs text-muted-foreground">
             {filtered.length.toLocaleString()} produits · page {page}/{pages}
@@ -243,7 +279,7 @@ const Shop = () => {
           {pageItems.map((p) => (
             <article key={p.id} id={p.id} itemScope itemType="https://schema.org/Product"
               className="rgb-card group overflow-hidden bg-card rounded-2xl">
-              <button onClick={() => setActive(p)} className="block w-full text-left">
+              <button onClick={() => openProduct(p)} className="block w-full text-left">
                 <figure className="rgb-frame relative aspect-square overflow-hidden m-0">
                   <div className="rgb-art absolute inset-0 group-hover:scale-110 transition-transform duration-500">
                     <ProductArtwork seed={p.id} category={p.category} label={p.name} />
@@ -285,6 +321,12 @@ const Shop = () => {
               <div className="px-3 pb-3 flex gap-2">
                 <Button size="sm" className="w-full rounded-full" onClick={() => addToCart(p)}>
                   <ShoppingCart className="w-3.5 h-3.5 mr-1" /> Ajouter
+                </Button>
+                <Button size="icon" variant="outline"
+                  className={`rounded-full h-8 w-8 shrink-0 ${wl.includes(p.id) ? "text-primary border-primary/60" : ""}`}
+                  onClick={() => wishlistApi.toggle(p.id)}
+                  aria-label={wl.includes(p.id) ? "Retirer de la wishlist" : "Ajouter à la wishlist"}>
+                  <Heart className={`w-3.5 h-3.5 ${wl.includes(p.id) ? "fill-current" : ""}`} />
                 </Button>
                 {isAdmin && (
                   <Button size="icon" variant="outline" className="rounded-full h-8 w-8 shrink-0" onClick={() => hide(p.id)} aria-label="Masquer">
