@@ -419,36 +419,64 @@ const spawnOne = (): Spawn => {
 
 type Burst = { id: number; pos: THREE.Vector3; color: string; bornAt: number };
 
-const CaptureSofa = () => (
-  <group position={[0, -0.15, 0]} rotation={[0, 0.28, 0]} scale={1.15}>
-    <mesh position={[0, -0.25, 0]}>
-      <boxGeometry args={[3.9, 0.62, 1.25]} />
-      <meshStandardMaterial color="#1e3a8a" roughness={0.65} metalness={0.25} emissive="#1e3a8a" emissiveIntensity={0.15} />
-    </mesh>
-    <mesh position={[0, 0.45, -0.42]}>
-      <boxGeometry args={[3.9, 1.05, 0.34]} />
-      <meshStandardMaterial color="#2563eb" roughness={0.6} metalness={0.25} emissive="#1d4ed8" emissiveIntensity={0.18} />
-    </mesh>
-    {[-1.85, 1.85].map((x) => (
-      <mesh key={x} position={[x, 0.1, 0]}>
-        <boxGeometry args={[0.36, 0.78, 1.25]} />
-        <meshStandardMaterial color="#2563eb" roughness={0.6} metalness={0.25} emissive="#1d4ed8" emissiveIntensity={0.18} />
+const CaptureSofa = () => {
+  const holoWire = (color: string, opacity = 0.9) => (
+    <meshBasicMaterial
+      color={color}
+      wireframe
+      transparent
+      opacity={opacity}
+      blending={THREE.AdditiveBlending}
+      depthWrite={false}
+    />
+  );
+  const holoGlow = (color: string, opacity = 0.22) => (
+    <meshBasicMaterial
+      color={color}
+      transparent
+      opacity={opacity}
+      blending={THREE.AdditiveBlending}
+      depthWrite={false}
+    />
+  );
+  const Part = ({
+    position,
+    args,
+    color,
+    kind = "box",
+  }: {
+    position: [number, number, number];
+    args: any;
+    color: string;
+    kind?: "box" | "cyl";
+  }) => (
+    <group position={position}>
+      <mesh renderOrder={10000}>
+        {kind === "box" ? <boxGeometry args={args} /> : <cylinderGeometry args={args} />}
+        {holoWire(color)}
       </mesh>
-    ))}
-    {[-1.15, 0, 1.15].map((x) => (
-      <mesh key={x} position={[x, 0.15, 0.2]}>
-        <boxGeometry args={[1.02, 0.36, 0.88]} />
-        <meshStandardMaterial color="#3b82f6" roughness={0.55} metalness={0.2} emissive="#3b82f6" emissiveIntensity={0.2} />
+      <mesh renderOrder={9999} scale={1.05}>
+        {kind === "box" ? <boxGeometry args={args} /> : <cylinderGeometry args={args} />}
+        {holoGlow(color)}
       </mesh>
-    ))}
-    {[[-1.65, -0.45], [1.65, -0.45], [-1.65, 0.45], [1.65, 0.45]].map(([x, z], i) => (
-      <mesh key={i} position={[x, -0.68, z]}>
-        <cylinderGeometry args={[0.06, 0.06, 0.22, 10]} />
-        <meshStandardMaterial color="#0a0a12" roughness={0.4} metalness={0.8} />
-      </mesh>
-    ))}
-  </group>
-);
+    </group>
+  );
+  return (
+    <group position={[0, -0.15, 0]} rotation={[0, 0.28, 0]} scale={1.15}>
+      <Part position={[0, -0.25, 0]} args={[3.9, 0.62, 1.25]} color="#3b82f6" />
+      <Part position={[0, 0.45, -0.42]} args={[3.9, 1.05, 0.34]} color="#60a5fa" />
+      {[-1.85, 1.85].map((x) => (
+        <Part key={x} position={[x, 0.1, 0]} args={[0.36, 0.78, 1.25]} color="#60a5fa" />
+      ))}
+      {[-1.15, 0, 1.15].map((x) => (
+        <Part key={x} position={[x, 0.15, 0.2]} args={[1.02, 0.36, 0.88]} color="#38bdf8" />
+      ))}
+      {[[-1.65, -0.45], [1.65, -0.45], [-1.65, 0.45], [1.65, 0.45]].map(([x, z], i) => (
+        <Part key={i} position={[x, -0.68, z]} args={[0.06, 0.06, 0.22, 10]} color="#22d3ee" kind="cyl" />
+      ))}
+    </group>
+  );
+};
 
 
 const FixedCaptureFurniture = () => {
