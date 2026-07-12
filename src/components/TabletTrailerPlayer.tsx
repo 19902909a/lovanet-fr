@@ -269,7 +269,7 @@ export default function TabletTrailerPlayer() {
     <div className="container mx-auto px-4 lg:px-8 pt-6 pb-4">
       {/* Resizable tablet frame */}
       <div
-        className="tablet-frame relative mx-auto"
+        className="tablet-frame rgb-neon relative mx-auto"
         style={{
           width: "min(100%, 980px)",
           height: 520,
