@@ -479,9 +479,7 @@ const CaptureSofa = () => {
 };
 
 
-const FixedCaptureFurniture = () => {
-  return renderFurnitureZones();
-};
+// (SofaZone is rendered directly from HologramOverlay)
 
 type MorphArch =
   | "robot" | "mech" | "cyborg"
