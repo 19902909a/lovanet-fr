@@ -848,6 +848,39 @@
     100% { background-position: 0% 50%; }
   }
 
+  /* Slim RGB pill — used for search input & filter pills on the catalog.
+     Keeps the inside content dark & transparent while the border cycles
+     through the same rainbow conic used by .rgb-card. */
+  .rgb-pill {
+    position: relative;
+    isolation: isolate;
+    border-radius: 9999px;
+    background:
+      linear-gradient(rgba(10, 6, 20, 0.72), rgba(10, 6, 20, 0.72)) padding-box,
+      conic-gradient(from var(--rgb-angle),
+        hsl(330 95% 62%),
+        hsl(280 95% 68%),
+        hsl(210 100% 62%),
+        hsl(160 90% 58%),
+        hsl(50  100% 62%),
+        hsl(20  100% 62%),
+        hsl(330 95% 62%)) border-box;
+    border: 1.5px solid transparent;
+    animation: rgb-spin 6s linear infinite;
+    transition: box-shadow .3s ease, transform .3s ease;
+  }
+  .rgb-pill:hover,
+  .rgb-pill:focus-within {
+    box-shadow:
+      0 0 0 1px hsl(var(--neon-magenta) / 0.4),
+      0 8px 24px -8px hsl(var(--neon-magenta) / 0.55),
+      0 12px 40px -14px hsl(var(--neon-cyan) / 0.45);
+  }
+
+  /* Hide native scrollbar (used by the horizontally scrolling filter row on mobile). */
+  .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+
   /* Outer card: animated rainbow conic border + soft pulsing glow */
   .rgb-card {
     position: relative;

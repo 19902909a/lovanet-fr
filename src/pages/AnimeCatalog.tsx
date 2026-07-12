@@ -691,102 +691,129 @@ export default function AnimeCatalog() {
             <span className="text-xs text-white/50">Chargement en cours…</span>
           )}
         </div>
-        {/* Search bar — debounced full-text across english / romaji / native */}
-        <div className="mb-3 relative">
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher un titre… (ex : demon slayer, jujutsu, one piece)"
-            className="w-full bg-black/50 border border-white/15 focus:border-fuchsia-400/60 rounded-full px-4 py-2 text-sm text-white placeholder:text-white/40 outline-none"
-            aria-label="Rechercher dans le catalogue"
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={() => setSearch("")}
-              aria-label="Effacer la recherche"
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white text-sm"
+        {/* Search bar — RGB animated border, compact, centered, mobile-first */}
+        <div className="mb-3 flex justify-center">
+          <div className="rgb-pill relative w-full max-w-xl">
+            {/* Search icon */}
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-fuchsia-300/80"
+              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             >
-              ×
-            </button>
-          )}
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Rechercher un anime…"
+              className="w-full bg-transparent rounded-full pl-9 pr-9 py-2 text-sm text-white placeholder:text-white/45 outline-none"
+              aria-label="Rechercher dans le catalogue"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                aria-label="Effacer la recherche"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white text-base leading-none"
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
-        {/* Quick filters + sort */}
-        <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
-          <select
-            value={filterGenre}
-            onChange={(e) => setFilterGenre(e.target.value)}
-            className="bg-black/40 border border-white/15 rounded-full px-3 py-1.5 text-white/80"
-            aria-label="Filtrer par genre"
-          >
-            <option value="all">Tous les genres</option>
-            {allGenres.map((g) => (
-              <option key={g} value={g}>{g}</option>
+        {/* Quick filters + sort — horizontally scrollable on tight screens, no gray. */}
+        <div className="mb-4 -mx-2 px-2 overflow-x-auto scrollbar-none">
+          <div className="flex flex-nowrap sm:flex-wrap items-center justify-center gap-2 text-xs min-w-max sm:min-w-0">
+            {[
+              {
+                key: "genre",
+                value: filterGenre,
+                onChange: (v: string) => setFilterGenre(v),
+                label: "Filtrer par genre",
+                options: [{ v: "all", l: "Genres" }, ...allGenres.map((g) => ({ v: g, l: g }))],
+              },
+              {
+                key: "status",
+                value: filterStatus,
+                onChange: (v: string) => setFilterStatus(v),
+                label: "Filtrer par statut de diffusion",
+                options: [
+                  { v: "all", l: "Statut" },
+                  { v: "releasing", l: "En cours" },
+                  { v: "finished", l: "Terminé" },
+                  { v: "upcoming", l: "À venir" },
+                  { v: "hiatus", l: "En pause" },
+                  { v: "cancelled", l: "Annulé" },
+                ],
+              },
+              {
+                key: "score",
+                value: String(minScore),
+                onChange: (v: string) => setMinScore(Number(v)),
+                label: "Score minimum",
+                options: [
+                  { v: "0", l: "Score" }, { v: "60", l: "≥ 60" }, { v: "70", l: "≥ 70" },
+                  { v: "80", l: "≥ 80" }, { v: "85", l: "≥ 85" }, { v: "90", l: "≥ 90" },
+                ],
+              },
+              {
+                key: "year",
+                value: String(minYear),
+                onChange: (v: string) => setMinYear(Number(v)),
+                label: "Année minimale",
+                options: [
+                  { v: "0", l: "Année" },
+                  { v: "2026", l: "≥ 2026" }, { v: "2025", l: "≥ 2025" }, { v: "2024", l: "≥ 2024" },
+                  { v: "2023", l: "≥ 2023" }, { v: "2020", l: "≥ 2020" }, { v: "2015", l: "≥ 2015" },
+                  { v: "2010", l: "≥ 2010" }, { v: "2000", l: "≥ 2000" },
+                ],
+              },
+              {
+                key: "sort",
+                value: sortBy,
+                onChange: (v: string) => setSortBy(v as any),
+                label: "Trier",
+                options: [
+                  { v: "default", l: "Tendances" },
+                  { v: "newest", l: "Nouveaux" },
+                  { v: "score", l: "Meilleurs" },
+                  { v: "alpha", l: "A → Z" },
+                ],
+              },
+            ].map((f) => (
+              <div key={f.key} className="rgb-pill">
+                <select
+                  value={f.value}
+                  onChange={(e) => f.onChange(e.target.value)}
+                  className="appearance-none bg-transparent rounded-full pl-3 pr-7 py-1.5 text-white/90 outline-none cursor-pointer"
+                  aria-label={f.label}
+                >
+                  {f.options.map((o) => (
+                    <option key={o.v} value={o.v} className="bg-[#0a0614] text-white">{o.l}</option>
+                  ))}
+                </select>
+                <svg
+                  aria-hidden="true" viewBox="0 0 20 20"
+                  className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-white/70"
+                  fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                >
+                  <path d="m6 8 4 4 4-4" />
+                </svg>
+              </div>
             ))}
-          </select>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-black/40 border border-white/15 rounded-full px-3 py-1.5 text-white/80"
-            aria-label="Filtrer par statut de diffusion"
-          >
-            <option value="all">Statut : tous</option>
-            <option value="releasing">En cours</option>
-            <option value="finished">Terminé</option>
-            <option value="upcoming">À venir</option>
-            <option value="hiatus">En pause</option>
-            <option value="cancelled">Annulé</option>
-          </select>
-          <select
-            value={minScore}
-            onChange={(e) => setMinScore(Number(e.target.value))}
-            className="bg-black/40 border border-white/15 rounded-full px-3 py-1.5 text-white/80"
-            aria-label="Score minimum"
-          >
-            <option value={0}>Score : tous</option>
-            <option value={60}>≥ 60</option>
-            <option value={70}>≥ 70</option>
-            <option value={80}>≥ 80</option>
-            <option value={85}>≥ 85</option>
-            <option value={90}>≥ 90</option>
-          </select>
-          <select
-            value={minYear}
-            onChange={(e) => setMinYear(Number(e.target.value))}
-            className="bg-black/40 border border-white/15 rounded-full px-3 py-1.5 text-white/80"
-            aria-label="Année minimale"
-          >
-            <option value={0}>Année : toutes</option>
-            <option value={2026}>Depuis 2026</option>
-            <option value={2025}>Depuis 2025</option>
-            <option value={2024}>Depuis 2024</option>
-            <option value={2023}>Depuis 2023</option>
-            <option value={2020}>Depuis 2020</option>
-            <option value={2015}>Depuis 2015</option>
-            <option value={2010}>Depuis 2010</option>
-            <option value={2000}>Depuis 2000</option>
-          </select>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="bg-black/40 border border-fuchsia-400/40 rounded-full px-3 py-1.5 text-fuchsia-200"
-            aria-label="Trier"
-          >
-            <option value="default">Tri : Tendances</option>
-            <option value="newest">Nouveaux ajouts</option>
-            <option value="score">Meilleur score</option>
-            <option value="alpha">A → Z</option>
-          </select>
-          {(filterGenre !== "all" || filterStatus !== "all" || minScore > 0 || minYear > 0 || sortBy !== "default" || search) && (
-            <button
-              type="button"
-              onClick={() => { setFilterGenre("all"); setFilterStatus("all"); setMinScore(0); setMinYear(0); setSortBy("default"); setSearch(""); }}
-              className="text-white/60 hover:text-white underline"
-            >
-              Réinitialiser
-            </button>
-          )}
+            {(filterGenre !== "all" || filterStatus !== "all" || minScore > 0 || minYear > 0 || sortBy !== "default" || search) && (
+              <button
+                type="button"
+                onClick={() => { setFilterGenre("all"); setFilterStatus("all"); setMinScore(0); setMinYear(0); setSortBy("default"); setSearch(""); }}
+                className="rgb-pill px-3 py-1.5 text-white/90 hover:text-white"
+              >
+                Réinitialiser
+              </button>
+            )}
+          </div>
         </div>
         <div className="space-y-2">
           {rows.map((row, ri) => (
