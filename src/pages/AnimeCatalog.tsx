@@ -109,8 +109,10 @@ export default function AnimeCatalog() {
       const json = await res.json();
       const list = json?.data?.Page?.media ?? [];
       if (list.length) {
-        setItems(list);
-        try { localStorage.setItem("lovanet.cache.catalog.top", JSON.stringify(list)); } catch {}
+        const normalized = list.map((m: Media) => ({ ...m, status: normalizeStatus(m.status) }));
+        setItems(normalized);
+        try { localStorage.setItem("lovanet.cache.catalog.top", JSON.stringify(normalized)); } catch {}
+        idbSet("catalog.top", normalized);
       }
     } catch (e) {
       console.error("AniList fetch error", e);
@@ -124,6 +126,17 @@ export default function AnimeCatalog() {
     setGridLoading(true);
     try {
       const dedup = new Map<number, Media>();
+      // O(1) cross-source dedup by normalized title (handles case/punctuation/season suffix variants).
+      const titleIndex = new Map<string, number>();
+      const tryInsert = (m: Media): boolean => {
+        if (dedup.has(m.id)) return false;
+        const key = normalizeTitle(m.title.english) || normalizeTitle(m.title.romaji) || normalizeTitle(m.title.native);
+        if (key && titleIndex.has(key)) return false;
+        dedup.set(m.id, m);
+        if (key) titleIndex.set(key, m.id);
+        return true;
+      };
+      const flush = () => setGridItems(Array.from(dedup.values()));
       // Combine multiple discovery axes so we surface every anime AniList exposes,
       // not just the trending pipeline. 100 pages × 50 × 4 sorts = 20 000 requests max,
       // deduplicated by id → ~15 000 unique titles in practice.
@@ -153,26 +166,10 @@ export default function AnimeCatalog() {
             const list = j?.data?.Page?.media ?? [];
             if (!list.length) stop = true;
             for (const m of list) {
-              if (!dedup.has(m.id)) dedup.set(m.id, m);
+              tryInsert({ ...m, status: normalizeStatus(m.status) });
             }
           }
-          const snapshot = Array.from(dedup.values());
-          setGridItems(snapshot);
-          // Persist up to 5000 items (localStorage quota-safe compact serialization)
-          try {
-            const slim = snapshot.slice(0, 5000).map((m) => ({
-              id: m.id,
-              title: m.title,
-              coverImage: { large: m.coverImage.large, color: m.coverImage.color },
-              averageScore: m.averageScore,
-              episodes: m.episodes,
-              genres: m.genres,
-              format: m.format,
-              seasonYear: m.seasonYear,
-              trailer: m.trailer,
-            }));
-            localStorage.setItem("lovanet.cache.catalog.grid", JSON.stringify(slim));
-          } catch {}
+          flush();
           if (stop) break;
           await new Promise((r) => setTimeout(r, 120));
         }
@@ -189,17 +186,6 @@ export default function AnimeCatalog() {
           for (const a of data) {
             // Namespace MAL IDs into a distinct range to avoid collisions with AniList IDs.
             const pseudoId = 1_000_000_000 + (a.mal_id ?? 0);
-            if (dedup.has(pseudoId)) continue;
-            // Skip if we already have an AniList entry with the same english/romaji title.
-            const titleKey = (a.title_english || a.title || "").toLowerCase().trim();
-            if (titleKey) {
-              let dup = false;
-              for (const existing of dedup.values()) {
-                const t = (existing.title.english || existing.title.romaji || "").toLowerCase().trim();
-                if (t && t === titleKey) { dup = true; break; }
-              }
-              if (dup) continue;
-            }
             const media: Media = {
               id: pseudoId,
               title: {
@@ -218,14 +204,14 @@ export default function AnimeCatalog() {
               format: a.type,
               seasonYear: a.aired?.prop?.from?.year ?? a.year ?? undefined,
               description: a.synopsis ?? undefined,
+              status: normalizeStatus(a.status),
               trailer: a.trailer?.youtube_id
                 ? { id: a.trailer.youtube_id, site: "youtube" }
                 : null,
             };
-            dedup.set(pseudoId, media);
+            tryInsert(media);
           }
-          const snapshot = Array.from(dedup.values());
-          setGridItems(snapshot);
+          flush();
           await new Promise((r) => setTimeout(r, 400)); // stay under Jikan rate limit
         }
       } catch (e) {
@@ -244,16 +230,6 @@ export default function AnimeCatalog() {
           for (const a of data) {
             const attr = a.attributes ?? {};
             const pseudoId = 2_000_000_000 + Number(a.id ?? 0);
-            if (dedup.has(pseudoId)) continue;
-            const titleKey = (attr.canonicalTitle || attr.titles?.en || "").toLowerCase().trim();
-            if (titleKey) {
-              let dup = false;
-              for (const existing of dedup.values()) {
-                const t = (existing.title.english || existing.title.romaji || "").toLowerCase().trim();
-                if (t && t === titleKey) { dup = true; break; }
-              }
-              if (dup) continue;
-            }
             const media: Media = {
               id: pseudoId,
               title: {
@@ -272,20 +248,22 @@ export default function AnimeCatalog() {
               format: attr.subtype,
               seasonYear: attr.startDate ? Number(String(attr.startDate).slice(0, 4)) : undefined,
               description: attr.synopsis ?? undefined,
+              status: normalizeStatus(attr.status),
               trailer: attr.youtubeVideoId ? { id: attr.youtubeVideoId, site: "youtube" } : null,
             };
-            dedup.set(pseudoId, media);
+            tryInsert(media);
           }
           // Push snapshot every few pages to keep UI responsive without thrashing state.
-          if ((offset / pageSize) % 5 === 0) {
-            setGridItems(Array.from(dedup.values()));
-          }
+          if ((offset / pageSize) % 5 === 0) flush();
           await new Promise((r) => setTimeout(r, 150));
         }
-        setGridItems(Array.from(dedup.values()));
+        flush();
       } catch (e) {
         console.error("Kitsu enrichment error", e);
       }
+      // Full snapshot → IndexedDB (no localStorage quota ceiling; supports 10 000+ titles).
+      titleIndexRef.current = titleIndex;
+      idbSet("catalog.grid", Array.from(dedup.values()));
     } catch (e) {
       console.error("AniList grid fetch error", e);
     } finally {
@@ -294,13 +272,20 @@ export default function AnimeCatalog() {
   };
 
   useEffect(() => {
-    // Hydrate from local backup so the page works even if AniList is unreachable.
-    try {
-      const t = localStorage.getItem("lovanet.cache.catalog.top");
-      const g = localStorage.getItem("lovanet.cache.catalog.grid");
-      if (t) { setItems(JSON.parse(t)); setLoading(false); }
-      if (g) { setGridItems(JSON.parse(g)); setGridLoading(false); }
-    } catch {}
+    // Hydrate from IndexedDB (preferred, unbounded) then localStorage (legacy fallback).
+    (async () => {
+      try {
+        const [tIdb, gIdb] = await Promise.all([idbGet<Media[]>("catalog.top"), idbGet<Media[]>("catalog.grid")]);
+        if (tIdb?.length) { setItems(tIdb); setLoading(false); }
+        if (gIdb?.length) { setGridItems(gIdb); setGridLoading(false); }
+      } catch {}
+      try {
+        if (!items.length) {
+          const t = localStorage.getItem("lovanet.cache.catalog.top");
+          if (t) { setItems(JSON.parse(t)); setLoading(false); }
+        }
+      } catch {}
+    })();
     fetchData();
     fetchGrid();
     const id = setInterval(fetchData, 1000 * 60 * 5); // auto-sync top every 5 min
