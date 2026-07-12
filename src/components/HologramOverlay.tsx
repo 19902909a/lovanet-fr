@@ -479,9 +479,7 @@ const CaptureSofa = () => {
 };
 
 
-const FixedCaptureFurniture = () => {
-  return renderFurnitureZones();
-};
+// (SofaZone is rendered directly from HologramOverlay)
 
 type MorphArch =
   | "robot" | "mech" | "cyborg"
@@ -690,43 +688,71 @@ const MorphCreature = () => {
   );
 };
 
-const renderFurnitureZones = () => {
+const SofaZone = ({ hidden, onToggle }: { hidden: boolean; onToggle: () => void }) => {
   const zoneBase: CSSProperties = {
-    top: "clamp(210px, 28vh, 400px)",
-    width: "clamp(240px, 26vw, 480px)",
-    height: "clamp(220px, 30vh, 400px)",
+    // Positioned lower to sit under the top carousel, smaller footprint.
+    top: "clamp(460px, 58vh, 720px)",
+    width: "clamp(180px, 18vw, 320px)",
+    height: "clamp(160px, 20vh, 280px)",
     contain: "layout paint",
   };
 
   return (
-    <div
-      className="fixed rounded-2xl overflow-hidden"
-      style={{
-        ...zoneBase,
-        left: "clamp(4px, 1.6vw, 40px)",
-        zIndex: 2147483001,
-        pointerEvents: "none",
-        background: "hsl(0 0% 100%)",
-        boxShadow:
-          "0 0 0 1px hsl(var(--neon-magenta) / 0.45) inset," +
-          "0 0 20px hsl(var(--neon-magenta) / 0.4)," +
-          "0 0 40px hsl(var(--neon-cyan) / 0.3)," +
-          "0 0 60px hsl(var(--neon-purple) / 0.2)",
-      }}
-    >
-      <Canvas
-        orthographic
-        dpr={[1, 1.5]}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-        camera={{ position: [0, 0, 8], zoom: 62 }}
-        style={{ width: "100%", height: "100%", background: "transparent", pointerEvents: "auto", cursor: "pointer" }}
+    <>
+      {/* Floating toggle bubble — always visible above everything */}
+      <button
+        type="button"
+        aria-label={hidden ? "Afficher le canapé interactif" : "Masquer le canapé interactif"}
+        onClick={onToggle}
+        className="fixed rounded-full flex items-center justify-center transition-transform hover:scale-110"
+        style={{
+          top: "clamp(460px, 58vh, 720px)",
+          left: "clamp(4px, 1.6vw, 40px)",
+          width: 36,
+          height: 36,
+          zIndex: 2147483002,
+          background: "hsl(220 30% 8% / 0.55)",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)",
+          border: "1px solid hsl(var(--neon-cyan) / 0.7)",
+          boxShadow:
+            "0 0 8px hsl(var(--neon-cyan) / 0.6)," +
+            "0 0 16px hsl(var(--neon-magenta) / 0.4)",
+          color: "white",
+          fontSize: 14,
+          cursor: "pointer",
+          pointerEvents: "auto",
+        }}
       >
-        <ambientLight intensity={0.82} />
-        <directionalLight position={[3, 4, 6]} intensity={1.35} color="#ffffff" />
-        <pointLight position={[-3, 2, 5]} intensity={1.15} color="#66aaff" />
-        <MorphCreature />
-      </Canvas>
-    </div>
+        {hidden ? "🛋️" : "×"}
+      </button>
+      {!hidden && (
+        <div
+          className="fixed overflow-visible"
+          style={{
+            ...zoneBase,
+            left: "clamp(4px, 1.6vw, 40px)",
+            // Sits BELOW the video carousels (which sit in normal document flow).
+            zIndex: 1,
+            pointerEvents: "none",
+            background: "transparent",
+          }}
+        >
+          <Canvas
+            orthographic
+            dpr={[1, 1.5]}
+            gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+            camera={{ position: [0, 0, 8], zoom: 62 }}
+            style={{ width: "100%", height: "100%", background: "transparent", pointerEvents: "auto", cursor: "pointer" }}
+          >
+            <ambientLight intensity={0.82} />
+            <directionalLight position={[3, 4, 6]} intensity={1.35} color="#ffffff" />
+            <pointLight position={[-3, 2, 5]} intensity={1.15} color="#66aaff" />
+            <MorphCreature />
+          </Canvas>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -1001,129 +1027,19 @@ const spawnFromVariant = (v: Variant): Spawn => {
 };
 
 export const HologramOverlay = () => {
-  const [figures, setFigures] = useState<Spawn[]>([]);
-  const [bursts, setBursts] = useState<Burst[]>([]);
-  const [visible, setVisible] = useState<boolean>(typeof document === "undefined" ? true : !document.hidden);
-  const [clipPath, setClipPath] = useState<string | undefined>(undefined);
-
-  // Cut the hologram overlay around video players, iframes and elements marked
-  // with data-hologram-block so the 3D figures never cover them.
-  useEffect(() => {
-    let raf = 0;
-    const compute = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const selectors = "video, iframe, [data-hologram-block]";
-      const rects: DOMRect[] = [];
-      document.querySelectorAll<HTMLElement>(selectors).forEach((el) => {
-        const r = el.getBoundingClientRect();
-        if (r.width < 24 || r.height < 24) return;
-        if (r.bottom < 0 || r.top > h || r.right < 0 || r.left > w) return;
-        rects.push(r);
-      });
-      if (!rects.length) { setClipPath(undefined); return; }
-      // Outer rect (clockwise) + inner rects (counter-clockwise) with evenodd.
-      let d = `M0 0 H${w} V${h} H0 Z`;
-      for (const r of rects) {
-        const x1 = Math.max(0, r.left);
-        const y1 = Math.max(0, r.top);
-        const x2 = Math.min(w, r.right);
-        const y2 = Math.min(h, r.bottom);
-        // reversed winding
-        d += ` M${x1} ${y1} V${y2} H${x2} V${y1} Z`;
-      }
-      setClipPath(`path(evenodd, "${d}")`);
-    };
-    const schedule = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(compute);
-    };
-    schedule();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule);
-    const interval = window.setInterval(schedule, 500);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.clearInterval(interval);
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
-    };
+  // Persist sofa visibility across reloads.
+  const [hidden, setHidden] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("lovanet.sofa.hidden") === "1";
+  });
+  const toggle = useCallback(() => {
+    setHidden((h) => {
+      const next = !h;
+      try { localStorage.setItem("lovanet.sofa.hidden", next ? "1" : "0"); } catch {}
+      return next;
+    });
   }, []);
-
-  useEffect(() => {
-    const onVis = () => setVisible(!document.hidden);
-    document.addEventListener("visibilitychange", onVis);
-    return () => document.removeEventListener("visibilitychange", onVis);
-  }, []);
-
-  // Polling loop: every ~1.5s, if a category slot is free, spawn one there.
-  useEffect(() => {
-    let cancelled = false;
-    const tick = () => {
-      if (cancelled) return;
-      setFigures((arr) => {
-        const humans = arr.filter((f) => f.variant.category === "human").length;
-        const objects = arr.filter((f) => f.variant.category === "object").length;
-        let next = arr;
-        if (humans < MAX_HUMANS && Math.random() < 0.7) next = [...next, spawnHuman()];
-        if (objects < MAX_OBJECTS && Math.random() < 0.5) next = [...next, spawnObject()];
-        return next;
-      });
-      window.setTimeout(tick, 1400 + Math.random() * 1800);
-    };
-    // Seed: one human, then wait.
-    setFigures([spawnHuman()]);
-    const first = window.setTimeout(tick, 1200);
-    return () => { cancelled = true; window.clearTimeout(first); };
-  }, []);
-
-  const removeFigure = useCallback(
-    (id: number) => setFigures((arr) => arr.filter((f) => f.id !== id)),
-    []
-  );
-  const removeBurst = useCallback(
-    (id: number) => setBursts((arr) => arr.filter((b) => b.id !== id)),
-    []
-  );
-  const addBurst = useCallback((id: number, pos: THREE.Vector3, color: string) => {
-    setBursts((arr) => [...arr.slice(-8), { id: uid++, pos, color, bornAt: performance.now() }]);
-  }, []);
-
-  return (
-    <>
-      <FixedCaptureFurniture />
-      <div
-        aria-hidden
-        data-hologram-overlay
-        className="fixed inset-0 h-screen w-screen overflow-visible"
-        style={{
-          isolation: "isolate",
-          zIndex: 2147483000,
-          pointerEvents: "none",
-          clipPath,
-          WebkitClipPath: clipPath,
-        }}
-      >
-        <Canvas
-          dpr={[1, 2]}
-          frameloop={visible ? "always" : "never"}
-          gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-          camera={{ position: [0, 0.4, 6], fov: 45 }}
-          eventSource={typeof document !== "undefined" ? document.body : undefined}
-          eventPrefix="client"
-          style={{ width: "100vw", height: "100vh", background: "transparent", pointerEvents: "none" }}
-        >
-          <Stage
-            figures={figures}
-            bursts={bursts}
-            removeFigure={removeFigure}
-            removeBurst={removeBurst}
-            addBurst={addBurst}
-          />
-        </Canvas>
-      </div>
-    </>
-  );
+  return <SofaZone hidden={hidden} onToggle={toggle} />;
 };
 
 export default HologramOverlay;
