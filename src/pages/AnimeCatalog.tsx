@@ -204,6 +204,61 @@ export default function AnimeCatalog() {
       } catch (e) {
         console.error("Jikan enrichment error", e);
       }
+      // Tertiary source: Kitsu — public JSON:API, no key. Pull many pages, dedupe by title.
+      try {
+        const pageSize = 20;
+        for (let offset = 0; offset < 8000; offset += pageSize) {
+          const url = `https://kitsu.io/api/edge/anime?page[limit]=${pageSize}&page[offset]=${offset}&sort=-userCount`;
+          const r = await fetch(url, { headers: { Accept: "application/vnd.api+json" } }).catch(() => null);
+          if (!r || !r.ok) break;
+          const j = await r.json().catch(() => null);
+          const data = j?.data ?? [];
+          if (!data.length) break;
+          for (const a of data) {
+            const attr = a.attributes ?? {};
+            const pseudoId = 2_000_000_000 + Number(a.id ?? 0);
+            if (dedup.has(pseudoId)) continue;
+            const titleKey = (attr.canonicalTitle || attr.titles?.en || "").toLowerCase().trim();
+            if (titleKey) {
+              let dup = false;
+              for (const existing of dedup.values()) {
+                const t = (existing.title.english || existing.title.romaji || "").toLowerCase().trim();
+                if (t && t === titleKey) { dup = true; break; }
+              }
+              if (dup) continue;
+            }
+            const media: Media = {
+              id: pseudoId,
+              title: {
+                romaji: attr.titles?.en_jp || attr.canonicalTitle,
+                english: attr.titles?.en || attr.canonicalTitle,
+                native: attr.titles?.ja_jp || undefined,
+              },
+              coverImage: {
+                extraLarge: attr.posterImage?.large || attr.posterImage?.medium,
+                large: attr.posterImage?.medium || attr.posterImage?.small,
+                color: undefined,
+              },
+              averageScore: attr.averageRating ? Math.round(Number(attr.averageRating)) : undefined,
+              episodes: attr.episodeCount ?? undefined,
+              genres: [],
+              format: attr.subtype,
+              seasonYear: attr.startDate ? Number(String(attr.startDate).slice(0, 4)) : undefined,
+              description: attr.synopsis ?? undefined,
+              trailer: attr.youtubeVideoId ? { id: attr.youtubeVideoId, site: "youtube" } : null,
+            };
+            dedup.set(pseudoId, media);
+          }
+          // Push snapshot every few pages to keep UI responsive without thrashing state.
+          if ((offset / pageSize) % 5 === 0) {
+            setGridItems(Array.from(dedup.values()));
+          }
+          await new Promise((r) => setTimeout(r, 150));
+        }
+        setGridItems(Array.from(dedup.values()));
+      } catch (e) {
+        console.error("Kitsu enrichment error", e);
+      }
     } catch (e) {
       console.error("AniList grid fetch error", e);
     } finally {
