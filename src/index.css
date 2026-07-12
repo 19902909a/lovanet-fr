@@ -923,6 +923,77 @@
       0 12px 40px -14px hsl(var(--neon-cyan) / 0.45);
   }
 
+  /* ==========================================================
+   * .rgb-neon — same rainbow neon border as .rgb-pill / quick
+   * menu, but with a fully TRANSPARENT interior so it can wrap
+   * any card, poster, video thumb, carousel, banner or section
+   * without hiding its content. Site-wide unifying accent.
+   * ========================================================== */
+  .rgb-neon {
+    position: relative;
+    isolation: isolate;
+    border-radius: 1rem;
+    background:
+      linear-gradient(transparent, transparent) padding-box,
+      conic-gradient(from var(--rgb-angle),
+        hsl(330 95% 62%),
+        hsl(280 95% 68%),
+        hsl(210 100% 62%),
+        hsl(160 90% 58%),
+        hsl(50  100% 62%),
+        hsl(20  100% 62%),
+        hsl(330 95% 62%)) border-box;
+    border: 1.5px solid transparent;
+    animation: rgb-spin 6s linear infinite;
+    transition: box-shadow .4s ease, transform .4s ease;
+    box-shadow:
+      0 0 12px hsl(var(--neon-magenta) / 0.28),
+      0 0 24px hsl(var(--neon-cyan) / 0.18),
+      0 0 40px hsl(var(--neon-purple) / 0.14);
+  }
+  .rgb-neon::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(from var(--rgb-angle),
+      hsl(330 95% 62% / 0.85),
+      hsl(280 95% 68% / 0.85),
+      hsl(210 100% 62% / 0.85),
+      hsl(160 90% 58% / 0.85),
+      hsl(50  100% 62% / 0.85),
+      hsl(20  100% 62% / 0.85),
+      hsl(330 95% 62% / 0.85));
+    filter: blur(12px) saturate(1.25);
+    opacity: .55;
+    animation: rgb-spin 6s linear infinite;
+    pointer-events: none;
+  }
+  .rgb-neon:hover {
+    box-shadow:
+      0 0 0 1px hsl(var(--neon-magenta) / 0.4),
+      0 12px 32px -10px hsl(var(--neon-magenta) / 0.55),
+      0 22px 60px -18px hsl(var(--neon-cyan) / 0.45);
+  }
+  .rgb-neon:hover::before { opacity: .85; }
+
+  /* Pill variant: fully round for icons/badges */
+  .rgb-neon-round { border-radius: 9999px; }
+
+  /* Icon glow — matches quick-menu neon on inline SVGs */
+  .rgb-neon-icon {
+    filter:
+      drop-shadow(0 0 4px hsl(var(--neon-magenta) / 0.75))
+      drop-shadow(0 0 10px hsl(var(--neon-cyan) / 0.5));
+    animation: neon-rgb-icon-cycle 6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rgb-neon, .rgb-neon::before, .rgb-neon-icon { animation: none !important; }
+  }
+
   /* Hide native scrollbar (used by the horizontally scrolling filter row on mobile). */
   .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
