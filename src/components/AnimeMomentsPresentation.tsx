@@ -468,22 +468,6 @@ export const AnimeMomentsPresentation = () => {
             {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
 
-          <div className="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 z-30 flex flex-wrap items-end justify-between gap-3">
-            <div className="max-w-2xl">
-              <div className="text-[10px] uppercase tracking-[0.3em] text-fuchsia-300 font-bold mb-1">
-                Épisode à la une
-              </div>
-              <h2 className="text-white font-display font-black text-xl sm:text-3xl lg:text-4xl leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
-                {activeVideo?.title ?? "Anime Moments"} <span className="text-fuchsia-300">— {activeVideo?.series}</span>
-              </h2>
-            </div>
-            <Link
-              to={`/lecteurs-video?video=${bannerId}`}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black font-bold text-sm hover:bg-fuchsia-300 transition-colors shadow-xl"
-            >
-              <Play className="w-4 h-4 fill-current" /> Voir l'épisode
-            </Link>
-          </div>
         </div>
 
         {/* Content */}
