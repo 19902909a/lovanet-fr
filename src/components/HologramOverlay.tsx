@@ -690,43 +690,71 @@ const MorphCreature = () => {
   );
 };
 
-const renderFurnitureZones = () => {
+const SofaZone = ({ hidden, onToggle }: { hidden: boolean; onToggle: () => void }) => {
   const zoneBase: CSSProperties = {
-    top: "clamp(210px, 28vh, 400px)",
-    width: "clamp(240px, 26vw, 480px)",
-    height: "clamp(220px, 30vh, 400px)",
+    // Positioned lower to sit under the top carousel, smaller footprint.
+    top: "clamp(460px, 58vh, 720px)",
+    width: "clamp(180px, 18vw, 320px)",
+    height: "clamp(160px, 20vh, 280px)",
     contain: "layout paint",
   };
 
   return (
-    <div
-      className="fixed rounded-2xl overflow-hidden"
-      style={{
-        ...zoneBase,
-        left: "clamp(4px, 1.6vw, 40px)",
-        zIndex: 2147483001,
-        pointerEvents: "none",
-        background: "hsl(0 0% 100%)",
-        boxShadow:
-          "0 0 0 1px hsl(var(--neon-magenta) / 0.45) inset," +
-          "0 0 20px hsl(var(--neon-magenta) / 0.4)," +
-          "0 0 40px hsl(var(--neon-cyan) / 0.3)," +
-          "0 0 60px hsl(var(--neon-purple) / 0.2)",
-      }}
-    >
-      <Canvas
-        orthographic
-        dpr={[1, 1.5]}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-        camera={{ position: [0, 0, 8], zoom: 62 }}
-        style={{ width: "100%", height: "100%", background: "transparent", pointerEvents: "auto", cursor: "pointer" }}
+    <>
+      {/* Floating toggle bubble — always visible above everything */}
+      <button
+        type="button"
+        aria-label={hidden ? "Afficher le canapé interactif" : "Masquer le canapé interactif"}
+        onClick={onToggle}
+        className="fixed rounded-full flex items-center justify-center transition-transform hover:scale-110"
+        style={{
+          top: "clamp(460px, 58vh, 720px)",
+          left: "clamp(4px, 1.6vw, 40px)",
+          width: 36,
+          height: 36,
+          zIndex: 2147483002,
+          background: "hsl(220 30% 8% / 0.55)",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)",
+          border: "1px solid hsl(var(--neon-cyan) / 0.7)",
+          boxShadow:
+            "0 0 8px hsl(var(--neon-cyan) / 0.6)," +
+            "0 0 16px hsl(var(--neon-magenta) / 0.4)",
+          color: "white",
+          fontSize: 14,
+          cursor: "pointer",
+          pointerEvents: "auto",
+        }}
       >
-        <ambientLight intensity={0.82} />
-        <directionalLight position={[3, 4, 6]} intensity={1.35} color="#ffffff" />
-        <pointLight position={[-3, 2, 5]} intensity={1.15} color="#66aaff" />
-        <MorphCreature />
-      </Canvas>
-    </div>
+        {hidden ? "🛋️" : "×"}
+      </button>
+      {!hidden && (
+        <div
+          className="fixed overflow-visible"
+          style={{
+            ...zoneBase,
+            left: "clamp(4px, 1.6vw, 40px)",
+            // Sits BELOW the video carousels (which sit in normal document flow).
+            zIndex: 1,
+            pointerEvents: "none",
+            background: "transparent",
+          }}
+        >
+          <Canvas
+            orthographic
+            dpr={[1, 1.5]}
+            gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+            camera={{ position: [0, 0, 8], zoom: 62 }}
+            style={{ width: "100%", height: "100%", background: "transparent", pointerEvents: "auto", cursor: "pointer" }}
+          >
+            <ambientLight intensity={0.82} />
+            <directionalLight position={[3, 4, 6]} intensity={1.35} color="#ffffff" />
+            <pointLight position={[-3, 2, 5]} intensity={1.15} color="#66aaff" />
+            <MorphCreature />
+          </Canvas>
+        </div>
+      )}
+    </>
   );
 };
 
