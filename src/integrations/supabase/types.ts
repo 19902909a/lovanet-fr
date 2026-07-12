@@ -62,6 +62,57 @@ export type Database = {
         }
         Relationships: []
       }
+      imported_videos_backup: {
+        Row: {
+          backed_up_at: string
+          created_at: string
+          description: string | null
+          episode: string | null
+          external_id: string | null
+          id: string
+          is_recent: boolean
+          position: number
+          published_at: string | null
+          source: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          backed_up_at?: string
+          created_at?: string
+          description?: string | null
+          episode?: string | null
+          external_id?: string | null
+          id?: string
+          is_recent?: boolean
+          position?: number
+          published_at?: string | null
+          source: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          backed_up_at?: string
+          created_at?: string
+          description?: string | null
+          episode?: string | null
+          external_id?: string | null
+          id?: string
+          is_recent?: boolean
+          position?: number
+          published_at?: string | null
+          source?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       media_library: {
         Row: {
           alt_text: string | null
@@ -235,6 +286,57 @@ export type Database = {
           vision_verdict?: string | null
         }
         Update: {
+          channel_title?: string | null
+          created_at?: string
+          description?: string | null
+          duration_sec?: number
+          is_hidden?: boolean
+          published_at?: string
+          thumbnail?: string | null
+          title?: string
+          updated_at?: string
+          video_id?: string
+          view_count?: number
+          vision_checked?: boolean
+          vision_verdict?: string | null
+        }
+        Relationships: []
+      }
+      youtube_manga_videos_backup: {
+        Row: {
+          backed_up_at: string
+          channel_title: string | null
+          created_at: string
+          description: string | null
+          duration_sec: number
+          is_hidden: boolean
+          published_at: string
+          thumbnail: string | null
+          title: string
+          updated_at: string
+          video_id: string
+          view_count: number
+          vision_checked: boolean
+          vision_verdict: string | null
+        }
+        Insert: {
+          backed_up_at?: string
+          channel_title?: string | null
+          created_at?: string
+          description?: string | null
+          duration_sec?: number
+          is_hidden?: boolean
+          published_at: string
+          thumbnail?: string | null
+          title: string
+          updated_at?: string
+          video_id: string
+          view_count?: number
+          vision_checked?: boolean
+          vision_verdict?: string | null
+        }
+        Update: {
+          backed_up_at?: string
           channel_title?: string | null
           created_at?: string
           description?: string | null
