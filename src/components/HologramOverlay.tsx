@@ -420,38 +420,38 @@ const spawnOne = (): Spawn => {
 type Burst = { id: number; pos: THREE.Vector3; color: string; bornAt: number };
 
 const CaptureSofa = () => (
-  <group position={[0, -0.15, 0]} rotation={[0, 0.28, 0]} scale={0.92}>
+  <group position={[0, -0.15, 0]} rotation={[0, 0.28, 0]} scale={1.15}>
     <mesh position={[0, -0.25, 0]}>
       <boxGeometry args={[3.9, 0.62, 1.25]} />
-      <meshStandardMaterial color="#4a2a5c" roughness={0.7} metalness={0.15} />
+      <meshStandardMaterial color="#1e3a8a" roughness={0.65} metalness={0.25} emissive="#1e3a8a" emissiveIntensity={0.15} />
     </mesh>
     <mesh position={[0, 0.45, -0.42]}>
       <boxGeometry args={[3.9, 1.05, 0.34]} />
-      <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
+      <meshStandardMaterial color="#2563eb" roughness={0.6} metalness={0.25} emissive="#1d4ed8" emissiveIntensity={0.18} />
     </mesh>
     {[-1.85, 1.85].map((x) => (
       <mesh key={x} position={[x, 0.1, 0]}>
         <boxGeometry args={[0.36, 0.78, 1.25]} />
-        <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
+        <meshStandardMaterial color="#2563eb" roughness={0.6} metalness={0.25} emissive="#1d4ed8" emissiveIntensity={0.18} />
       </mesh>
     ))}
     {[-1.15, 0, 1.15].map((x) => (
       <mesh key={x} position={[x, 0.15, 0.2]}>
         <boxGeometry args={[1.02, 0.36, 0.88]} />
-        <meshStandardMaterial color="#8552a8" roughness={0.55} metalness={0.1} />
+        <meshStandardMaterial color="#3b82f6" roughness={0.55} metalness={0.2} emissive="#3b82f6" emissiveIntensity={0.2} />
       </mesh>
     ))}
     {[[-1.65, -0.45], [1.65, -0.45], [-1.65, 0.45], [1.65, 0.45]].map(([x, z], i) => (
       <mesh key={i} position={[x, -0.68, z]}>
         <cylinderGeometry args={[0.06, 0.06, 0.22, 10]} />
-        <meshStandardMaterial color="#111111" roughness={0.4} metalness={0.7} />
+        <meshStandardMaterial color="#0a0a12" roughness={0.4} metalness={0.8} />
       </mesh>
     ))}
   </group>
 );
 
 const CaptureAquarium = () => (
-  <group position={[0, -0.02, 0]} rotation={[0, -0.28, 0]} scale={0.92}>
+  <group position={[0, -0.02, 0]} rotation={[0, -0.28, 0]} scale={1.15}>
     <mesh position={[0, -1.0, 0]}>
       <boxGeometry args={[2.8, 0.72, 1.12]} />
       <meshStandardMaterial color="#22222c" roughness={0.55} metalness={0.4} />
