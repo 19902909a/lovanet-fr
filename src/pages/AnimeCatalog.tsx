@@ -428,17 +428,30 @@ export default function AnimeCatalog() {
         className="relative h-[46vh] min-h-[300px] sm:h-[58vh] sm:min-h-[420px] md:h-[70vh] md:min-h-[520px] w-full select-none touch-pan-y overflow-hidden"
         style={{ perspective: "1400px" }}
         onPointerDown={(e) => {
-          draggingRef.current = { x: e.clientX, a: angle };
-          (e.target as HTMLElement).setPointerCapture(e.pointerId);
+          flingRef.current = 0;
+          draggingRef.current = { x: e.clientX, a: angle, lastX: e.clientX, lastT: performance.now(), vx: 0 };
+          try { (e.target as HTMLElement).setPointerCapture(e.pointerId); } catch {}
         }}
         onPointerMove={(e) => {
-          if (!draggingRef.current) return;
-          const dx = e.clientX - draggingRef.current.x;
-          setAngle(draggingRef.current.a + dx * 0.3);
+          const d = draggingRef.current;
+          if (!d) return;
+          const now = performance.now();
+          const dt = Math.max(1, now - d.lastT);
+          d.vx = (e.clientX - d.lastX) / dt; // px per ms
+          d.lastX = e.clientX;
+          d.lastT = now;
+          const dx = e.clientX - d.x;
+          setAngle(d.a + dx * 0.3);
         }}
         onPointerUp={() => {
+          const d = draggingRef.current;
+          if (d) {
+            // Convert horizontal velocity into angular fling (deg/s).
+            flingRef.current = d.vx * 1000 * 0.3;
+          }
           draggingRef.current = null;
         }}
+        onPointerCancel={() => { draggingRef.current = null; }}
       >
         {/* background aura */}
         <div
