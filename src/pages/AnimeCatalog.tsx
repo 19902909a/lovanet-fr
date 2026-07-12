@@ -75,6 +75,15 @@ export default function AnimeCatalog() {
   const [minScore, setMinScore] = useState<number>(0);
   const [minYear, setMinYear] = useState<number>(0);
   const [sortBy, setSortBy] = useState<"default" | "newest" | "score" | "alpha">("default");
+  const [search, setSearch] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [page, setPage] = useState<number>(0);
+  const PAGE_SIZE = 240; // ~24 rows × 10 columns on desktop
+  // Trailer playback failure state → swap iframe to a YouTube search fallback (bypasses region-locked video IDs).
+  const [trailerFailedFor, setTrailerFailedFor] = useState<number | null>(null);
+  // Cross-source dedup index by normalized title so AniList/Jikan/Kitsu never insert the same series twice.
+  const titleIndexRef = useRef<Map<string, number>>(new Map());
   const rafRef = useRef<number>();
   const draggingRef = useRef<{ x: number; a: number; lastX: number; lastT: number; vx: number } | null>(null);
   const flingRef = useRef<number>(0); // angular velocity (deg/s) from swipe release
