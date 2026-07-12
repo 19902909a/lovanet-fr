@@ -6,6 +6,11 @@ import YoutubeBrandCover from "@/components/YoutubeBrandCover";
 import { idbGet, idbSet, normalizeTitle } from "@/lib/animeCache";
 import BlisterFrame from "@/components/BlisterFrame";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
+import {
+  warmVideoAvailability,
+  getVideoStatusSync,
+  setVideoStatus,
+} from "@/lib/videoAvailability";
 
 type Media = {
   id: number;
@@ -88,7 +93,20 @@ export default function AnimeCatalog() {
   const [trailerHiddenFor, setTrailerHiddenFor] = useState<number | null>(null);
   // Promoted (top) trailer: track hidden state so the black box disappears if nothing plays.
   const [promotedHidden, setPromotedHidden] = useState(false);
-  useEffect(() => { setPromotedHidden(false); }, [trailerMedia?.id]);
+  // Bump this when the availability cache finishes warming so cached decisions
+  // are applied on the first render after hydration.
+  const [availabilityReady, setAvailabilityReady] = useState(false);
+  useEffect(() => {
+    warmVideoAvailability().finally(() => setAvailabilityReady(true));
+  }, []);
+  useEffect(() => {
+    // If we already know the promoted trailer is fully broken, hide it up-front.
+    if (trailerMedia && getVideoStatusSync(trailerMedia.id) === "hidden") {
+      setPromotedHidden(true);
+    } else {
+      setPromotedHidden(false);
+    }
+  }, [trailerMedia?.id, availabilityReady]);
   // Cross-source dedup index by normalized title so AniList/Jikan/Kitsu never insert the same series twice.
   const titleIndexRef = useRef<Map<string, number>>(new Map());
   const rafRef = useRef<number>();
@@ -417,7 +435,12 @@ export default function AnimeCatalog() {
   }, [search]);
 
   // Whenever the user opens a new modal, reset any previous trailer-fallback flag.
-  useEffect(() => { if (active) { setTrailerFailedFor(null); setTrailerHiddenFor(null); } }, [active?.id]);
+  useEffect(() => {
+    if (!active) return;
+    const cached = getVideoStatusSync(active.id);
+    setTrailerFailedFor(cached === "unavailable" || cached === "hidden" ? active.id : null);
+    setTrailerHiddenFor(cached === "hidden" ? active.id : null);
+  }, [active?.id, availabilityReady]);
 
   // Reset to first page whenever any filter/search changes.
   useEffect(() => { setPage(0); }, [debouncedSearch, filterGenre, filterStatus, minScore, minYear, sortBy]);
@@ -449,7 +472,8 @@ export default function AnimeCatalog() {
                   videoId={trailerMedia.trailer.id}
                   searchQuery={`${trailerMedia.title.english || trailerMedia.title.romaji || ""} trailer anime`}
                   title={trailerMedia.title.english || trailerMedia.title.romaji || "Trailer"}
-                  onExhausted={() => setPromotedHidden(true)}
+                  onUnavailable={() => setVideoStatus(trailerMedia.id, "unavailable")}
+                  onExhausted={() => { setVideoStatus(trailerMedia.id, "hidden"); setPromotedHidden(true); }}
                 />
               ) : null}
               {trailerMedia?.trailer?.id && trailerMedia.trailer.site === "youtube" && !promotedHidden ? (
@@ -888,8 +912,8 @@ export default function AnimeCatalog() {
                     videoId={hasTrailer && !failed ? active.trailer!.id : undefined}
                     searchQuery={rawQuery}
                     title={active.title.english || active.title.romaji || "Trailer"}
-                    onUnavailable={() => setTrailerFailedFor(active.id)}
-                    onExhausted={() => setTrailerHiddenFor(active.id)}
+                    onUnavailable={() => { setVideoStatus(active.id, "unavailable"); setTrailerFailedFor(active.id); }}
+                    onExhausted={() => { setVideoStatus(active.id, "hidden"); setTrailerHiddenFor(active.id); }}
                   />
                   {hasTrailer && !failed && <YoutubeBrandCover />}
                   {/* Region/blocked fallback controls — YouTube can't signal blocking via postMessage
