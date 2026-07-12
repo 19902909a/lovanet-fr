@@ -366,7 +366,7 @@ export default function AnimeCatalog() {
 
           {/* Smaller promoted circle carousel */}
           <div
-            className="relative h-[180px] sm:h-[220px] md:h-[280px] mt-3 w-full select-none"
+            className="relative h-[180px] sm:h-[220px] md:h-[280px] mt-3 w-full select-none overflow-hidden"
             style={{ perspective: "1000px" }}
           >
             <div className="absolute inset-0 flex items-center justify-center">
@@ -376,7 +376,7 @@ export default function AnimeCatalog() {
                   width: 1,
                   height: 1,
                   transformStyle: "preserve-3d",
-                  transform: `rotateX(-6deg) rotateY(${promotedAngle}deg)`,
+                  transform: `scale(${promoScale}) rotateX(-6deg) rotateY(${promotedAngle}deg)`,
                 }}
               >
                 {promoted.map((m, i) => {
@@ -388,8 +388,8 @@ export default function AnimeCatalog() {
                       onClick={() => setTrailerMedia(m)}
                       className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                       style={{
-                        width: promoCardW,
-                        height: promoCardH,
+                        width: 90,
+                        height: 135,
                         transform: `rotateY(${theta}deg) translateZ(${promotedRadius}px)`,
                       }}
                     >
@@ -417,8 +417,8 @@ export default function AnimeCatalog() {
 
       {/* Top carousel */}
       <section
-        className="relative h-[46vh] min-h-[300px] sm:h-[58vh] sm:min-h-[420px] md:h-[70vh] md:min-h-[520px] w-full select-none touch-pan-y"
-        style={{ perspective: isMobile ? "900px" : "1400px" }}
+        className="relative h-[46vh] min-h-[300px] sm:h-[58vh] sm:min-h-[420px] md:h-[70vh] md:min-h-[520px] w-full select-none touch-pan-y overflow-hidden"
+        style={{ perspective: "1400px" }}
         onPointerDown={(e) => {
           draggingRef.current = { x: e.clientX, a: angle };
           (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -447,7 +447,7 @@ export default function AnimeCatalog() {
               width: 1,
               height: 1,
               transformStyle: "preserve-3d",
-              transform: `rotateX(${tilt}deg) rotateY(${angle}deg)`,
+              transform: `scale(${wheelScale}) rotateX(${tilt}deg) rotateY(${angle}deg)`,
               transition: "transform 0.05s linear",
             }}
           >
@@ -459,8 +459,8 @@ export default function AnimeCatalog() {
                   onClick={() => setActive(m)}
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group"
                   style={{
-                    width: cardW,
-                    height: cardH,
+                    width: 200,
+                    height: 300,
                     transform: `rotateY(${theta}deg) translateZ(${radius}px)`,
                   }}
                 >
