@@ -409,6 +409,9 @@ export default function AnimeCatalog() {
     return () => clearTimeout(id);
   }, [search]);
 
+  // Whenever the user opens a new modal, reset any previous trailer-fallback flag.
+  useEffect(() => { if (active) setTrailerFailedFor(null); }, [active?.id]);
+
   // Reset to first page whenever any filter/search changes.
   useEffect(() => { setPage(0); }, [debouncedSearch, filterGenre, filterStatus, minScore, minYear, sortBy]);
 
