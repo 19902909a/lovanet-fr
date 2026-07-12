@@ -11,8 +11,14 @@ export const Footer = () => {
       <nav aria-label="Lovanet — Plateforme officielle dédiée à l'anime" className="container mx-auto px-4 lg:px-8 pt-10">
         <p className="sr-only">Lovanet — Plateforme officielle dédiée à l'anime · Anime.Moments.officiel &amp; AnimemomentsAnimeofficiel · Animés à venir, Catalogue, Boutique.</p>
         <ul className="grid gap-1 text-sm text-muted-foreground">
-          <li><Link to="/" className="hover:text-primary">Lovanet Plateforme officielle dédiée →</Link></li>
+          <li><Link to="/" className="hover:text-primary">Lovanet Plateforme officiel →</Link></li>
+          <li><Link to="/anime-catalog" className="hover:text-primary">Catalogue →</Link></li>
           <li><Link to="/decouvrir" className="hover:text-primary">Univers Lovanet →</Link></li>
+          <li><Link to="/shop" className="hover:text-primary">Boutique →</Link></li>
+          <li>
+            <Link to="/chaine-youtube" className="hover:text-primary">AnimemomentsAnimeofficiel → YouTube</Link>{" "}
+            <a href="https://www.youtube.com/@animemomentsanimeofficiel" target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-wider text-primary/80 hover:text-primary">↗ partenaire</a>
+          </li>
           <li>
             <Link to="/chaine-youtube" className="hover:text-primary">AnimemomentsAnimeofficiel →</Link>{" "}
             <a href="https://www.youtube.com/@animemomentsanimeofficiel" target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-wider text-primary/80 hover:text-primary">↗ partenaire</a>
@@ -22,16 +28,10 @@ export const Footer = () => {
             <a href="https://www.primevideo.com/search/ref=atv_nb_sr?phrase=anime" target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-wider text-primary/80 hover:text-primary">↗ partenaire</a>
           </li>
           <li>
-            <Link to="/chaine-youtube" className="hover:text-primary">AnimemomentsAnimeofficiel → YouTube</Link>{" "}
-            <a href="https://www.youtube.com/@animemomentsanimeofficiel" target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-wider text-primary/80 hover:text-primary">↗ partenaire</a>
-          </li>
-          <li>
             <Link to="/tiktok" className="hover:text-primary">Anime.Moments.officiel → TikTok</Link>{" "}
             <a href="https://www.tiktok.com/@animemomentsanimeofficiel" target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-wider text-primary/80 hover:text-primary">↗ partenaire</a>
           </li>
-          <li><Link to="/shop" className="hover:text-primary">Boutique →</Link></li>
           <li><Link to="/anime-countdown" className="hover:text-primary">À venir →</Link></li>
-          <li><Link to="/anime-catalog" className="hover:text-primary">Catalogue →</Link></li>
         </ul>
       </nav>
       <div className="container mx-auto px-4 lg:px-8 py-12 grid gap-10 md:grid-cols-4">
