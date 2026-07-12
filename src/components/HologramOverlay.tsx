@@ -706,7 +706,7 @@ const renderFurnitureZones = () => {
         left: "clamp(4px, 1.6vw, 40px)",
         zIndex: 2147483001,
         pointerEvents: "none",
-        background: "linear-gradient(135deg, hsl(0 0% 100% / 0.95), hsl(0 0% 100% / 0.85))",
+        background: "hsl(0 0% 100%)",
         boxShadow:
           "0 0 0 1px hsl(var(--neon-magenta) / 0.45) inset," +
           "0 0 20px hsl(var(--neon-magenta) / 0.4)," +
