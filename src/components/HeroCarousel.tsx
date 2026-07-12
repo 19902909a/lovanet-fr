@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Canvas } from "@react-three/fiber";
 import { Link } from "react-router-dom";
 import { videos } from "@/data/videos";
 import { supabase } from "@/integrations/supabase/client";
+import * as THREE from "three";
 
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 const ytThumbFallback = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
@@ -147,6 +149,127 @@ const placeholderThumb = (id: string, title: string) => {
     <text x='50%' y='50%' fill='white' font-family='system-ui,sans-serif' font-size='28' font-weight='800' text-anchor='middle' dominant-baseline='middle'>${safe}</text>
   </svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+};
+
+const CaptureSofa = () => (
+  <group position={[0, -0.2, 0]} rotation={[0, 0.28, 0]} scale={0.92}>
+    <mesh position={[0, -0.25, 0]}>
+      <boxGeometry args={[3.9, 0.62, 1.25]} />
+      <meshStandardMaterial color="#4a2a5c" roughness={0.7} metalness={0.15} />
+    </mesh>
+    <mesh position={[0, 0.45, -0.42]}>
+      <boxGeometry args={[3.9, 1.05, 0.34]} />
+      <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
+    </mesh>
+    {[-1.85, 1.85].map((x) => (
+      <mesh key={x} position={[x, 0.1, 0]}>
+        <boxGeometry args={[0.36, 0.78, 1.25]} />
+        <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
+      </mesh>
+    ))}
+    {[-1.15, 0, 1.15].map((x) => (
+      <mesh key={x} position={[x, 0.15, 0.2]}>
+        <boxGeometry args={[1.02, 0.36, 0.88]} />
+        <meshStandardMaterial color="#8552a8" roughness={0.55} metalness={0.1} />
+      </mesh>
+    ))}
+    {[[-1.65, -0.45], [1.65, -0.45], [-1.65, 0.45], [1.65, 0.45]].map(([x, z], i) => (
+      <mesh key={i} position={[x, -0.68, z]}>
+        <cylinderGeometry args={[0.06, 0.06, 0.22, 10]} />
+        <meshStandardMaterial color="#111111" roughness={0.4} metalness={0.7} />
+      </mesh>
+    ))}
+  </group>
+);
+
+const CaptureAquarium = () => (
+  <group position={[0, -0.02, 0]} rotation={[0, -0.28, 0]} scale={0.92}>
+    <mesh position={[0, -1.0, 0]}>
+      <boxGeometry args={[2.8, 0.72, 1.12]} />
+      <meshStandardMaterial color="#22222c" roughness={0.55} metalness={0.4} />
+    </mesh>
+    <mesh position={[0, 0.1, 0]}>
+      <boxGeometry args={[2.62, 1.62, 1.02]} />
+      <meshPhysicalMaterial
+        color="#7ce0ff"
+        transparent
+        opacity={0.42}
+        roughness={0.05}
+        metalness={0.15}
+        transmission={0.55}
+        thickness={0.55}
+        clearcoat={1}
+        clearcoatRoughness={0.05}
+      />
+    </mesh>
+    {[0.96, -0.62].map((y) => (
+      <mesh key={y} position={[0, y, 0]}>
+        <boxGeometry args={[2.72, 0.1, 1.08]} />
+        <meshStandardMaterial color="#0a0a0a" roughness={0.35} metalness={0.85} />
+      </mesh>
+    ))}
+    <mesh position={[0, -0.48, 0]}>
+      <boxGeometry args={[2.48, 0.16, 0.92]} />
+      <meshStandardMaterial color="#c9b98a" roughness={0.95} metalness={0} />
+    </mesh>
+    <mesh position={[-0.55, -0.02, 0.1]}>
+      <sphereGeometry args={[0.2, 14, 10]} />
+      <meshStandardMaterial color="#ff7a2a" roughness={0.4} metalness={0.1} emissive="#ff5500" emissiveIntensity={0.25} />
+    </mesh>
+    <mesh position={[0.45, 0.25, 0.0]}>
+      <sphereGeometry args={[0.16, 14, 10]} />
+      <meshStandardMaterial color="#ffe14a" roughness={0.4} metalness={0.1} emissive="#ffaa00" emissiveIntensity={0.25} />
+    </mesh>
+    <mesh position={[0.8, -0.2, 0.18]}>
+      <coneGeometry args={[0.26, 0.78, 6]} />
+      <meshStandardMaterial color="#2a8a4a" roughness={0.7} />
+    </mesh>
+    <mesh position={[0, 0.86, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[2.48, 0.92]} />
+      <meshStandardMaterial color="#88d8ff" transparent opacity={0.55} roughness={0.15} metalness={0.6} side={THREE.DoubleSide} />
+    </mesh>
+  </group>
+);
+
+const CaptureFurniture = () => {
+  const zoneBase: React.CSSProperties = {
+    top: "clamp(24px, 8%, 58px)",
+    width: "clamp(138px, 16.5vw, 320px)",
+    height: "clamp(118px, 30%, 220px)",
+    contain: "layout paint",
+  };
+
+  const renderZone = (side: "left" | "right") => (
+    <div
+      className="pointer-events-none absolute z-[2]"
+      style={{
+        ...zoneBase,
+        ...(side === "left"
+          ? { left: "clamp(8px, 2.3vw, 46px)" }
+          : { right: "clamp(8px, 2.3vw, 46px)" }),
+      }}
+    >
+      <Canvas
+        orthographic
+        dpr={[1, 1.5]}
+        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        camera={{ position: [0, 0, 8], zoom: 76 }}
+        style={{ width: "100%", height: "100%", background: "transparent" }}
+      >
+        <ambientLight intensity={0.82} />
+        <directionalLight position={[3, 4, 6]} intensity={1.35} color="#ffffff" />
+        <pointLight position={side === "left" ? [-3, 2, 5] : [3, 2, 5]} intensity={1.1} color={side === "left" ? "#ff66ff" : "#66ffff"} />
+        {side === "left" ? <CaptureSofa /> : <CaptureAquarium />}
+      </Canvas>
+    </div>
+  );
+
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 z-[2] overflow-hidden">
+      {renderZone("left")}
+      {renderZone("right")}
+    </div>
+  );
 };
 
 export const HeroCarousel = () => {
@@ -506,6 +629,8 @@ export const HeroCarousel = () => {
           boxShadow: "inset 0 0 14px hsl(0 0% 100% / 0.08)",
         }}
       />
+
+      <CaptureFurniture />
 
       {cards.map((c) => {
         const internalHref =
