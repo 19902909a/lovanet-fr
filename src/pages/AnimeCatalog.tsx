@@ -598,6 +598,7 @@ export default function AnimeCatalog() {
                         draggable={false}
                       />
                     )}
+                    <BlisterFrame radius={16} intensity={1} />
                   </div>
                   <div
                     className="mt-2 text-xs text-center line-clamp-2 px-2 py-1 rounded-md border"
