@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, useCallback, type CSSProperties } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useAnimations, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
@@ -419,151 +419,125 @@ const spawnOne = (): Spawn => {
 
 type Burst = { id: number; pos: THREE.Vector3; color: string; bornAt: number };
 
-/**
- * Static 3D scenery placed at the back of the stage (left/right) with real
- * thickness and relief — sofa + aquarium + side pieces. Uses standard/physical
- * materials so scene lights create genuine shading, not flat holograms.
- */
-const BackgroundFurniture = () => {
+const CaptureSofa = () => (
+  <group position={[0, -0.15, 0]} rotation={[0, 0.28, 0]} scale={0.92}>
+    <mesh position={[0, -0.25, 0]}>
+      <boxGeometry args={[3.9, 0.62, 1.25]} />
+      <meshStandardMaterial color="#4a2a5c" roughness={0.7} metalness={0.15} />
+    </mesh>
+    <mesh position={[0, 0.45, -0.42]}>
+      <boxGeometry args={[3.9, 1.05, 0.34]} />
+      <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
+    </mesh>
+    {[-1.85, 1.85].map((x) => (
+      <mesh key={x} position={[x, 0.1, 0]}>
+        <boxGeometry args={[0.36, 0.78, 1.25]} />
+        <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
+      </mesh>
+    ))}
+    {[-1.15, 0, 1.15].map((x) => (
+      <mesh key={x} position={[x, 0.15, 0.2]}>
+        <boxGeometry args={[1.02, 0.36, 0.88]} />
+        <meshStandardMaterial color="#8552a8" roughness={0.55} metalness={0.1} />
+      </mesh>
+    ))}
+    {[[-1.65, -0.45], [1.65, -0.45], [-1.65, 0.45], [1.65, 0.45]].map(([x, z], i) => (
+      <mesh key={i} position={[x, -0.68, z]}>
+        <cylinderGeometry args={[0.06, 0.06, 0.22, 10]} />
+        <meshStandardMaterial color="#111111" roughness={0.4} metalness={0.7} />
+      </mesh>
+    ))}
+  </group>
+);
+
+const CaptureAquarium = () => (
+  <group position={[0, -0.02, 0]} rotation={[0, -0.28, 0]} scale={0.92}>
+    <mesh position={[0, -1.0, 0]}>
+      <boxGeometry args={[2.8, 0.72, 1.12]} />
+      <meshStandardMaterial color="#22222c" roughness={0.55} metalness={0.4} />
+    </mesh>
+    <mesh position={[0, 0.1, 0]}>
+      <boxGeometry args={[2.62, 1.62, 1.02]} />
+      <meshPhysicalMaterial
+        color="#7ce0ff"
+        transparent
+        opacity={0.42}
+        roughness={0.05}
+        metalness={0.15}
+        transmission={0.55}
+        thickness={0.55}
+        clearcoat={1}
+        clearcoatRoughness={0.05}
+      />
+    </mesh>
+    {[0.96, -0.62].map((y) => (
+      <mesh key={y} position={[0, y, 0]}>
+        <boxGeometry args={[2.72, 0.1, 1.08]} />
+        <meshStandardMaterial color="#0a0a0a" roughness={0.35} metalness={0.85} />
+      </mesh>
+    ))}
+    <mesh position={[0, -0.48, 0]}>
+      <boxGeometry args={[2.48, 0.16, 0.92]} />
+      <meshStandardMaterial color="#c9b98a" roughness={0.95} metalness={0} />
+    </mesh>
+    <mesh position={[-0.55, -0.02, 0.1]}>
+      <sphereGeometry args={[0.2, 14, 10]} />
+      <meshStandardMaterial color="#ff7a2a" roughness={0.4} metalness={0.1} emissive="#ff5500" emissiveIntensity={0.25} />
+    </mesh>
+    <mesh position={[0.45, 0.25, 0.0]}>
+      <sphereGeometry args={[0.16, 14, 10]} />
+      <meshStandardMaterial color="#ffe14a" roughness={0.4} metalness={0.1} emissive="#ffaa00" emissiveIntensity={0.25} />
+    </mesh>
+    <mesh position={[0.8, -0.2, 0.18]}>
+      <coneGeometry args={[0.26, 0.78, 6]} />
+      <meshStandardMaterial color="#2a8a4a" roughness={0.7} />
+    </mesh>
+    <mesh position={[0, 0.86, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[2.48, 0.92]} />
+      <meshStandardMaterial color="#88d8ff" transparent opacity={0.55} roughness={0.15} metalness={0.6} side={THREE.DoubleSide} />
+    </mesh>
+  </group>
+);
+
+const FixedCaptureFurniture = () => {
+  const zoneBase: CSSProperties = {
+    top: "clamp(78px, 6.6vh, 118px)",
+    width: "clamp(138px, 16vw, 320px)",
+    height: "clamp(118px, 18vh, 220px)",
+    contain: "layout paint",
+  };
+
+  const renderZone = (side: "left" | "right") => (
+    <div
+      className="pointer-events-none fixed"
+      style={{
+        ...zoneBase,
+        zIndex: 2147483001,
+        ...(side === "left"
+          ? { left: "clamp(8px, 2.2vw, 46px)" }
+          : { right: "clamp(8px, 2.2vw, 46px)" }),
+      }}
+    >
+      <Canvas
+        orthographic
+        dpr={[1, 1.5]}
+        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+        camera={{ position: [0, 0, 8], zoom: 76 }}
+        style={{ width: "100%", height: "100%", background: "transparent", pointerEvents: "none" }}
+      >
+        <ambientLight intensity={0.82} />
+        <directionalLight position={[3, 4, 6]} intensity={1.35} color="#ffffff" />
+        <pointLight position={side === "left" ? [-3, 2, 5] : [3, 2, 5]} intensity={1.1} color={side === "left" ? "#ff66ff" : "#66ffff"} />
+        {side === "left" ? <CaptureSofa /> : <CaptureAquarium />}
+      </Canvas>
+    </div>
+  );
+
   return (
-    // L'overlay est position:fixed → tout ce décor reste immobile à l'écran.
-    // Ancré dans le cadre gris opaque du hero (haut), collé aux bords G/D.
-    // Cadré dans les deux zones bleues indiquées : bord gauche et bord droit
-    // du hero, au niveau du carrousel (moitié basse du cadre gris).
-    <group position={[0, 1.7, -4]} scale={0.55} renderOrder={-1}>
-      {/* Canapé — zone bleue gauche */}
-      <group position={[-10.2, -1.9, 0]} rotation={[0, 0.35, 0]}>
-        {/* socle */}
-        <mesh position={[0, 0, 0]}>
-          <boxGeometry args={[4.2, 0.7, 1.5]} />
-          <meshStandardMaterial color="#4a2a5c" roughness={0.7} metalness={0.15} />
-        </mesh>
-        {/* dossier */}
-        <mesh position={[0, 0.95, -0.55]}>
-          <boxGeometry args={[4.2, 1.25, 0.4]} />
-          <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
-        </mesh>
-        {/* accoudoirs */}
-        {[-2.0, 2.0].map((x) => (
-          <mesh key={x} position={[x, 0.5, 0]}>
-            <boxGeometry args={[0.4, 0.9, 1.5]} />
-            <meshStandardMaterial color="#5c3572" roughness={0.65} metalness={0.15} />
-          </mesh>
-        ))}
-        {/* coussins */}
-        {[-1.25, 0, 1.25].map((x) => (
-          <mesh key={x} position={[x, 0.55, 0.15]}>
-            <boxGeometry args={[1.15, 0.45, 1.05]} />
-            <meshStandardMaterial color="#8552a8" roughness={0.55} metalness={0.1} />
-          </mesh>
-        ))}
-        {/* pieds */}
-        {[[-1.8, -0.55], [1.8, -0.55], [-1.8, 0.55], [1.8, 0.55]].map(([x, z], i) => (
-          <mesh key={i} position={[x, -0.5, z]}>
-            <cylinderGeometry args={[0.08, 0.08, 0.25, 10]} />
-            <meshStandardMaterial color="#111" roughness={0.4} metalness={0.7} />
-          </mesh>
-        ))}
-      </group>
-
-      {/* Grand aquarium (droite) */}
-      {/* Aquarium — zone bleue droite */}
-      <group position={[10.2, -1.4, 0]} rotation={[0, -0.35, 0]}>
-        {/* meuble support */}
-        <mesh position={[0, -1.1, 0]}>
-          <boxGeometry args={[3.0, 0.8, 1.3]} />
-          <meshStandardMaterial color="#22222c" roughness={0.55} metalness={0.4} />
-        </mesh>
-        {/* cuve verre */}
-        <mesh position={[0, 0.2, 0]}>
-          <boxGeometry args={[2.8, 1.8, 1.15]} />
-          <meshPhysicalMaterial
-            color="#7ce0ff"
-            transparent
-            opacity={0.35}
-            roughness={0.05}
-            metalness={0.15}
-            transmission={0.75}
-            thickness={0.6}
-            clearcoat={1}
-            clearcoatRoughness={0.05}
-          />
-        </mesh>
-        {/* cadres haut/bas */}
-        {[1.15, -0.72].map((y) => (
-          <mesh key={y} position={[0, y, 0]}>
-            <boxGeometry args={[2.9, 0.1, 1.22]} />
-            <meshStandardMaterial color="#0a0a0a" roughness={0.35} metalness={0.85} />
-          </mesh>
-        ))}
-        {/* graviers */}
-        <mesh position={[0, -0.55, 0]}>
-          <boxGeometry args={[2.7, 0.18, 1.05]} />
-          <meshStandardMaterial color="#c9b98a" roughness={0.95} metalness={0} />
-        </mesh>
-        {/* poissons/décor */}
-        <mesh position={[-0.6, 0.0, 0.1]}>
-          <sphereGeometry args={[0.22, 14, 10]} />
-          <meshStandardMaterial color="#ff7a2a" roughness={0.4} metalness={0.1} emissive="#ff5500" emissiveIntensity={0.25} />
-        </mesh>
-        <mesh position={[0.5, 0.3, 0.0]}>
-          <sphereGeometry args={[0.18, 14, 10]} />
-          <meshStandardMaterial color="#ffe14a" roughness={0.4} metalness={0.1} emissive="#ffaa00" emissiveIntensity={0.25} />
-        </mesh>
-        <mesh position={[0.9, -0.25, 0.2]}>
-          <coneGeometry args={[0.3, 0.9, 6]} />
-          <meshStandardMaterial color="#2a8a4a" roughness={0.7} />
-        </mesh>
-        {/* surface d'eau */}
-        <mesh position={[0, 1.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[2.7, 1.05]} />
-          <meshStandardMaterial color="#88d8ff" transparent opacity={0.55} roughness={0.15} metalness={0.6} />
-        </mesh>
-      </group>
-
-      {/* Table basse centre-arrière */}
-      <group position={[0, -2.1, -1.2]}>
-        <mesh>
-          <boxGeometry args={[2.2, 0.15, 1.1]} />
-          <meshStandardMaterial color="#1a1a22" roughness={0.3} metalness={0.6} />
-        </mesh>
-        {[[-1.0, -0.45], [1.0, -0.45], [-1.0, 0.45], [1.0, 0.45]].map(([x, z], i) => (
-          <mesh key={i} position={[x, -0.4, z]}>
-            <cylinderGeometry args={[0.06, 0.06, 0.7, 10]} />
-            <meshStandardMaterial color="#111" roughness={0.3} metalness={0.85} />
-          </mesh>
-        ))}
-      </group>
-
-      {/* Lampadaire gauche */}
-      <group position={[-11.5, -1.2, -0.5]}>
-        <mesh position={[0, 0, 0]}>
-          <cylinderGeometry args={[0.06, 0.06, 3.2, 12]} />
-          <meshStandardMaterial color="#0f0f14" roughness={0.4} metalness={0.8} />
-        </mesh>
-        <mesh position={[0, 1.65, 0]}>
-          <coneGeometry args={[0.55, 0.7, 20, 1, true]} />
-          <meshStandardMaterial color="#e4c76a" roughness={0.5} metalness={0.3} emissive="#ffcc55" emissiveIntensity={0.6} side={THREE.DoubleSide} />
-        </mesh>
-      </group>
-
-      {/* Plante droite */}
-      <group position={[11.5, -1.8, -0.5]}>
-        <mesh position={[0, -0.35, 0]}>
-          <cylinderGeometry args={[0.45, 0.35, 0.6, 16]} />
-          <meshStandardMaterial color="#3a2418" roughness={0.85} />
-        </mesh>
-        {[0, 1, 2, 3, 4].map((i) => {
-          const a = (i / 5) * Math.PI * 2;
-          return (
-            <mesh key={i} position={[Math.cos(a) * 0.25, 0.4 + (i % 2) * 0.2, Math.sin(a) * 0.25]} rotation={[0, a, 0.3]}>
-              <coneGeometry args={[0.35, 1.4, 8]} />
-              <meshStandardMaterial color="#2f7a3a" roughness={0.75} />
-            </mesh>
-          );
-        })}
-      </group>
-    </group>
+    <>
+      {renderZone("left")}
+      {renderZone("right")}
+    </>
   );
 };
 
@@ -785,7 +759,6 @@ const Stage = ({
       <pointLight position={[5, 5, 5]} intensity={1.6} color="#ff66ff" />
       <pointLight position={[-5, 3, 5]} intensity={1.6} color="#66ffff" />
       <pointLight position={[0, 6, -3]} intensity={1.2} color="#a78bfa" />
-      <BackgroundFurniture />
       <Suspense fallback={null}>
         {figures.map((f) =>
           f.variant.category === "human" ? (
@@ -928,36 +901,39 @@ export const HologramOverlay = () => {
   }, []);
 
   return (
-    <div
-      aria-hidden
-      data-hologram-overlay
-      className="fixed inset-0 h-screen w-screen overflow-visible"
-      style={{
-        isolation: "isolate",
-        zIndex: 2147483000,
-        pointerEvents: "none",
-        clipPath,
-        WebkitClipPath: clipPath,
-      }}
-    >
-      <Canvas
-        dpr={[1, 2]}
-        frameloop={visible ? "always" : "never"}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-        camera={{ position: [0, 0.4, 6], fov: 45 }}
-        eventSource={typeof document !== "undefined" ? document.body : undefined}
-        eventPrefix="client"
-        style={{ width: "100vw", height: "100vh", background: "transparent", pointerEvents: "none" }}
+    <>
+      <FixedCaptureFurniture />
+      <div
+        aria-hidden
+        data-hologram-overlay
+        className="fixed inset-0 h-screen w-screen overflow-visible"
+        style={{
+          isolation: "isolate",
+          zIndex: 2147483000,
+          pointerEvents: "none",
+          clipPath,
+          WebkitClipPath: clipPath,
+        }}
       >
-        <Stage
-          figures={figures}
-          bursts={bursts}
-          removeFigure={removeFigure}
-          removeBurst={removeBurst}
-          addBurst={addBurst}
-        />
-      </Canvas>
-    </div>
+        <Canvas
+          dpr={[1, 2]}
+          frameloop={visible ? "always" : "never"}
+          gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+          camera={{ position: [0, 0.4, 6], fov: 45 }}
+          eventSource={typeof document !== "undefined" ? document.body : undefined}
+          eventPrefix="client"
+          style={{ width: "100vw", height: "100vh", background: "transparent", pointerEvents: "none" }}
+        >
+          <Stage
+            figures={figures}
+            bursts={bursts}
+            removeFigure={removeFigure}
+            removeBurst={removeBurst}
+            addBurst={addBurst}
+          />
+        </Canvas>
+      </div>
+    </>
   );
 };
 
