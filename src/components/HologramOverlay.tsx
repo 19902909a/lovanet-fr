@@ -901,36 +901,39 @@ export const HologramOverlay = () => {
   }, []);
 
   return (
-    <div
-      aria-hidden
-      data-hologram-overlay
-      className="fixed inset-0 h-screen w-screen overflow-visible"
-      style={{
-        isolation: "isolate",
-        zIndex: 2147483000,
-        pointerEvents: "none",
-        clipPath,
-        WebkitClipPath: clipPath,
-      }}
-    >
-      <Canvas
-        dpr={[1, 2]}
-        frameloop={visible ? "always" : "never"}
-        gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-        camera={{ position: [0, 0.4, 6], fov: 45 }}
-        eventSource={typeof document !== "undefined" ? document.body : undefined}
-        eventPrefix="client"
-        style={{ width: "100vw", height: "100vh", background: "transparent", pointerEvents: "none" }}
+    <>
+      <FixedCaptureFurniture />
+      <div
+        aria-hidden
+        data-hologram-overlay
+        className="fixed inset-0 h-screen w-screen overflow-visible"
+        style={{
+          isolation: "isolate",
+          zIndex: 2147483000,
+          pointerEvents: "none",
+          clipPath,
+          WebkitClipPath: clipPath,
+        }}
       >
-        <Stage
-          figures={figures}
-          bursts={bursts}
-          removeFigure={removeFigure}
-          removeBurst={removeBurst}
-          addBurst={addBurst}
-        />
-      </Canvas>
-    </div>
+        <Canvas
+          dpr={[1, 2]}
+          frameloop={visible ? "always" : "never"}
+          gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+          camera={{ position: [0, 0.4, 6], fov: 45 }}
+          eventSource={typeof document !== "undefined" ? document.body : undefined}
+          eventPrefix="client"
+          style={{ width: "100vw", height: "100vh", background: "transparent", pointerEvents: "none" }}
+        >
+          <Stage
+            figures={figures}
+            bursts={bursts}
+            removeFigure={removeFigure}
+            removeBurst={removeBurst}
+            addBurst={addBurst}
+          />
+        </Canvas>
+      </div>
+    </>
   );
 };
 
