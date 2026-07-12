@@ -17,15 +17,15 @@ describe("Footer sitelinks & partenaires", () => {
       name: /Lovanet — Plateforme officielle/i,
     });
     const expected: Array<[RegExp, string]> = [
-      [/Lovanet Plateforme officielle dédiée/i, "/"],
+      [/Lovanet Plateforme officiel →/i, "/"],
+      [/Catalogue →/i, "/anime-catalog"],
       [/Univers Lovanet/i, "/decouvrir"],
+      [/Boutique →/i, "/shop"],
+      [/AnimemomentsAnimeofficiel → YouTube/i, "/chaine-youtube"],
       [/AnimemomentsAnimeofficiel →$/i, "/chaine-youtube"],
       [/Anime\.Moments\.officiel → Prime Video/i, "/prime-video"],
-      [/AnimemomentsAnimeofficiel → YouTube/i, "/chaine-youtube"],
       [/Anime\.Moments\.officiel → TikTok/i, "/tiktok"],
-      [/Boutique →/i, "/shop"],
       [/À venir →/i, "/anime-countdown"],
-      [/Catalogue →/i, "/anime-catalog"],
     ];
     for (const [label, href] of expected) {
       const link = within(nav).getByRole("link", { name: label });
