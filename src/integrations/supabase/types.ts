@@ -65,6 +65,7 @@ export type Database = {
       imported_videos_backup: {
         Row: {
           backed_up_at: string
+          backup_id: number
           created_at: string
           description: string | null
           episode: string | null
@@ -81,6 +82,7 @@ export type Database = {
         }
         Insert: {
           backed_up_at?: string
+          backup_id?: number
           created_at?: string
           description?: string | null
           episode?: string | null
@@ -97,6 +99,7 @@ export type Database = {
         }
         Update: {
           backed_up_at?: string
+          backup_id?: number
           created_at?: string
           description?: string | null
           episode?: string | null
@@ -305,6 +308,7 @@ export type Database = {
       youtube_manga_videos_backup: {
         Row: {
           backed_up_at: string
+          backup_id: number
           channel_title: string | null
           created_at: string
           description: string | null
@@ -321,6 +325,7 @@ export type Database = {
         }
         Insert: {
           backed_up_at?: string
+          backup_id?: number
           channel_title?: string | null
           created_at?: string
           description?: string | null
@@ -337,6 +342,7 @@ export type Database = {
         }
         Update: {
           backed_up_at?: string
+          backup_id?: number
           channel_title?: string | null
           created_at?: string
           description?: string | null
