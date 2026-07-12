@@ -4,6 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import CardSkinBubble from "@/components/CardSkinBubble";
 import YoutubeBrandCover from "@/components/YoutubeBrandCover";
 import { idbGet, idbSet, normalizeTitle } from "@/lib/animeCache";
+import BlisterFrame from "@/components/BlisterFrame";
 
 type Media = {
   id: number;
@@ -508,6 +509,7 @@ export default function AnimeCatalog() {
                             draggable={false}
                           />
                         )}
+                        <BlisterFrame radius={8} intensity={0.85} />
                       </div>
                     </button>
                   );
@@ -596,6 +598,7 @@ export default function AnimeCatalog() {
                         draggable={false}
                       />
                     )}
+                    <BlisterFrame radius={16} intensity={1} />
                   </div>
                   <div
                     className="mt-2 text-xs text-center line-clamp-2 px-2 py-1 rounded-md border"
@@ -801,6 +804,7 @@ export default function AnimeCatalog() {
                           ▶
                         </span>
                       )}
+                      <BlisterFrame radius={8} intensity={0.9} />
                     </div>
                     <div className="px-1.5 pt-1 pb-1.5">
                       <div className="text-[10px] line-clamp-2 leading-tight">
