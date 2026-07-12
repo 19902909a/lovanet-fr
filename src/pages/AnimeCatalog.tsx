@@ -3,6 +3,7 @@ import NeonFooterBar from "@/components/NeonFooterBar";
 import { Navbar } from "@/components/Navbar";
 import CardSkinBubble from "@/components/CardSkinBubble";
 import YoutubeBrandCover from "@/components/YoutubeBrandCover";
+import { idbGet, idbSet, normalizeTitle } from "@/lib/animeCache";
 
 type Media = {
   id: number;
@@ -16,6 +17,9 @@ type Media = {
   seasonYear?: number;
   description?: string;
   trailer?: { id?: string; site?: string } | null;
+  // AniList: FINISHED | RELEASING | NOT_YET_RELEASED | CANCELLED | HIATUS.
+  // Normalized to: finished | releasing | upcoming | cancelled | hiatus.
+  status?: string;
 };
 
 const QUERY_SORTED = `
@@ -31,11 +35,25 @@ query ($page: Int, $perPage: Int, $sort: [MediaSort]) {
       genres
       format
       seasonYear
+      status
       description(asHtml: false)
       trailer { id site }
     }
   }
 }`;
+
+// Map heterogeneous status strings from AniList / Jikan / Kitsu into one vocabulary
+// so the status filter behaves consistently across sources.
+function normalizeStatus(raw: string | undefined | null): string | undefined {
+  if (!raw) return undefined;
+  const s = String(raw).toLowerCase();
+  if (s.includes("finish")) return "finished";
+  if (s.includes("releasing") || s.includes("airing") || s === "current") return "releasing";
+  if (s.includes("not_yet") || s.includes("not yet") || s === "upcoming" || s === "tba" || s === "unreleased") return "upcoming";
+  if (s.includes("cancel")) return "cancelled";
+  if (s.includes("hiatus")) return "hiatus";
+  return undefined;
+}
 
 /**
  * 3D rotating card carousel — original implementation.
