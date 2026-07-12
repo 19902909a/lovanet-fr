@@ -450,54 +450,6 @@ const CaptureSofa = () => (
   </group>
 );
 
-const CaptureAquarium = () => (
-  <group position={[0, -0.02, 0]} rotation={[0, -0.28, 0]} scale={1.15}>
-    <mesh position={[0, -1.0, 0]}>
-      <boxGeometry args={[2.8, 0.72, 1.12]} />
-      <meshStandardMaterial color="#22222c" roughness={0.55} metalness={0.4} />
-    </mesh>
-    <mesh position={[0, 0.1, 0]}>
-      <boxGeometry args={[2.62, 1.62, 1.02]} />
-      <meshPhysicalMaterial
-        color="#7ce0ff"
-        transparent
-        opacity={0.42}
-        roughness={0.05}
-        metalness={0.15}
-        transmission={0.55}
-        thickness={0.55}
-        clearcoat={1}
-        clearcoatRoughness={0.05}
-      />
-    </mesh>
-    {[0.96, -0.62].map((y) => (
-      <mesh key={y} position={[0, y, 0]}>
-        <boxGeometry args={[2.72, 0.1, 1.08]} />
-        <meshStandardMaterial color="#0a0a0a" roughness={0.35} metalness={0.85} />
-      </mesh>
-    ))}
-    <mesh position={[0, -0.48, 0]}>
-      <boxGeometry args={[2.48, 0.16, 0.92]} />
-      <meshStandardMaterial color="#c9b98a" roughness={0.95} metalness={0} />
-    </mesh>
-    <mesh position={[-0.55, -0.02, 0.1]}>
-      <sphereGeometry args={[0.2, 14, 10]} />
-      <meshStandardMaterial color="#ff7a2a" roughness={0.4} metalness={0.1} emissive="#ff5500" emissiveIntensity={0.25} />
-    </mesh>
-    <mesh position={[0.45, 0.25, 0.0]}>
-      <sphereGeometry args={[0.16, 14, 10]} />
-      <meshStandardMaterial color="#ffe14a" roughness={0.4} metalness={0.1} emissive="#ffaa00" emissiveIntensity={0.25} />
-    </mesh>
-    <mesh position={[0.8, -0.2, 0.18]}>
-      <coneGeometry args={[0.26, 0.78, 6]} />
-      <meshStandardMaterial color="#2a8a4a" roughness={0.7} />
-    </mesh>
-    <mesh position={[0, 0.86, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[2.48, 0.92]} />
-      <meshStandardMaterial color="#88d8ff" transparent opacity={0.55} roughness={0.15} metalness={0.6} side={THREE.DoubleSide} />
-    </mesh>
-  </group>
-);
 
 const FixedCaptureFurniture = () => {
   return renderFurnitureZones();
@@ -655,11 +607,7 @@ const buildMorph = (spec: MorphSpec): THREE.Group => {
   return g;
 };
 
-const MorphCreature = ({
-  initialFurniture,
-}: {
-  initialFurniture: "sofa" | "aquarium";
-}) => {
+const MorphCreature = () => {
   const [idx, setIdx] = useState<number>(-1);
   const group = useRef<THREE.Group>(null!);
   const current = idx >= 0 ? MORPH_SPECS[idx] : null;
@@ -709,11 +657,7 @@ const MorphCreature = ({
 
   return (
     <group ref={group} onClick={onClick}>
-      {idx < 0 ? (
-        initialFurniture === "sofa" ? <CaptureSofa /> : <CaptureAquarium />
-      ) : built ? (
-        <primitive object={built} />
-      ) : null}
+      {idx < 0 ? <CaptureSofa /> : built ? <primitive object={built} /> : null}
     </group>
   );
 };
@@ -726,16 +670,14 @@ const renderFurnitureZones = () => {
     contain: "layout paint",
   };
 
-  const renderZone = (side: "left" | "right") => (
+  return (
     <div
       className="fixed"
       style={{
         ...zoneBase,
+        left: "clamp(4px, 1.6vw, 40px)",
         zIndex: 2147483001,
         pointerEvents: "none",
-        ...(side === "left"
-          ? { left: "clamp(4px, 1.6vw, 40px)" }
-          : { right: "clamp(4px, 1.6vw, 40px)" }),
       }}
     >
       <Canvas
@@ -747,17 +689,10 @@ const renderFurnitureZones = () => {
       >
         <ambientLight intensity={0.82} />
         <directionalLight position={[3, 4, 6]} intensity={1.35} color="#ffffff" />
-        <pointLight position={side === "left" ? [-3, 2, 5] : [3, 2, 5]} intensity={1.15} color={side === "left" ? "#66aaff" : "#66ffff"} />
-        <MorphCreature initialFurniture={side === "left" ? "sofa" : "aquarium"} />
+        <pointLight position={[-3, 2, 5]} intensity={1.15} color="#66aaff" />
+        <MorphCreature />
       </Canvas>
     </div>
-  );
-
-  return (
-    <>
-      {renderZone("left")}
-      {renderZone("right")}
-    </>
   );
 };
 
