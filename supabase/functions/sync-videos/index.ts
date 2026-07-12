@@ -166,10 +166,21 @@ Deno.serve(async (req) => {
     const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
+    // Parse optional body: { mode?: "full" | "incremental", platform?: "youtube" | "tiktok" | "prime" | "all" }
+    let mode: 'full' | 'incremental' = 'incremental';
+    let platformFilter: 'youtube' | 'tiktok' | 'prime' | 'all' = 'all';
+    try {
+      const raw = await req.json().catch(() => ({}));
+      if (raw?.mode === 'full') mode = 'full';
+      if (['youtube', 'tiktok', 'prime', 'all'].includes(raw?.platform)) {
+        platformFilter = raw.platform;
+      }
+    } catch { /* body optional */ }
+
     const results: { source: string; count: number; error?: string }[] = [];
     const allRows: Row[] = [];
 
-    if (YOUTUBE_API_KEY) {
+    if (YOUTUBE_API_KEY && (platformFilter === 'all' || platformFilter === 'youtube')) {
       try {
         const yt = await fetchYouTube(YOUTUBE_API_KEY);
         allRows.push(...yt);
@@ -180,13 +191,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    try {
-      const tt = await fetchTikTok();
-      allRows.push(...tt);
-      results.push({ source: 'tiktok', count: tt.length });
-    } catch (e) {
-      console.error('sync-videos tiktok failed', e);
-      results.push({ source: 'tiktok', count: 0, error: 'Sync failed' });
+    if (platformFilter === 'all' || platformFilter === 'tiktok') {
+      try {
+        const tt = await fetchTikTok();
+        allRows.push(...tt);
+        results.push({ source: 'tiktok', count: tt.length });
+      } catch (e) {
+        console.error('sync-videos tiktok failed', e);
+        results.push({ source: 'tiktok', count: 0, error: 'Sync failed' });
+      }
     }
 
     if (allRows.length > 0) {
@@ -208,9 +221,32 @@ Deno.serve(async (req) => {
         });
       if (error) throw error;
       results.push({ source: 'upserted', count: deduped.length });
+
+      // ---- FULL MODE: garbage-collect stale rows -------------------------
+      // Remove rows whose external_id no longer appears in the fresh fetch
+      // for the sources we actually synced (never wipe unrelated sources).
+      if (mode === 'full') {
+        const bySrc = new Map<string, string[]>();
+        for (const r of deduped) {
+          if (!r.external_id) continue;
+          const arr = bySrc.get(r.source) ?? [];
+          arr.push(r.external_id);
+          bySrc.set(r.source, arr);
+        }
+        for (const [src, keepIds] of bySrc) {
+          if (keepIds.length === 0) continue;
+          const { error: delErr, count } = await supabase
+            .from('imported_videos')
+            .delete({ count: 'exact' })
+            .eq('source', src)
+            .not('external_id', 'in', `(${keepIds.map((id) => `"${id.replace(/"/g, '')}"`).join(',')})`);
+          if (delErr) console.error('full-sync gc failed', src, delErr);
+          else results.push({ source: `${src}:gc`, count: count ?? 0 });
+        }
+      }
     }
 
-    return new Response(JSON.stringify({ ok: true, results }), {
+    return new Response(JSON.stringify({ ok: true, mode, platform: platformFilter, results }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (e) {
