@@ -114,8 +114,8 @@ export const Navbar = () => {
                 cn(
                   "nav-3d btn-magnetic relative px-4 py-2 text-sm rounded-full transition-all duration-300 hover:-translate-y-0.5",
                   isActive
-                    ? "text-white bg-white/[0.09] border border-white/25 backdrop-blur-xl shadow-[0_0_18px_hsl(var(--neon-cyan)/0.5),inset_0_1px_0_rgba(255,255,255,0.15)]"
-                    : "text-foreground/70 hover:text-primary hover:drop-shadow-[0_0_10px_hsl(var(--neon-cyan)/0.7)]"
+                    ? "neon-rgb-text bg-white/[0.09] border border-white/25 backdrop-blur-xl shadow-[0_0_18px_hsl(var(--neon-cyan)/0.5),inset_0_1px_0_rgba(255,255,255,0.15)]"
+                    : "neon-rgb-text-soft hover:drop-shadow-[0_0_10px_hsl(var(--neon-cyan)/0.7)]"
                 )
               }
             >
@@ -175,8 +175,8 @@ export const Navbar = () => {
               <div className="relative">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.35em] text-white/70 font-display flex items-center gap-2">
-                  <Sparkles className="w-3 h-3" strokeWidth={1.6} />
-                  Menu Lovanet
+                  <Sparkles className="w-3 h-3 neon-rgb-icon" strokeWidth={1.8} />
+                  <span className="neon-rgb-text">Menu Lovanet</span>
                 </p>
                 <button
                   onClick={() => setMegaOpen(false)}
@@ -211,16 +211,15 @@ export const Navbar = () => {
                         "shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center bg-white/5 border border-white/15 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/30 group-hover:scale-110 group-hover:rotate-[-4deg]",
                         active ? "text-white bg-white/10 border-white/30" : "text-white/85 group-hover:text-white"
                       )}>
-                        <s.icon className="w-[18px] h-[18px]" strokeWidth={1.4} />
+                        <s.icon className="w-[18px] h-[18px] neon-rgb-icon" strokeWidth={1.8} />
                       </span>
                       <span className="min-w-0 relative">
                         <span className={cn(
-                          "block font-display font-semibold text-[13px] sm:text-sm transition-colors leading-tight",
-                          active ? "text-white" : "text-white/95 group-hover:text-white"
+                          "block font-display font-semibold text-[13px] sm:text-sm transition-colors leading-tight neon-rgb-text",
                         )}>
                           {s.label}
                         </span>
-                        <span className="block text-[10.5px] sm:text-[11px] text-white/60 mt-0.5 line-clamp-2 sm:truncate">
+                        <span className="block text-[10.5px] sm:text-[11px] mt-0.5 line-clamp-2 sm:truncate neon-rgb-text-soft">
                           {s.desc}
                         </span>
                       </span>
@@ -248,8 +247,8 @@ export const Navbar = () => {
               <div className="pointer-events-none absolute -bottom-20 -right-20 h-48 w-48 rounded-full bg-cyan-400/20 blur-3xl" />
               <div className="relative p-3">
                 <p className="text-[10px] uppercase tracking-[0.35em] text-white/70 font-display flex items-center gap-2 px-2 pb-2 pt-1">
-                  <Sparkles className="w-3 h-3" strokeWidth={1.6} />
-                  Navigation
+                  <Sparkles className="w-3 h-3 neon-rgb-icon" strokeWidth={1.8} />
+                  <span className="neon-rgb-text">Navigation</span>
                 </p>
                 <nav className="grid gap-1.5">
                   {megaSections.map((s) => {
@@ -272,11 +271,11 @@ export const Navbar = () => {
                           "shrink-0 w-9 h-9 rounded-xl flex items-center justify-center bg-white/5 border border-white/15 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]",
                           active && "bg-white/10 border-white/30"
                         )}>
-                          <s.icon className="w-[18px] h-[18px]" strokeWidth={1.4} />
+                          <s.icon className="w-[18px] h-[18px] neon-rgb-icon" strokeWidth={1.8} />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block font-display font-semibold text-sm leading-tight">{s.label}</span>
-                          <span className="block text-[11px] text-white/60 mt-0.5 truncate">{s.desc}</span>
+                          <span className="block font-display font-semibold text-sm leading-tight neon-rgb-text">{s.label}</span>
+                          <span className="block text-[11px] mt-0.5 truncate neon-rgb-text-soft">{s.desc}</span>
                         </span>
                         {active && (
                           <span className="shrink-0 h-2 w-2 rounded-full bg-gradient-to-br from-fuchsia-400 to-cyan-400 shadow-[0_0_10px_hsl(var(--neon-cyan)/0.7)]" />
