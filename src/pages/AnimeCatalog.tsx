@@ -804,6 +804,7 @@ export default function AnimeCatalog() {
                           ▶
                         </span>
                       )}
+                      <BlisterFrame radius={8} intensity={0.9} />
                     </div>
                     <div className="px-1.5 pt-1 pb-1.5">
                       <div className="text-[10px] line-clamp-2 leading-tight">
