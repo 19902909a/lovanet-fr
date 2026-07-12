@@ -417,7 +417,7 @@ export default function AnimeCatalog() {
   }, [search]);
 
   // Whenever the user opens a new modal, reset any previous trailer-fallback flag.
-  useEffect(() => { if (active) setTrailerFailedFor(null); }, [active?.id]);
+  useEffect(() => { if (active) { setTrailerFailedFor(null); setTrailerHiddenFor(null); } }, [active?.id]);
 
   // Reset to first page whenever any filter/search changes.
   useEffect(() => { setPage(0); }, [debouncedSearch, filterGenre, filterStatus, minScore, minYear, sortBy]);
@@ -874,23 +874,22 @@ export default function AnimeCatalog() {
           >
             {/* In-modal video player — trailers first, banner fallback */}
             {(() => {
-              const queryStr = encodeURIComponent(`${active.title.english || active.title.romaji || ""} trailer anime`);
-              const searchEmbed = `https://www.youtube-nocookie.com/embed?listType=search&list=${queryStr}&autoplay=0&modestbranding=1&playsinline=1&hl=en`;
+              const rawQuery = `${active.title.english || active.title.romaji || ""} trailer anime`;
+              const queryStr = encodeURIComponent(rawQuery);
               const hasTrailer = !!(active.trailer?.id && active.trailer?.site === "youtube");
               const failed = trailerFailedFor === active.id;
-              const embedSrc = hasTrailer && !failed
-                ? `https://www.youtube-nocookie.com/embed/${active.trailer!.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&hl=en`
-                : searchEmbed;
+              const hidden = trailerHiddenFor === active.id;
+              // Last resort: no trailer id AND no meaningful search query → hide entirely.
+              if (hidden || (!hasTrailer && !rawQuery.trim())) return null;
               return (
                 <div className="relative w-full aspect-video bg-black">
-                  <iframe
+                  <YouTubeEmbed
                     key={`${active.id}-${failed ? "fb" : "primary"}`}
-                    src={embedSrc}
+                    videoId={hasTrailer && !failed ? active.trailer!.id : undefined}
+                    searchQuery={rawQuery}
                     title={active.title.english || active.title.romaji || "Trailer"}
-                    className="absolute inset-0 w-full h-full"
-                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                    allowFullScreen
-                    referrerPolicy="strict-origin-when-cross-origin"
+                    onUnavailable={() => setTrailerFailedFor(active.id)}
+                    onExhausted={() => setTrailerHiddenFor(active.id)}
                   />
                   {hasTrailer && !failed && <YoutubeBrandCover />}
                   {/* Region/blocked fallback controls — YouTube can't signal blocking via postMessage
