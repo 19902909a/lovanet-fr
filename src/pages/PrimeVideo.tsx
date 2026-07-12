@@ -7,6 +7,7 @@ import { HoverPreview } from "@/components/HoverPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminRemoveVideo } from "@/components/AdminRemoveVideo";
 import { MangaUniverseBanner } from "@/components/MangaUniverseBanner";
+import { ManualSyncButton } from "@/components/ManualSyncButton";
 
 type Item = {
   id: string;
@@ -249,6 +250,7 @@ const PrimeVideo = () => {
 
   return (
     <PageShell>
+      <ManualSyncButton platform="prime" label="Sync Prime" onDone={() => window.location.reload()} />
       <section className="container mx-auto px-4 lg:px-8 py-12 text-center">
         <p className="text-xs uppercase tracking-[0.25em] text-cyan-300 mb-2">Streaming partenaire</p>
         <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold">
