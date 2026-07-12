@@ -455,13 +455,6 @@ export const AnimeMomentsPresentation = () => {
 
           {/* Banner overlays */}
           <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-30 flex items-center gap-2">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-600 text-white text-[10px] font-black tracking-widest uppercase shadow-lg">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-70 animate-ping" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-              </span>
-              LIVE · Anime Moments
-            </span>
             <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/[0.08] backdrop-blur border border-white/10 text-white/90 text-[10px] font-bold tracking-widest uppercase">
               Officiel Lovanet
             </span>
