@@ -501,34 +501,35 @@ const CaptureAquarium = () => (
 
 const FixedCaptureFurniture = () => {
   const zoneBase: CSSProperties = {
-    top: "clamp(78px, 6.6vh, 118px)",
-    width: "clamp(138px, 16vw, 320px)",
-    height: "clamp(118px, 18vh, 220px)",
+    top: "clamp(210px, 28vh, 400px)",
+    width: "clamp(240px, 26vw, 480px)",
+    height: "clamp(220px, 30vh, 400px)",
     contain: "layout paint",
   };
 
   const renderZone = (side: "left" | "right") => (
     <div
-      className="pointer-events-none fixed"
+      className="fixed"
       style={{
         ...zoneBase,
         zIndex: 2147483001,
+        pointerEvents: "none",
         ...(side === "left"
-          ? { left: "clamp(8px, 2.2vw, 46px)" }
-          : { right: "clamp(8px, 2.2vw, 46px)" }),
+          ? { left: "clamp(4px, 1.6vw, 40px)" }
+          : { right: "clamp(4px, 1.6vw, 40px)" }),
       }}
     >
       <Canvas
         orthographic
         dpr={[1, 1.5]}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
-        camera={{ position: [0, 0, 8], zoom: 76 }}
-        style={{ width: "100%", height: "100%", background: "transparent", pointerEvents: "none" }}
+        camera={{ position: [0, 0, 8], zoom: 62 }}
+        style={{ width: "100%", height: "100%", background: "transparent", pointerEvents: "auto", cursor: "pointer" }}
       >
         <ambientLight intensity={0.82} />
         <directionalLight position={[3, 4, 6]} intensity={1.35} color="#ffffff" />
-        <pointLight position={side === "left" ? [-3, 2, 5] : [3, 2, 5]} intensity={1.1} color={side === "left" ? "#ff66ff" : "#66ffff"} />
-        {side === "left" ? <CaptureSofa /> : <CaptureAquarium />}
+        <pointLight position={side === "left" ? [-3, 2, 5] : [3, 2, 5]} intensity={1.15} color={side === "left" ? "#66aaff" : "#66ffff"} />
+        <MorphCreature initialFurniture={side === "left" ? "sofa" : "aquarium"} />
       </Canvas>
     </div>
   );
