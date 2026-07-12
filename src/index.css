@@ -1055,7 +1055,7 @@
   /* Thin rainbow conic border around the frame — bright, brilliant */
   .rgb-frame {
     background:
-      linear-gradient(hsl(0 0% 100% / 0.95), hsl(0 0% 100% / 0.95)) padding-box,
+      linear-gradient(transparent, transparent) padding-box,
       conic-gradient(from var(--rgb-angle),
         hsl(330 100% 65%),
         hsl(280 100% 70%),
