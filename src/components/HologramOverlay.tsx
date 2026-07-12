@@ -608,10 +608,26 @@ const buildMorph = (spec: MorphSpec): THREE.Group => {
 };
 
 const MorphCreature = () => {
-  const [idx, setIdx] = useState<number>(-1);
+  const [idx, setIdx] = useState<number>(0);
   const group = useRef<THREE.Group>(null!);
   const current = idx >= 0 ? MORPH_SPECS[idx] : null;
   const built = useMemo(() => (current ? buildMorph(current) : null), [current]);
+  const autoRef = useRef<boolean>(true);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      autoRef.current = !!detail?.auto;
+    };
+    window.addEventListener("morph-auto", handler as EventListener);
+    // Auto-cycle interval
+    const iv = window.setInterval(() => {
+      if (autoRef.current) setIdx((i) => (i + 1) % MORPH_SPECS.length);
+    }, 2200);
+    return () => {
+      window.removeEventListener("morph-auto", handler as EventListener);
+      window.clearInterval(iv);
+    };
+  }, []);
 
   useFrame((_, dt) => {
     const g = group.current;
@@ -654,10 +670,14 @@ const MorphCreature = () => {
     e.stopPropagation();
     setIdx((i) => (i + 1) % MORPH_SPECS.length);
   }, []);
+  const onOver = useCallback((e: any) => {
+    e.stopPropagation();
+    if (autoRef.current) setIdx((i) => (i + 1) % MORPH_SPECS.length);
+  }, []);
 
   return (
-    <group ref={group} onClick={onClick}>
-      {idx < 0 ? <CaptureSofa /> : built ? <primitive object={built} /> : null}
+    <group ref={group} onClick={onClick} onPointerOver={onOver}>
+      {built ? <primitive object={built} /> : <CaptureSofa />}
     </group>
   );
 };
@@ -692,7 +712,41 @@ const renderFurnitureZones = () => {
         <pointLight position={[-3, 2, 5]} intensity={1.15} color="#66aaff" />
         <MorphCreature />
       </Canvas>
+      <MorphAutoToggle />
     </div>
+  );
+};
+
+const MorphAutoToggle = () => {
+  const [auto, setAuto] = useState<boolean>(true);
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("morph-auto", { detail: { auto } }));
+  }, [auto]);
+  return (
+    <button
+      type="button"
+      onClick={() => setAuto((v) => !v)}
+      style={{
+        position: "absolute",
+        bottom: 6,
+        left: 6,
+        pointerEvents: "auto",
+        padding: "4px 10px",
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        borderRadius: 999,
+        border: `1px solid ${auto ? "#22d3ee" : "rgba(255,255,255,0.25)"}`,
+        background: auto ? "rgba(34,211,238,0.15)" : "rgba(0,0,0,0.35)",
+        color: auto ? "#67e8f9" : "rgba(255,255,255,0.75)",
+        backdropFilter: "blur(8px)",
+        cursor: "pointer",
+      }}
+      aria-label="Basculer le mode morph automatique"
+    >
+      {auto ? "Auto morph · ON" : "Auto morph · OFF"}
+    </button>
   );
 };
 
