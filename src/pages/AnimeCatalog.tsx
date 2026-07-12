@@ -4,6 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import CardSkinBubble from "@/components/CardSkinBubble";
 import YoutubeBrandCover from "@/components/YoutubeBrandCover";
 import { idbGet, idbSet, normalizeTitle } from "@/lib/animeCache";
+import BlisterFrame from "@/components/BlisterFrame";
 
 type Media = {
   id: number;
