@@ -712,7 +712,41 @@ const renderFurnitureZones = () => {
         <pointLight position={[-3, 2, 5]} intensity={1.15} color="#66aaff" />
         <MorphCreature />
       </Canvas>
+      <MorphAutoToggle />
     </div>
+  );
+};
+
+const MorphAutoToggle = () => {
+  const [auto, setAuto] = useState<boolean>(true);
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("morph-auto", { detail: { auto } }));
+  }, [auto]);
+  return (
+    <button
+      type="button"
+      onClick={() => setAuto((v) => !v)}
+      style={{
+        position: "absolute",
+        bottom: 6,
+        left: 6,
+        pointerEvents: "auto",
+        padding: "4px 10px",
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        borderRadius: 999,
+        border: `1px solid ${auto ? "#22d3ee" : "rgba(255,255,255,0.25)"}`,
+        background: auto ? "rgba(34,211,238,0.15)" : "rgba(0,0,0,0.35)",
+        color: auto ? "#67e8f9" : "rgba(255,255,255,0.75)",
+        backdropFilter: "blur(8px)",
+        cursor: "pointer",
+      }}
+      aria-label="Basculer le mode morph automatique"
+    >
+      {auto ? "Auto morph · ON" : "Auto morph · OFF"}
+    </button>
   );
 };
 
