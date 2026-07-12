@@ -861,21 +861,56 @@ export default function AnimeCatalog() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* In-modal video player — trailers first, banner fallback */}
-            {active.trailer?.id && active.trailer?.site === "youtube" ? (
-              <div className="relative w-full aspect-video bg-black">
-                <iframe
-                  key={active.trailer.id}
-                  src={`https://www.youtube-nocookie.com/embed/${active.trailer.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
-                  title={active.title.english || active.title.romaji || "Trailer"}
-                  className="absolute inset-0 w-full h-full"
-                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                  allowFullScreen
-                />
-                <YoutubeBrandCover />
-              </div>
-            ) : active.bannerImage ? (
+            {(() => {
+              const queryStr = encodeURIComponent(`${active.title.english || active.title.romaji || ""} trailer anime`);
+              const searchEmbed = `https://www.youtube-nocookie.com/embed?listType=search&list=${queryStr}&autoplay=0&modestbranding=1&playsinline=1&hl=en`;
+              const hasTrailer = !!(active.trailer?.id && active.trailer?.site === "youtube");
+              const failed = trailerFailedFor === active.id;
+              const embedSrc = hasTrailer && !failed
+                ? `https://www.youtube-nocookie.com/embed/${active.trailer!.id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&hl=en`
+                : searchEmbed;
+              return (
+                <div className="relative w-full aspect-video bg-black">
+                  <iframe
+                    key={`${active.id}-${failed ? "fb" : "primary"}`}
+                    src={embedSrc}
+                    title={active.title.english || active.title.romaji || "Trailer"}
+                    className="absolute inset-0 w-full h-full"
+                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    allowFullScreen
+                    referrerPolicy="strict-origin-when-cross-origin"
+                  />
+                  {hasTrailer && !failed && <YoutubeBrandCover />}
+                  {/* Region/blocked fallback controls — YouTube can't signal blocking via postMessage
+                       for privacy-enhanced embeds, so we expose a manual switch + open-on-youtube link. */}
+                  <div className="absolute bottom-2 right-2 z-10 flex items-center gap-2 text-[11px]">
+                    {hasTrailer && !failed && (
+                      <button
+                        type="button"
+                        onClick={() => setTrailerFailedFor(active.id)}
+                        className="px-2 py-1 rounded-full bg-black/70 border border-white/20 text-white/90 hover:bg-black/90 backdrop-blur"
+                        title="Basculer sur une recherche YouTube si la vidéo est bloquée dans votre région"
+                      >
+                        Vidéo bloquée ? Essayer une autre source
+                      </button>
+                    )}
+                    <a
+                      href={hasTrailer && !failed
+                        ? `https://www.youtube.com/watch?v=${active.trailer!.id}`
+                        : `https://www.youtube.com/results?search_query=${queryStr}`}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="px-2 py-1 rounded-full bg-fuchsia-600/80 border border-white/20 text-white hover:bg-fuchsia-500"
+                    >
+                      Ouvrir sur YouTube ↗
+                    </a>
+                  </div>
+                </div>
+              );
+            })()}
+            {active.bannerImage && !(active.trailer?.id) && (
               <img src={active.bannerImage} alt="" className="w-full h-40 object-cover" />
-            ) : null}
+            )}
             <div className="p-6">
               <h2 className="text-2xl font-bold mb-2">
                 {active.title.english || active.title.romaji}
