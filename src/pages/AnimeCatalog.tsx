@@ -472,7 +472,8 @@ export default function AnimeCatalog() {
                   videoId={trailerMedia.trailer.id}
                   searchQuery={`${trailerMedia.title.english || trailerMedia.title.romaji || ""} trailer anime`}
                   title={trailerMedia.title.english || trailerMedia.title.romaji || "Trailer"}
-                  onExhausted={() => setPromotedHidden(true)}
+                  onUnavailable={() => setVideoStatus(trailerMedia.id, "unavailable")}
+                  onExhausted={() => { setVideoStatus(trailerMedia.id, "hidden"); setPromotedHidden(true); }}
                 />
               ) : null}
               {trailerMedia?.trailer?.id && trailerMedia.trailer.site === "youtube" && !promotedHidden ? (
@@ -911,8 +912,8 @@ export default function AnimeCatalog() {
                     videoId={hasTrailer && !failed ? active.trailer!.id : undefined}
                     searchQuery={rawQuery}
                     title={active.title.english || active.title.romaji || "Trailer"}
-                    onUnavailable={() => setTrailerFailedFor(active.id)}
-                    onExhausted={() => setTrailerHiddenFor(active.id)}
+                    onUnavailable={() => { setVideoStatus(active.id, "unavailable"); setTrailerFailedFor(active.id); }}
+                    onExhausted={() => { setVideoStatus(active.id, "hidden"); setTrailerHiddenFor(active.id); }}
                   />
                   {hasTrailer && !failed && <YoutubeBrandCover />}
                   {/* Region/blocked fallback controls — YouTube can't signal blocking via postMessage
