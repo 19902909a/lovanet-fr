@@ -182,14 +182,28 @@ Deno.serve(async (req) => {
     }
   }
 
+  const apiKey = Deno.env.get('YOUTUBE_API_KEY');
+  // Unauthorized visitors (anon users on the public manga page) still get the
+  // full stored catalog. Only the expensive YouTube + vision-AI crawl and the
+  // moderation POST are gated behind auth.
   if (!authorized) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    try {
+      const supabaseUrl0 = Deno.env.get('SUPABASE_URL')!;
+      const serviceKey0 = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const admin0 = createClient(supabaseUrl0, serviceKey0, { auth: { persistSession: false } });
+      const storedVideos = await loadStoredVideos(admin0);
+      return new Response(
+        JSON.stringify({ videos: storedVideos, inserted: 0, readonly: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    } catch (e) {
+      console.error('read-only load failed', e);
+      return new Response(JSON.stringify({ videos: [], inserted: 0, readonly: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
   }
 
-  const apiKey = Deno.env.get('YOUTUBE_API_KEY');
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'YOUTUBE_API_KEY not configured' }), {
       status: 500,
