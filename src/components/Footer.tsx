@@ -29,7 +29,7 @@ export const Footer = () => {
           </li>
           <li>
             <Link to="/tiktok" className="hover:text-primary">Anime.Moments.officiel → TikTok</Link>{" "}
-            <a href="https://www.tiktok.com/@animemomentsanimeofficiel" target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-wider text-primary/80 hover:text-primary">↗ partenaire</a>
+            <a href="https://www.tiktok.com/@anime.moments.officiel" target="_blank" rel="noopener noreferrer" className="text-[10px] uppercase tracking-wider text-primary/80 hover:text-primary">↗ partenaire</a>
           </li>
           <li><Link to="/anime-countdown" className="hover:text-primary">À venir →</Link></li>
         </ul>
