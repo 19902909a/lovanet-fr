@@ -40,7 +40,7 @@ describe("Footer sitelinks & partenaires", () => {
     const partners = [
       "https://www.youtube.com/@animemomentsanimeofficiel",
       "https://www.primevideo.com/search/ref=atv_nb_sr?phrase=anime",
-      "https://www.tiktok.com/@animemomentsanimeofficiel",
+      "https://www.tiktok.com/@anime.moments.officiel",
     ];
     for (const href of partners) {
       const links = screen.getAllByRole("link").filter((a) => a.getAttribute("href") === href);

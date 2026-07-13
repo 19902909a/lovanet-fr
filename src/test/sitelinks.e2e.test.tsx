@@ -22,7 +22,7 @@ const InternalSitelinks: Array<[RegExp, string]> = [
 const PartnerLinks: Array<[string, string]> = [
   ["youtube-partner", "https://www.youtube.com/@animemomentsanimeofficiel"],
   ["prime-partner", "https://www.primevideo.com/search/ref=atv_nb_sr?phrase=anime"],
-  ["tiktok-partner", "https://www.tiktok.com/@animemomentsanimeofficiel"],
+  ["tiktok-partner", "https://www.tiktok.com/@anime.moments.officiel"],
 ];
 
 function AppUnderTest({ path }: { path: string }) {
