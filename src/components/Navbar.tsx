@@ -219,9 +219,6 @@ export const Navbar = () => {
                         )}>
                           {s.label}
                         </span>
-                        <span className="block text-[10.5px] sm:text-[11px] mt-0.5 line-clamp-2 sm:truncate neon-rgb-text-soft">
-                          {s.desc}
-                        </span>
                       </span>
                     </Link>
                   );
@@ -275,7 +272,6 @@ export const Navbar = () => {
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="block font-display font-semibold text-sm leading-tight neon-rgb-text">{s.label}</span>
-                          <span className="block text-[11px] mt-0.5 truncate neon-rgb-text-soft">{s.desc}</span>
                         </span>
                         {active && (
                           <span className="shrink-0 h-2 w-2 rounded-full bg-gradient-to-br from-fuchsia-400 to-cyan-400 shadow-[0_0_10px_hsl(var(--neon-cyan)/0.7)]" />

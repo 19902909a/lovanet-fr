@@ -86,6 +86,14 @@ const ChaineYoutube = () => {
   return (
     <PageShell>
       <ManualSyncButton platform="youtube" label="Sync YouTube" onDone={() => window.location.reload()} />
+    <section className="container mx-auto px-4 lg:px-8 pt-6">
+      <MangaUniverseBanner
+        videoIds={playable
+          .map((v) => v.external_id)
+          .filter((x): x is string => !!x)
+          .slice(0, 12)}
+      />
+    </section>
     <section className="container mx-auto px-4 lg:px-8 py-16">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-12 h-12 rounded-2xl bg-primary/15 text-primary flex items-center justify-center">
@@ -258,7 +266,6 @@ const ChaineYoutube = () => {
           );
         })}
       </section>
-      <MangaUniverseBanner />
     </PageShell>
   );
 };

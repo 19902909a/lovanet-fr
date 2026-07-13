@@ -1,17 +1,27 @@
 import { Link } from "react-router-dom";
 import { ArrowRight, Film, BookOpen, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import mangaBanner from "@/assets/manga-banner.jpg";
 
-type BgMode = "image" | "color" | "media";
+type BgMode = "image" | "color" | "media" | "video";
 
-export const MangaUniverseBanner = () => {
-  const [bgMode, setBgMode] = useState<BgMode>("image");
+export const MangaUniverseBanner = ({ videoIds }: { videoIds?: string[] } = {}) => {
+  const hasVideos = !!videoIds && videoIds.length > 0;
+  const [bgMode, setBgMode] = useState<BgMode>(hasVideos ? "video" : "image");
   const [bgColor, setBgColor] = useState("#0b0b16");
   const [bgMedia, setBgMedia] = useState<string>("");
   const [mediaKind, setMediaKind] = useState<"image" | "video">("image");
   const [showPanel, setShowPanel] = useState(false);
   const [spots, setSpots] = useState<boolean[]>([true, true, true]);
+  const [videoIdx, setVideoIdx] = useState(0);
+  useEffect(() => {
+    if (!hasVideos) return;
+    // Rotate through the provided videos every ~14s for a lively banner.
+    const id = window.setInterval(() => {
+      setVideoIdx((i) => (i + 1) % (videoIds?.length || 1));
+    }, 14000);
+    return () => window.clearInterval(id);
+  }, [hasVideos, videoIds?.length]);
   const toggleSpot = (i: number) =>
     setSpots((s) => s.map((v, idx) => (idx === i ? !v : v)));
   const onPickMedia = (file: File) => {
@@ -33,6 +43,19 @@ export const MangaUniverseBanner = () => {
         className="rgb-neon group relative block overflow-hidden rounded-3xl shadow-[0_40px_120px_-40px_hsl(var(--neon-magenta)/0.5)]"
         style={{ background: bgMode === "color" ? bgColor : undefined }}
       >
+        {bgMode === "video" && hasVideos && (
+          <div className="relative w-full h-56 sm:h-72 md:h-80 lg:h-96 overflow-hidden bg-black">
+            <iframe
+              key={videoIds![videoIdx]}
+              src={`https://www.youtube-nocookie.com/embed/${videoIds![videoIdx]}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoIds![videoIdx]}&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3`}
+              title="Univers Manga & Anime — bannière animée"
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ transform: "scale(1.35)" }}
+              allow="autoplay; encrypted-media; picture-in-picture"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/10 to-black/60" />
+          </div>
+        )}
         {bgMode === "image" && (
           <img
             src={mangaBanner}
