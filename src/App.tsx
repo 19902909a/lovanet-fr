@@ -22,7 +22,6 @@ import { ThemeBubble } from "./components/ThemeBubble";
 import { CartProvider } from "./context/CartContext";
 import { CartDrawer } from "./components/CartDrawer";
 import GoogleTranslate from "./components/GoogleTranslate";
-import YoutubeBrandSettings from "./components/YoutubeBrandSettings";
 import { HologramOverlay } from "./components/HologramOverlay";
 import { LocalizedHead } from "./components/LocalizedHead";
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "@/lib/seoI18n";
@@ -101,7 +100,6 @@ const App = () => (
         <ThemeBubble />
         <CartDrawer />
         <GoogleTranslate />
-        <YoutubeBrandSettings />
         <HologramOverlay />
         </CartProvider>
       </BrowserRouter>
