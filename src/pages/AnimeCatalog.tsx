@@ -832,6 +832,13 @@ export default function AnimeCatalog() {
                     key={`g-${m.id}`}
                     onClick={() => setActive(m)}
                     className="rgb-neon glass-card group text-left rounded-lg overflow-hidden"
+                    style={{
+                      background: "var(--catalog-card-bg, transparent)",
+                      color: "var(--catalog-card-fg, inherit)",
+                      borderColor: "var(--catalog-card-border, transparent)",
+                      backgroundSize: "var(--catalog-card-size, auto)",
+                      animation: "var(--catalog-card-anim, none)",
+                    }}
                   >
                     <div
                       className="aspect-[2/3] overflow-hidden relative"
@@ -858,8 +865,11 @@ export default function AnimeCatalog() {
                         </span>
                       )}
                       {m.trailer?.id && m.trailer?.site === "youtube" && (
-                        <span className="absolute bottom-1 left-1 text-[10px] px-1 py-0.5 rounded bg-fuchsia-500/80 text-white">
-                          ▶
+                        <span
+                          className="absolute bottom-1 left-1 rounded-full bg-black/50 backdrop-blur p-0.5 text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.7)]"
+                          aria-label="Trailer disponible"
+                        >
+                          <PlayCircle className="w-4 h-4" strokeWidth={2.25} />
                         </span>
                       )}
                       <BlisterFrame radius={8} intensity={0.9} />
