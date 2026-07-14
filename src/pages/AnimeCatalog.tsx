@@ -613,11 +613,8 @@ export default function AnimeCatalog() {
                   }}
                 >
                   <div
-                    className="w-full h-full rounded-2xl overflow-hidden border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.6)] transition-transform group-hover:scale-105"
-                    style={{
-                      background: m.coverImage.color || "#111",
-                      boxShadow: `0 0 30px ${m.coverImage.color ?? "#a855f7"}55`,
-                    }}
+                    className="rgb-neon w-full h-full rounded-2xl overflow-hidden transition-transform group-hover:scale-105"
+                    style={{ background: "transparent" }}
                   >
                     {m.coverImage.extraLarge && (
                       <img
@@ -631,12 +628,7 @@ export default function AnimeCatalog() {
                     <BlisterFrame radius={16} intensity={1} />
                   </div>
                   <div
-                    className="mt-2 text-xs text-center line-clamp-2 px-2 py-1 rounded-md border"
-                    style={{
-                      background: "var(--card-skin-bg, #fff)",
-                      color: "var(--card-skin-fg, #0a0a0a)",
-                      borderColor: "var(--card-skin-border, rgba(0,0,0,0.12))",
-                    }}
+                    className="rgb-neon glass-card text-neon-white mt-2 text-xs text-center line-clamp-2 px-2 py-1 rounded-md"
                   >
                     {m.title.english || m.title.romaji}
                   </div>
@@ -817,16 +809,10 @@ export default function AnimeCatalog() {
                   <button
                     key={`g-${m.id}`}
                     onClick={() => setActive(m)}
-                    className="group text-left rounded-lg overflow-hidden border"
-                    style={{
-                      background: "var(--card-skin-bg, #fff)",
-                      color: "var(--card-skin-fg, #0a0a0a)",
-                      borderColor: "var(--card-skin-border, rgba(0,0,0,0.12))",
-                    }}
+                    className="rgb-neon glass-card group text-left rounded-lg overflow-hidden"
                   >
                     <div
-                      className="aspect-[2/3] overflow-hidden border-b relative"
-                      style={{ borderColor: "var(--card-skin-border, rgba(0,0,0,0.08))" }}
+                      className="aspect-[2/3] overflow-hidden relative"
                     >
                       {m.coverImage.large && (
                         <img
@@ -857,10 +843,10 @@ export default function AnimeCatalog() {
                       <BlisterFrame radius={8} intensity={0.9} />
                     </div>
                     <div className="px-1.5 pt-1 pb-1.5">
-                      <div className="text-[10px] line-clamp-2 leading-tight">
+                      <div className="text-neon-white text-[10px] line-clamp-2 leading-tight">
                         {m.title.english || m.title.romaji}
                       </div>
-                      <div className="text-[9px] opacity-60">
+                      <div className="text-neon-white text-[9px] opacity-80">
                         {m.format} · {m.seasonYear ?? "—"}
                       </div>
                     </div>
