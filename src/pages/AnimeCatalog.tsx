@@ -89,6 +89,9 @@ export default function AnimeCatalog() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [page, setPage] = useState<number>(0);
   const PAGE_SIZE = 240; // ~24 rows × 10 columns on desktop
+  // Infinite-scroll render window (grows as the sentinel enters the viewport).
+  const [renderCount, setRenderCount] = useState<number>(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   // Trailer playback failure state → swap iframe to a YouTube search fallback (bypasses region-locked video IDs).
   const [trailerFailedFor, setTrailerFailedFor] = useState<number | null>(null);
   // When the search-fallback ALSO fails, hide the player block entirely (last resort).
@@ -415,12 +418,10 @@ export default function AnimeCatalog() {
     return list;
   }, [gridItems, filterGenre, minScore, minYear, sortBy, filterStatus, debouncedSearch]);
 
-  // Pagination: only render one PAGE_SIZE slice at a time so DOM never grows past ~240 cards.
-  const totalPages = Math.max(1, Math.ceil(filteredSorted.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages - 1);
+  // Infinite-scroll slice: render a growing window from the top instead of paginating.
   const pagedItems = useMemo(
-    () => filteredSorted.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE),
-    [filteredSorted, safePage],
+    () => filteredSorted.slice(0, renderCount),
+    [filteredSorted, renderCount],
   );
   const rows = useMemo(() => {
     const out: Media[][] = [];
@@ -444,8 +445,28 @@ export default function AnimeCatalog() {
     setTrailerHiddenFor(cached === "hidden" ? active.id : null);
   }, [active?.id, availabilityReady]);
 
-  // Reset to first page whenever any filter/search changes.
-  useEffect(() => { setPage(0); }, [debouncedSearch, filterGenre, filterStatus, minScore, minYear, sortBy]);
+  // Reset infinite-scroll window whenever any filter/search changes.
+  useEffect(() => {
+    setPage(0);
+    setRenderCount(PAGE_SIZE);
+  }, [debouncedSearch, filterGenre, filterStatus, minScore, minYear, sortBy]);
+
+  // Infinite scroll observer — reveal the next batch when the sentinel enters view.
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          setRenderCount((c) =>
+            c < filteredSorted.length ? Math.min(filteredSorted.length, c + PAGE_SIZE) : c,
+          );
+        }
+      }
+    }, { rootMargin: "600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [filteredSorted.length]);
 
   const promoteRow = (rowItems: Media[]) => {
     setPromoted((prev) => {
