@@ -666,7 +666,7 @@ export default function AnimeCatalog() {
       <div className="px-4 md:px-10 pt-2">
         <MangaNeonBar height={26} className="rounded-full overflow-hidden" />
       </div>
-      <CardSkinBubble />
+      <CatalogCardColorBubble />
 
       {/* Grid below */}
       <section className="px-4 md:px-10 py-10">
