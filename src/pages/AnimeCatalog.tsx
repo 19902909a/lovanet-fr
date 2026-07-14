@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import MangaNeonBar from "@/components/MangaNeonBar";
 import { Navbar } from "@/components/Navbar";
-import CardSkinBubble from "@/components/CardSkinBubble";
+import CatalogCardColorBubble from "@/components/CatalogCardColorBubble";
 import YoutubeBrandCover from "@/components/YoutubeBrandCover";
+import { PlayCircle } from "lucide-react";
 import { idbGet, idbSet, normalizeTitle } from "@/lib/animeCache";
 import BlisterFrame from "@/components/BlisterFrame";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
@@ -88,6 +89,9 @@ export default function AnimeCatalog() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [page, setPage] = useState<number>(0);
   const PAGE_SIZE = 240; // ~24 rows × 10 columns on desktop
+  // Infinite-scroll render window (grows as the sentinel enters the viewport).
+  const [renderCount, setRenderCount] = useState<number>(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   // Trailer playback failure state → swap iframe to a YouTube search fallback (bypasses region-locked video IDs).
   const [trailerFailedFor, setTrailerFailedFor] = useState<number | null>(null);
   // When the search-fallback ALSO fails, hide the player block entirely (last resort).
@@ -414,12 +418,10 @@ export default function AnimeCatalog() {
     return list;
   }, [gridItems, filterGenre, minScore, minYear, sortBy, filterStatus, debouncedSearch]);
 
-  // Pagination: only render one PAGE_SIZE slice at a time so DOM never grows past ~240 cards.
-  const totalPages = Math.max(1, Math.ceil(filteredSorted.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages - 1);
+  // Infinite-scroll slice: render a growing window from the top instead of paginating.
   const pagedItems = useMemo(
-    () => filteredSorted.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE),
-    [filteredSorted, safePage],
+    () => filteredSorted.slice(0, renderCount),
+    [filteredSorted, renderCount],
   );
   const rows = useMemo(() => {
     const out: Media[][] = [];
@@ -443,8 +445,28 @@ export default function AnimeCatalog() {
     setTrailerHiddenFor(cached === "hidden" ? active.id : null);
   }, [active?.id, availabilityReady]);
 
-  // Reset to first page whenever any filter/search changes.
-  useEffect(() => { setPage(0); }, [debouncedSearch, filterGenre, filterStatus, minScore, minYear, sortBy]);
+  // Reset infinite-scroll window whenever any filter/search changes.
+  useEffect(() => {
+    setPage(0);
+    setRenderCount(PAGE_SIZE);
+  }, [debouncedSearch, filterGenre, filterStatus, minScore, minYear, sortBy]);
+
+  // Infinite scroll observer — reveal the next batch when the sentinel enters view.
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          setRenderCount((c) =>
+            c < filteredSorted.length ? Math.min(filteredSorted.length, c + PAGE_SIZE) : c,
+          );
+        }
+      }
+    }, { rootMargin: "600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [filteredSorted.length]);
 
   const promoteRow = (rowItems: Media[]) => {
     setPromoted((prev) => {
@@ -665,7 +687,7 @@ export default function AnimeCatalog() {
       <div className="px-4 md:px-10 pt-2">
         <MangaNeonBar height={26} className="rounded-full overflow-hidden" />
       </div>
-      <CardSkinBubble />
+      <CatalogCardColorBubble />
 
       {/* Grid below */}
       <section className="px-4 md:px-10 py-10">
@@ -810,6 +832,13 @@ export default function AnimeCatalog() {
                     key={`g-${m.id}`}
                     onClick={() => setActive(m)}
                     className="rgb-neon glass-card group text-left rounded-lg overflow-hidden"
+                    style={{
+                      background: "var(--catalog-card-bg, transparent)",
+                      color: "var(--catalog-card-fg, inherit)",
+                      borderColor: "var(--catalog-card-border, transparent)",
+                      backgroundSize: "var(--catalog-card-size, auto)",
+                      animation: "var(--catalog-card-anim, none)",
+                    }}
                   >
                     <div
                       className="aspect-[2/3] overflow-hidden relative"
@@ -836,8 +865,11 @@ export default function AnimeCatalog() {
                         </span>
                       )}
                       {m.trailer?.id && m.trailer?.site === "youtube" && (
-                        <span className="absolute bottom-1 left-1 text-[10px] px-1 py-0.5 rounded bg-fuchsia-500/80 text-white">
-                          ▶
+                        <span
+                          className="absolute bottom-1 left-1 rounded-full bg-black/50 backdrop-blur p-0.5 text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.7)]"
+                          aria-label="Trailer disponible"
+                        >
+                          <PlayCircle className="w-4 h-4" strokeWidth={2.25} />
                         </span>
                       )}
                       <BlisterFrame radius={8} intensity={0.9} />
@@ -866,31 +898,14 @@ export default function AnimeCatalog() {
             </div>
           ))}
         </div>
-        {/* Pager: only renders one page of ~240 cards so the DOM never inflates past a few hundred nodes */}
-        {totalPages > 1 && (
-          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-white/80">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={safePage === 0}
-              className="px-3 py-1.5 rounded-full border border-white/15 bg-black/40 hover:bg-white/10 disabled:opacity-40"
-            >
-              ← Précédent
-            </button>
-            <span className="px-2">
-              Page <strong className="text-fuchsia-300">{safePage + 1}</strong> / {totalPages}
-              <span className="ml-2 text-white/50">({filteredSorted.length} titres)</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={safePage >= totalPages - 1}
-              className="px-3 py-1.5 rounded-full border border-white/15 bg-black/40 hover:bg-white/10 disabled:opacity-40"
-            >
-              Suivant →
-            </button>
-          </div>
-        )}
+        {/* Infinite-scroll sentinel: loads more titles as it enters the viewport. */}
+        <div ref={sentinelRef} className="h-16 w-full flex items-center justify-center text-xs text-white/50">
+          {renderCount < filteredSorted.length
+            ? `Chargement… (${renderCount} / ${filteredSorted.length})`
+            : filteredSorted.length > 0
+              ? `Fin du catalogue · ${filteredSorted.length} titres`
+              : null}
+        </div>
       </section>
 
       {/* Detail modal */}
