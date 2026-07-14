@@ -998,6 +998,28 @@
   .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
 
+  /* ==========================================================
+   * .text-neon-white — luminous white text with RGB neon halo,
+   * matches the quick-menu accent. Used for card captions on
+   * the catalogue grid so the label reads over the glass frame.
+   * ========================================================== */
+  .text-neon-white {
+    color: #ffffff;
+    text-shadow:
+      0 0 4px hsl(var(--neon-magenta) / 0.75),
+      0 0 10px hsl(var(--neon-cyan)    / 0.55),
+      0 0 18px hsl(var(--neon-purple)  / 0.45);
+  }
+
+  /* Transparent brilliant-glass surface used behind cards so the
+   * rainbow .rgb-neon border reads as the dominant accent. */
+  .glass-card {
+    background:
+      linear-gradient(180deg, hsla(0,0%,100%,0.08), hsla(0,0%,100%,0.02)) padding-box;
+    backdrop-filter: blur(10px) saturate(1.15);
+    -webkit-backdrop-filter: blur(10px) saturate(1.15);
+  }
+
   /* Outer card: animated rainbow conic border + soft pulsing glow */
   .rgb-card {
     position: relative;
