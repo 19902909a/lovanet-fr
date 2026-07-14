@@ -888,31 +888,14 @@ export default function AnimeCatalog() {
             </div>
           ))}
         </div>
-        {/* Pager: only renders one page of ~240 cards so the DOM never inflates past a few hundred nodes */}
-        {totalPages > 1 && (
-          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-white/80">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
-              disabled={safePage === 0}
-              className="px-3 py-1.5 rounded-full border border-white/15 bg-black/40 hover:bg-white/10 disabled:opacity-40"
-            >
-              ← Précédent
-            </button>
-            <span className="px-2">
-              Page <strong className="text-fuchsia-300">{safePage + 1}</strong> / {totalPages}
-              <span className="ml-2 text-white/50">({filteredSorted.length} titres)</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-              disabled={safePage >= totalPages - 1}
-              className="px-3 py-1.5 rounded-full border border-white/15 bg-black/40 hover:bg-white/10 disabled:opacity-40"
-            >
-              Suivant →
-            </button>
-          </div>
-        )}
+        {/* Infinite-scroll sentinel: loads more titles as it enters the viewport. */}
+        <div ref={sentinelRef} className="h-16 w-full flex items-center justify-center text-xs text-white/50">
+          {renderCount < filteredSorted.length
+            ? `Chargement… (${renderCount} / ${filteredSorted.length})`
+            : filteredSorted.length > 0
+              ? `Fin du catalogue · ${filteredSorted.length} titres`
+              : null}
+        </div>
       </section>
 
       {/* Detail modal */}
