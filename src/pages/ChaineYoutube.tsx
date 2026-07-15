@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { AdminRemoveVideo } from "@/components/AdminRemoveVideo";
 import { MangaUniverseBanner } from "@/components/MangaUniverseBanner";
 import { ManualSyncButton } from "@/components/ManualSyncButton";
+import VideoSeoIndex from "@/components/VideoSeoIndex";
 
 type ImportedVideo = {
   id: string;
@@ -85,6 +86,7 @@ const ChaineYoutube = () => {
 
   return (
     <PageShell>
+      <VideoSeoIndex scope="chaine-youtube" />
       <ManualSyncButton platform="youtube" label="Sync YouTube" onDone={() => window.location.reload()} />
     <section className="container mx-auto px-4 lg:px-8 pt-6">
       <MangaUniverseBanner
