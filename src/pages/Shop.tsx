@@ -191,6 +191,7 @@ const Shop = () => {
 
   return (
     <PageShell>
+      <VideoSeoIndex scope="shop" />
       {/* HERO BANNER auto-slide (image + vidéo) */}
       <ShopHeroBanner
         products={heroProducts}

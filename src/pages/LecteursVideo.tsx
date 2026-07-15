@@ -135,6 +135,7 @@ const LecteursVideo = () => {
 
   return (
     <PageShell>
+      <VideoSeoIndex scope="lecteurs-video" />
       <section className="container mx-auto px-4 lg:px-8 py-12">
         <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-2">Lecteurs vidéo</p>
 

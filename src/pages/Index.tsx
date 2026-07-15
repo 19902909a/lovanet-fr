@@ -236,6 +236,7 @@ const Index = () => {
 
   return (
     <PageShell>
+      <VideoSeoIndex scope="index" />
       {/* Hero */}
       <section className="relative overflow-hidden">
         {/* Transparent dark glass background — same family as the menu */}

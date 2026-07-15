@@ -482,6 +482,7 @@ export default function AnimeCatalog() {
 
   return (
     <main className="min-h-screen text-foreground overflow-hidden relative" style={{ background: "transparent" }}>
+      <VideoSeoIndex scope="anime-catalog" />
       <Navbar />
       <div className="h-12" />
 

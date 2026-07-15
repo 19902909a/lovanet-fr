@@ -242,6 +242,7 @@ const PrimeVideo = () => {
   if (!v) {
     return (
       <PageShell>
+        <VideoSeoIndex scope="prime-video" />
         <section className="container mx-auto px-4 py-24 text-center text-muted-foreground">
           Chargement de la bibliothèque Prime…
         </section>
