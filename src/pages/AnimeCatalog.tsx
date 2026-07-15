@@ -8,6 +8,7 @@ import { PlayCircle } from "lucide-react";
 import { idbGet, idbSet, normalizeTitle } from "@/lib/animeCache";
 import BlisterFrame from "@/components/BlisterFrame";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
+import VideoSeoIndex from "@/components/VideoSeoIndex";
 import {
   warmVideoAvailability,
   getVideoStatusSync,
@@ -481,6 +482,7 @@ export default function AnimeCatalog() {
 
   return (
     <main className="min-h-screen text-foreground overflow-hidden relative" style={{ background: "transparent" }}>
+      <VideoSeoIndex scope="anime-catalog" />
       <Navbar />
       <div className="h-12" />
 

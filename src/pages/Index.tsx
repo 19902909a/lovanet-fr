@@ -11,6 +11,7 @@ import crystalCity from "@/assets/crystal-city.jpg.asset.json";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import MangaNeonBar from "@/components/MangaNeonBar";
 import TabletTrailerPlayer from "@/components/TabletTrailerPlayer";
+import VideoSeoIndex from "@/components/VideoSeoIndex";
 
 import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
@@ -235,6 +236,7 @@ const Index = () => {
 
   return (
     <PageShell>
+      <VideoSeoIndex scope="index" />
       {/* Hero */}
       <section className="relative overflow-hidden">
         {/* Transparent dark glass background — same family as the menu */}
