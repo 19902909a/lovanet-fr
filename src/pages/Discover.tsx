@@ -161,6 +161,7 @@ const Discover = () => {
               <meta itemProp="contentUrl" content={`https://www.youtube.com/watch?v=${v.id}`} />
               <meta itemProp="embedUrl" content={`https://www.youtube.com/embed/${v.id}`} />
               <meta itemProp="uploadDate" content={v.date ?? "2026-01-01"} />
+              <meta itemProp="duration" content="PT1M" />
             </li>
           ))}
           {SHOP_PRODUCTS.map((p) => (
