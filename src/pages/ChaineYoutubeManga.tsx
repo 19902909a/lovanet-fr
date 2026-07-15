@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { EyeOff, Eye, Play, RefreshCw, ArrowLeft, X, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeVideo } from "@/lib/normalizeVideo";
+import VideoSeoIndex from "@/components/VideoSeoIndex";
 
 type Video = {
   id: string;
