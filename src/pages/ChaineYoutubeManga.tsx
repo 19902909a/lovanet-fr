@@ -158,6 +158,7 @@ export default function ChaineYoutubeManga() {
 
   return (
     <PageShell>
+      <VideoSeoIndex scope="chaine-youtube-manga" />
       <section className="container mx-auto px-4 lg:px-8 pt-8 pb-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <Link
