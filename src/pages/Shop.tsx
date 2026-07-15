@@ -10,6 +10,7 @@ import { SHOP_CATEGORIES, type ShopProduct, type ShopCategory, categoryLabel } f
 import { ALL_PRODUCTS, loadManualProducts, loadHiddenIds, saveHiddenIds } from "@/data/generatedProducts";
 import { DropshipAdminPanel } from "@/components/DropshipAdminPanel";
 import { ShopHeroBanner } from "@/components/ShopHeroBanner";
+import VideoSeoIndex from "@/components/VideoSeoIndex";
 import { useCart } from "@/context/CartContext";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { Search, Star, Flame, ShoppingCart, ChevronLeft, ChevronRight, Sparkles, Zap, EyeOff, ExternalLink, Play, Heart, LayoutGrid, Package, Gamepad2 } from "lucide-react";

@@ -8,6 +8,7 @@ import { PlayCircle } from "lucide-react";
 import { idbGet, idbSet, normalizeTitle } from "@/lib/animeCache";
 import BlisterFrame from "@/components/BlisterFrame";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
+import VideoSeoIndex from "@/components/VideoSeoIndex";
 import {
   warmVideoAvailability,
   getVideoStatusSync,

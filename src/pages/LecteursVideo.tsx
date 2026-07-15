@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { HoverPreview } from "@/components/HoverPreview";
 import { MangaUniverseBanner } from "@/components/MangaUniverseBanner";
 import { supabase } from "@/integrations/supabase/client";
+import VideoSeoIndex from "@/components/VideoSeoIndex";
 
 type Service = "youtube" | "prime" | "tiktok";
 

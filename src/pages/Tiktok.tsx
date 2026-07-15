@@ -117,6 +117,7 @@ const Tiktok = () => {
 
   return (
     <PageShell>
+      <VideoSeoIndex scope="tiktok" />
       <ManualSyncButton platform="tiktok" label="Sync TikTok" onDone={() => window.location.reload()} />
       <section className="container mx-auto px-4 lg:px-8 py-12 text-center">
         <p className="text-xs uppercase tracking-[0.25em] text-cyan-300 mb-2">Feed officiel</p>

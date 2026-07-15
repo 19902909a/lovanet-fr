@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminRemoveVideo } from "@/components/AdminRemoveVideo";
 import { MangaUniverseBanner } from "@/components/MangaUniverseBanner";
 import { ManualSyncButton } from "@/components/ManualSyncButton";
+import VideoSeoIndex from "@/components/VideoSeoIndex";
 
 type Item = {
   id: string;

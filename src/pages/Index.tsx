@@ -11,6 +11,7 @@ import crystalCity from "@/assets/crystal-city.jpg.asset.json";
 import NeonFooterBar from "@/components/NeonFooterBar";
 import MangaNeonBar from "@/components/MangaNeonBar";
 import TabletTrailerPlayer from "@/components/TabletTrailerPlayer";
+import VideoSeoIndex from "@/components/VideoSeoIndex";
 
 import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
