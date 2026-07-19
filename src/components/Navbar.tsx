@@ -2,7 +2,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X, Sparkles, ShoppingBag, Youtube, Play, Music2, Film, Mail, Compass, ShoppingCart, Home, ScrollText } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-import lovanetLogo from "@/assets/lovanet-logo-v2.png.asset.json";
+import lovanetLogo from "@/assets/lovanet-logo-custom.png.asset.json";
 import { useCart } from "@/context/CartContext";
 
 const navItems = [
