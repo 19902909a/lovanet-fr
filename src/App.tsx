@@ -22,7 +22,7 @@ import { ThemeBubble } from "./components/ThemeBubble";
 import { CartProvider } from "./context/CartContext";
 import { CartDrawer } from "./components/CartDrawer";
 import GoogleTranslate from "./components/GoogleTranslate";
-import { HologramOverlay } from "./components/HologramOverlay";
+// HologramOverlay retiré à la demande
 import { LocalizedHead } from "./components/LocalizedHead";
 import { SUPPORTED_LOCALES, DEFAULT_LOCALE } from "@/lib/seoI18n";
 
@@ -100,7 +100,7 @@ const App = () => (
         <ThemeBubble />
         <CartDrawer />
         <GoogleTranslate />
-        <HologramOverlay />
+        {/* Hologrammes de capture retirés */}
         </CartProvider>
       </BrowserRouter>
     </TooltipProvider>

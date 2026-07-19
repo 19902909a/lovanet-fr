@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { SHOP_PRODUCTS, categoryLabel } from "@/data/shopProducts";
 import { ProductArtwork } from "@/components/ProductArtwork";
 import { MiniPreviewPlayer } from "@/components/MiniPreviewPlayer";
-import { HologramOverlay } from "@/components/HologramOverlay";
+// HologramOverlay retiré
 import { supabase } from "@/integrations/supabase/client";
 
 const SHOP_REEL_MP4 =
