@@ -14,7 +14,14 @@ const navItems = [
   { to: "/anime-countdown", label: "À venir" },
   { to: "/anime-catalog", label: "Catalogue" },
   { to: "/decouvrir", label: "Univers Lovanet" },
-  { to: "/shop", label: "Shop" },
+];
+
+const boutiqueSubmenu = [
+  { to: "/shop", label: "Toute la boutique", desc: "Accéder à tous les produits" },
+  { to: "/shop?cat=affiches", label: "Affiches", desc: "Posters & tirages officiels" },
+  { to: "/shop?cat=collectors", label: "Collectors", desc: "Éditions limitées" },
+  { to: "/shop?cat=vetements", label: "Vêtements", desc: "T-shirts, hoodies, accessoires" },
+  { to: "/shop?cat=sneakers", label: "Sneakers", desc: "Sneakers anime & streetwear" },
 ];
 
 const extraItems = [
@@ -40,6 +47,8 @@ const megaSections = [
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [megaOpen, setMegaOpen] = useState(false);
+  const [boutiqueOpen, setBoutiqueOpen] = useState(false);
+  const boutiqueCloseTimer = useRef<number | null>(null);
   const megaRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<number | null>(null);
   const { count, setOpen: setCartOpen } = useCart();
@@ -54,6 +63,17 @@ export const Navbar = () => {
     if (closeTimer.current) {
       window.clearTimeout(closeTimer.current);
       closeTimer.current = null;
+    }
+  };
+
+  const scheduleBoutiqueClose = () => {
+    if (boutiqueCloseTimer.current) window.clearTimeout(boutiqueCloseTimer.current);
+    boutiqueCloseTimer.current = window.setTimeout(() => setBoutiqueOpen(false), 180);
+  };
+  const cancelBoutiqueClose = () => {
+    if (boutiqueCloseTimer.current) {
+      window.clearTimeout(boutiqueCloseTimer.current);
+      boutiqueCloseTimer.current = null;
     }
   };
 
@@ -122,15 +142,50 @@ export const Navbar = () => {
               {item.label}
             </NavLink>
           ))}
+          {/* Boutique — bouton transparent RGB + sous-menu */}
+          <div
+            className="relative"
+            onMouseEnter={() => { cancelBoutiqueClose(); setBoutiqueOpen(true); }}
+            onMouseLeave={scheduleBoutiqueClose}
+          >
+            <NavLink
+              to="/shop"
+              className={({ isActive }) =>
+                cn(
+                  "nav-3d btn-magnetic relative px-4 py-2 text-sm rounded-full transition-all duration-300 hover:-translate-y-0.5 inline-flex items-center gap-1.5",
+                  isActive || boutiqueOpen
+                    ? "neon-rgb-text bg-white/[0.09] border border-white/25 backdrop-blur-xl shadow-[0_0_18px_hsl(var(--neon-cyan)/0.5),inset_0_1px_0_rgba(255,255,255,0.15)]"
+                    : "neon-rgb-text-soft hover:drop-shadow-[0_0_10px_hsl(var(--neon-cyan)/0.7)]"
+                )
+              }
+              aria-haspopup="true"
+              aria-expanded={boutiqueOpen}
+            >
+              <ShoppingBag className="w-3.5 h-3.5 neon-rgb-icon" strokeWidth={1.6} />
+              Boutique
+            </NavLink>
+            {boutiqueOpen && (
+              <div
+                role="menu"
+                className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 rounded-2xl border border-white/15 bg-white/[0.05] backdrop-blur-2xl shadow-[0_20px_60px_-20px_hsl(var(--neon-magenta)/0.45)] p-2 animate-in fade-in slide-in-from-top-2 duration-200"
+              >
+                {boutiqueSubmenu.map((s) => (
+                  <Link
+                    key={s.to}
+                    to={s.to}
+                    role="menuitem"
+                    onClick={() => setBoutiqueOpen(false)}
+                    className="block px-3 py-2 rounded-xl text-sm neon-rgb-text-soft hover:bg-white/10 hover:neon-rgb-text transition-all"
+                  >
+                    <span className="block font-medium">{s.label}</span>
+                    <span className="block text-[11px] text-white/55">{s.desc}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
 
-        <Link
-          to="/shop"
-          className="btn-magnetic tilt-card hidden md:inline-flex items-center px-5 py-2 rounded-full text-sm font-semibold text-white shadow-[0_8px_24px_-6px_hsl(var(--neon-magenta)/0.6)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.05] hover:shadow-[0_14px_36px_-8px_hsl(var(--neon-magenta)/0.85),0_0_28px_hsl(var(--neon-cyan)/0.5)] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-          style={{ background: "var(--gradient-magenta)" }}
-        >
-          Boutique
-        </Link>
         <button
           type="button"
           onClick={() => setCartOpen(true)}
