@@ -1123,7 +1123,7 @@ export const HologramOverlay = () => {
 
   return (
     <>
-      <FixedCaptureFurniture hidden={sofaHidden} onToggle={toggleSofa} />
+      {/* Canapé de capture retiré à la demande de l'utilisateur */}
       <div
         aria-hidden
         data-hologram-overlay
