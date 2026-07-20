@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { Palette, X } from "lucide-react";
+import { Palette, X, Sparkles, Gem, Star, Wand2, Flame, Snowflake, Rocket, Heart } from "lucide-react";
+
+// 8 animated icons cycled every 1.2s on the closed bubble.
+const BUBBLE_ICONS = [Palette, Sparkles, Gem, Star, Wand2, Flame, Snowflake, Rocket, Heart].slice(0, 8);
 
 /**
  * Floating bubble (bottom-right). Two rows:
