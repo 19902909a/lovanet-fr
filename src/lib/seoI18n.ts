@@ -13,8 +13,11 @@ export type RouteKey =
   | "/anime-catalog"
   | "/anime-countdown"
   | "/chaine-youtube"
+  | "/chaine-youtube/manga"
   | "/prime-video"
   | "/tiktok"
+  | "/lecteurs-video"
+  | "/actualites"
   | "/contact"
   | "/legals";
 
@@ -25,8 +28,11 @@ export const ROUTES: RouteKey[] = [
   "/anime-catalog",
   "/anime-countdown",
   "/chaine-youtube",
+  "/chaine-youtube/manga",
   "/prime-video",
   "/tiktok",
+  "/lecteurs-video",
+  "/actualites",
   "/contact",
   "/legals",
 ];
