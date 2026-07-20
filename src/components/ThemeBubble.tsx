@@ -325,7 +325,7 @@ export const ThemeBubble = () => {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-[60] flex flex-col items-end gap-3">
+    <div className="fixed left-3 top-1/2 -translate-y-1/2 z-[60] flex flex-col items-start gap-3">
       {open && (
         <div className="rounded-2xl border border-border bg-card/95 backdrop-blur-xl p-3 shadow-2xl animate-scale-in w-[260px]">
           <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mb-2 px-1">
