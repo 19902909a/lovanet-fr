@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { Palette, X } from "lucide-react";
+import { Palette, X, Sparkles, Gem, Star, Wand2, Flame, Snowflake, Rocket, Heart } from "lucide-react";
+
+// 8 animated icons cycled every 1.2s on the closed bubble.
+const BUBBLE_ICONS = [Palette, Sparkles, Gem, Star, Wand2, Flame, Snowflake, Rocket, Heart].slice(0, 8);
 
 /**
  * Floating bubble (bottom-right). Two rows:
@@ -294,6 +297,12 @@ export const ThemeBubble = () => {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<ThemeKey>("default");
   const [accent, setAccent] = useState<string>("off");
+  const [iconIdx, setIconIdx] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setIconIdx((i) => (i + 1) % BUBBLE_ICONS.length), 1200);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const saved = (localStorage.getItem(STORAGE_KEY) as ThemeKey | null) ?? "default";
@@ -393,8 +402,19 @@ export const ThemeBubble = () => {
               "conic-gradient(from 0deg,#ff2e93,#ffb13a,#06d6a0,#3a86ff,#8338ec,#ff2e93)",
           }}
         />
-        <span className="relative z-10 text-white drop-shadow">
-          {open ? <X className="w-5 h-5" /> : <Palette className="w-5 h-5" />}
+        <span
+          className="relative z-10 text-white drop-shadow"
+          style={{
+            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.6)) drop-shadow(0 0 8px rgba(255,255,255,0.5))",
+            transformStyle: "preserve-3d",
+            animation: open ? undefined : "lovanet-icon-3d 1.2s ease-in-out infinite",
+          }}
+          key={iconIdx}
+        >
+          {open ? <X className="w-5 h-5" /> : (() => {
+            const Icon = BUBBLE_ICONS[iconIdx];
+            return <Icon className="w-6 h-6 animate-scale-in" />;
+          })()}
         </span>
       </button>
     </div>
