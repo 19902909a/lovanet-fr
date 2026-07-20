@@ -67,6 +67,9 @@ const TITLES: Record<Locale, Record<RouteKey, string>> = {
     "/tiktok": "TikTok : Anime.Moments.officiel shorts anime",
     "/contact": "Contact : Lovanet Anime.Moments.officiel",
     "/legals": "Mentions légales : Lovanet Anime.Moments.officiel",
+    "/chaine-youtube/manga": "YouTube Manga : AnimeMoments chaîne officielle",
+    "/lecteurs-video": "Lecteur vidéo : Anime.Moments.officiel streaming",
+    "/actualites": "Actualités anime : Lovanet Anime.Moments.officiel",
   },
   en: {
     "/": "Anime.Moments.officiel : Lovanet Official Platform",
@@ -79,6 +82,9 @@ const TITLES: Record<Locale, Record<RouteKey, string>> = {
     "/tiktok": "TikTok : Anime.Moments.officiel anime shorts",
     "/contact": "Contact : Lovanet Anime.Moments.officiel",
     "/legals": "Legal notice : Lovanet Anime.Moments.officiel",
+    "/chaine-youtube/manga": "YouTube Manga : AnimeMoments official channel",
+    "/lecteurs-video": "Video player : Anime.Moments.officiel streaming",
+    "/actualites": "Anime news : Lovanet Anime.Moments.officiel",
   },
   es: {
     "/": "Anime.Moments.officiel : Lovanet Plataforma oficial",
@@ -91,6 +97,9 @@ const TITLES: Record<Locale, Record<RouteKey, string>> = {
     "/tiktok": "TikTok : Anime.Moments.officiel shorts anime",
     "/contact": "Contacto : Lovanet Anime.Moments.officiel",
     "/legals": "Aviso legal : Lovanet Anime.Moments.officiel",
+    "/chaine-youtube/manga": "YouTube Manga : AnimeMoments canal oficial",
+    "/lecteurs-video": "Reproductor vídeo : Anime.Moments.officiel",
+    "/actualites": "Noticias anime : Lovanet Anime.Moments.officiel",
   },
   de: {
     "/": "Anime.Moments.officiel : Lovanet Offizielle Plattform",
@@ -103,6 +112,9 @@ const TITLES: Record<Locale, Record<RouteKey, string>> = {
     "/tiktok": "TikTok : Anime.Moments.officiel Anime-Shorts",
     "/contact": "Kontakt : Lovanet Anime.Moments.officiel",
     "/legals": "Impressum : Lovanet Anime.Moments.officiel",
+    "/chaine-youtube/manga": "YouTube Manga : AnimeMoments offizieller Kanal",
+    "/lecteurs-video": "Videoplayer : Anime.Moments.officiel Streaming",
+    "/actualites": "Anime-News : Lovanet Anime.Moments.officiel",
   },
   it: {
     "/": "Anime.Moments.officiel : Lovanet Piattaforma ufficiale",
@@ -115,6 +127,9 @@ const TITLES: Record<Locale, Record<RouteKey, string>> = {
     "/tiktok": "TikTok : Anime.Moments.officiel shorts anime",
     "/contact": "Contatti : Lovanet Anime.Moments.officiel",
     "/legals": "Note legali : Lovanet Anime.Moments.officiel",
+    "/chaine-youtube/manga": "YouTube Manga : AnimeMoments canale ufficiale",
+    "/lecteurs-video": "Lettore video : Anime.Moments.officiel streaming",
+    "/actualites": "Notizie anime : Lovanet Anime.Moments.officiel",
   },
   pt: {
     "/": "Anime.Moments.officiel : Lovanet Plataforma oficial",
@@ -127,6 +142,9 @@ const TITLES: Record<Locale, Record<RouteKey, string>> = {
     "/tiktok": "TikTok : Anime.Moments.officiel shorts anime",
     "/contact": "Contato : Lovanet Anime.Moments.officiel",
     "/legals": "Aviso legal : Lovanet Anime.Moments.officiel",
+    "/chaine-youtube/manga": "YouTube Manga : AnimeMoments canal oficial",
+    "/lecteurs-video": "Reprodutor vídeo : Anime.Moments.officiel",
+    "/actualites": "Notícias anime : Lovanet Anime.Moments.officiel",
   },
   ja: {
     "/": "Anime.Moments.officiel : Lovanet 公式プラットフォーム",
@@ -139,6 +157,9 @@ const TITLES: Record<Locale, Record<RouteKey, string>> = {
     "/tiktok": "TikTok : Anime.Moments.officiel アニメショート",
     "/contact": "お問い合わせ : Lovanet Anime.Moments.officiel",
     "/legals": "法的通知 : Lovanet Anime.Moments.officiel",
+    "/chaine-youtube/manga": "YouTube マンガ : AnimeMoments 公式チャンネル",
+    "/lecteurs-video": "動画プレーヤー : Anime.Moments.officiel 配信",
+    "/actualites": "アニメニュース : Lovanet Anime.Moments.officiel",
   },
   zh: {
     "/": "Anime.Moments.officiel : Lovanet 官方平台",
@@ -151,6 +172,9 @@ const TITLES: Record<Locale, Record<RouteKey, string>> = {
     "/tiktok": "TikTok : Anime.Moments.officiel 动漫短片",
     "/contact": "联系我们 : Lovanet Anime.Moments.officiel",
     "/legals": "法律声明 : Lovanet Anime.Moments.officiel",
+    "/chaine-youtube/manga": "YouTube 漫画 : AnimeMoments 官方频道",
+    "/lecteurs-video": "视频播放器 : Anime.Moments.officiel 流媒体",
+    "/actualites": "动漫资讯 : Lovanet Anime.Moments.officiel",
   },
 };
 
