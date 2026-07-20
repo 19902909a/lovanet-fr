@@ -4,8 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import lovanetLogo from "@/assets/lovanet-logo-custom.png.asset.json";
 import { useCart } from "@/context/CartContext";
+import { useCyclingNav, type NavRotation } from "@/hooks/use-cycling-nav";
 
-const navItems = [
+/**
+ * Shared rotation pool. Each nav slot cycles through this list every
+ * 10 seconds starting at a different offset, so the header labels and
+ * their destinations refresh dynamically (SEO-friendly + branding).
+ */
+const NAV_POOL: NavRotation[] = [
   { to: "/", label: "Accueil" },
   { to: "/lecteurs-video", label: "Lecteurs vidéo" },
   { to: "/chaine-youtube", label: "YouTube" },
@@ -14,7 +20,29 @@ const navItems = [
   { to: "/anime-countdown", label: "À venir" },
   { to: "/anime-catalog", label: "Catalogue" },
   { to: "/decouvrir", label: "Univers Lovanet" },
+  { to: "/actualites", label: "Actualités" },
 ];
+const NAV_SLOTS = 8;
+
+const CyclingNavLink = ({ offset }: { offset: number }) => {
+  const item = useCyclingNav(NAV_POOL, offset, 10000);
+  return (
+    <NavLink
+      to={item.to}
+      end={item.to === "/"}
+      className={({ isActive }) =>
+        cn(
+          "nav-3d btn-magnetic relative px-4 py-2 text-sm rounded-full transition-all duration-300 hover:-translate-y-0.5",
+          isActive
+            ? "neon-rgb-text bg-white/[0.09] border border-white/25 backdrop-blur-xl shadow-[0_0_18px_hsl(var(--neon-cyan)/0.5),inset_0_1px_0_rgba(255,255,255,0.15)]"
+            : "neon-rgb-text-soft hover:drop-shadow-[0_0_10px_hsl(var(--neon-cyan)/0.7)]"
+        )
+      }
+    >
+      <span key={item.to} className="animate-fade-in inline-block">{item.label}</span>
+    </NavLink>
+  );
+};
 
 const boutiqueSubmenu = [
   { to: "/shop", label: "Toute la boutique", desc: "Accéder à tous les produits" },
@@ -125,22 +153,8 @@ export const Navbar = () => {
         </div>
 
         <nav className="hidden lg:flex items-center gap-1 mx-auto perspective-[800px]">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === "/"}
-              className={({ isActive }) =>
-                cn(
-                  "nav-3d btn-magnetic relative px-4 py-2 text-sm rounded-full transition-all duration-300 hover:-translate-y-0.5",
-                  isActive
-                    ? "neon-rgb-text bg-white/[0.09] border border-white/25 backdrop-blur-xl shadow-[0_0_18px_hsl(var(--neon-cyan)/0.5),inset_0_1px_0_rgba(255,255,255,0.15)]"
-                    : "neon-rgb-text-soft hover:drop-shadow-[0_0_10px_hsl(var(--neon-cyan)/0.7)]"
-                )
-              }
-            >
-              {item.label}
-            </NavLink>
+          {Array.from({ length: NAV_SLOTS }).map((_, i) => (
+            <CyclingNavLink key={i} offset={i} />
           ))}
           {/* Boutique — bouton transparent RGB + sous-menu */}
           <div

@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import AnimeCountdown from "./pages/AnimeCountdown";
 import AnimeCatalog from "./pages/AnimeCatalog";
 import Discover from "./pages/Discover";
+import Actualites from "./pages/Actualites";
 import OAuthConsent from "./pages/OAuthConsent";
 import SyncDashboard from "./pages/SyncDashboard";
 import { ThemeBubble } from "./components/ThemeBubble";
@@ -46,6 +47,7 @@ const APP_ROUTES: Array<{ path: string; element: JSX.Element }> = [
   { path: "/anime-countdown", element: <AnimeCountdown /> },
   { path: "/anime-catalog", element: <AnimeCatalog /> },
   { path: "/decouvrir", element: <Discover /> },
+  { path: "/actualites", element: <Actualites /> },
 ];
 
 // Legacy / friendly aliases -> canonical branded routes. Keeps old inbound
@@ -65,6 +67,8 @@ const REDIRECTS: Array<{ from: string; to: string }> = [
   { from: "/anime", to: "/anime-catalog" },
   { from: "/a-venir", to: "/anime-countdown" },
   { from: "/countdown", to: "/anime-countdown" },
+  { from: "/news", to: "/actualites" },
+  { from: "/blog", to: "/actualites" },
   { from: "/admin", to: "/admin/sync" },
 ];
 
