@@ -1,18 +1,18 @@
 [
   {
-    "content": "Localiser la page et les composants correspondant aux deux captures utilisateur",
+    "content": "Inspecter la home actuelle et localiser la zone catalogue verticale à restaurer",
     "status": "completed"
   },
   {
-    "content": "Remplacer la zone/bannière YouTube par du contenu Prime sur la page concernée",
+    "content": "Remettre une rotation de cartes catalogue verticales style Prime avec aperçu miniature",
     "status": "completed"
   },
   {
-    "content": "Retirer entièrement l’autre bannière montrée en capture",
+    "content": "Supprimer définitivement la section horizontale Attack on Titan / Demon Slayer / JJK",
     "status": "completed"
   },
   {
-    "content": "Vérifier visuellement en preview puis préparer le récapitulatif pour redéploiement production",
+    "content": "Vérifier visuellement la page d’accueil en preview",
     "status": "completed"
   }
 ]

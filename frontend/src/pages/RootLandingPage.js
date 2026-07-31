@@ -4,6 +4,9 @@ import { ArrowRight, Compass, Film, Newspaper, Play, ShoppingBag, Star } from "l
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SEO_NEWS } from "@/data/seoNews";
 import { PageShell } from "@/components/PageShell";
+import { HoverPreview } from "@/components/HoverPreview";
+import { createImageFallbackHandler, siteFallbackImage } from "@/lib/mediaFallback";
+import { hydrateYouTubeAvailability } from "@/lib/youtubeAvailability";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,6 +60,15 @@ const platformCards = [
 
 
 
+const shuffleArray = (list) => {
+  const clone = [...list];
+  for (let index = clone.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [clone[index], clone[swapIndex]] = [clone[swapIndex], clone[index]];
+  }
+  return clone;
+};
+
 const featuredNews = SEO_NEWS.slice(0, 3).map((item, index) => ({
   ...item,
   href: item.category === "product" ? "/shop" : item.sourcePath || "/actualites",
@@ -84,6 +96,9 @@ const secondaryButton =
 const luxuryIcon =
   "flex h-12 w-12 items-center justify-center rounded-2xl border border-white/15 bg-white/[0.06] backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] text-white";
 const portalRotationIntervalMs = 10000;
+const catalogRotationIntervalMs = 12000;
+const catalogBatchSize = 12;
+const catalogRowSize = 6;
 const embeddedHeroCaptureVideo = "/root-capture-video-latest.mp4";
 const bannerVideoSequence = [
   embeddedHeroCaptureVideo,
@@ -99,6 +114,8 @@ export default function RootLandingPage() {
   const [rotationIndex, setRotationIndex] = useState(0);
   const [activeBannerVideoIndex, setActiveBannerVideoIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [catalogPreviewPool, setCatalogPreviewPool] = useState([]);
+  const [catalogRotationIndex, setCatalogRotationIndex] = useState(0);
   const bannerVideoRef = useRef(null);
   const bannerShellRef = useRef(null);
 
@@ -109,6 +126,45 @@ export default function RootLandingPage() {
     return () => window.clearInterval(id);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/catalog-seo.json")
+      .then((response) => response.json())
+      .then((data) => {
+        if (cancelled || !Array.isArray(data)) return;
+        const normalized = shuffleArray(
+          data
+            .filter((item) => item?.cover && item?.title && String(item?.trailerId || "").trim())
+            .map((item, index) => ({
+              id: String(item.id || `catalog-${index}`),
+              title: item.title,
+              image: item.cover || item.banner || siteFallbackImage(String(item.id || index), null),
+              trailerId: String(item.trailerId || "").trim(),
+              genres: Array.isArray(item.genres) ? item.genres.slice(0, 3) : [],
+              href: `/anime-catalog?anime=${item.id}`,
+              year: item.seasonYear || item.year || "Catalogue",
+            })),
+        );
+        setCatalogPreviewPool(normalized);
+        hydrateYouTubeAvailability(normalized.slice(0, 36).map((item) => item.trailerId)).catch(() => {});
+      })
+      .catch(() => {
+        if (!cancelled) setCatalogPreviewPool([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (catalogPreviewPool.length <= catalogBatchSize) return undefined;
+    const id = window.setInterval(() => {
+      setCatalogRotationIndex((current) => (current + catalogBatchSize) % catalogPreviewPool.length);
+    }, catalogRotationIntervalMs);
+    return () => window.clearInterval(id);
+  }, [catalogPreviewPool.length]);
 
   useEffect(() => {
     const video = bannerVideoRef.current;
@@ -203,8 +259,16 @@ export default function RootLandingPage() {
       })),
     [],
   );
+  const activeCatalogCards = useMemo(() => {
+    if (!catalogPreviewPool.length) return [];
+    if (catalogPreviewPool.length <= catalogBatchSize) return catalogPreviewPool;
+    return Array.from({ length: catalogBatchSize }, (_, index) => catalogPreviewPool[(catalogRotationIndex + index) % catalogPreviewPool.length]);
+  }, [catalogPreviewPool, catalogRotationIndex]);
+  const catalogPreviewRows = useMemo(
+    () => Array.from({ length: 2 }, (_, rowIndex) => activeCatalogCards.slice(rowIndex * catalogRowSize, rowIndex * catalogRowSize + catalogRowSize)),
+    [activeCatalogCards],
+  );
   const newsAction = useMemo(() => getPortalDestination(6, rotationIndex), [rotationIndex]);
-
 
   return (
     <PageShell>
@@ -339,14 +403,16 @@ export default function RootLandingPage() {
               <div className="relative mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div className="h-12 w-48 rounded-[1.25rem] border border-white/10 bg-white/[0.04] shadow-[0_0_24px_rgba(34,211,238,0.1)]" data-testid="home-platforms-heading-placeholder" />
                 <Button asChild variant="glass" className={secondaryButton} data-testid="home-platforms-button">
-                  <Link to="/prime-video">
+                  <Link to="/anime-catalog">
                     <span className="inline-flex items-center gap-2 animate-in fade-in zoom-in-95 duration-500">
-                      Prime Vidéo
+                      Catalogue premium
                       <ArrowRight className="h-4 w-4 neon-rgb-icon" />
                     </span>
                   </Link>
                 </Button>
               </div>
+
+
               <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="home-platforms-pill-row">
                 {platformEntries.map((card, index) => {
                   const Icon = card.action.icon;
@@ -364,6 +430,50 @@ export default function RootLandingPage() {
                   );
                 })}
               </div>
+
+              {catalogPreviewRows.some((row) => row.length > 0) && (
+                <div className="hero-premium-lower-marquee mt-6" data-testid="home-platforms-dynamic-banner-grid">
+                  {catalogPreviewRows.map((row, rowIndex) => (
+                    <div key={`catalog-row-${rowIndex}`} className="hero-premium-lower-row">
+                      <div className={`hero-premium-lower-track ${rowIndex % 2 === 1 ? "hero-premium-lower-track-reverse" : ""}`}>
+                        {[...row, ...row].map((item, index) => (
+                          <Link
+                            key={`${item.id}-${rowIndex}-${index}`}
+                            to={item.href}
+                            className="hero-premium-lower-card group flex w-[132px] min-w-[132px] max-w-[132px] flex-none flex-col sm:w-[148px] sm:min-w-[148px] sm:max-w-[148px] lg:w-[176px] lg:min-w-[176px] lg:max-w-[176px] xl:w-[196px] xl:min-w-[196px] xl:max-w-[196px]"
+                            data-testid={`home-platforms-dynamic-card-${rowIndex + 1}-${index + 1}`}
+                          >
+                            <div className="hero-premium-lower-thumb-shell hero-premium-lower-thumb-shell-vertical aspect-[3/4] w-full overflow-hidden">
+                              <HoverPreview
+                                videoId={item.trailerId}
+                                title={item.title}
+                                thumbnail={item.image}
+                                vertical
+                                delay={120}
+                                className="h-full w-full"
+                                onImgError={createImageFallbackHandler(item.id, item.image)}
+                              >
+                                <div className="hero-premium-lower-thumb-overlay" />
+                                <div className="hero-premium-lower-badge">bande-annonce</div>
+                                <div className="absolute inset-x-0 bottom-0 z-10 p-3">
+                                  <div className="rounded-2xl border border-white/12 bg-[rgba(4,10,22,0.48)] px-3 py-2 backdrop-blur-xl">
+                                    <p className="line-clamp-1 text-[10px] uppercase tracking-[0.2em] text-white/60">{item.year}</p>
+                                    <p className="line-clamp-2 text-sm font-semibold text-white">{item.title}</p>
+                                  </div>
+                                </div>
+                              </HoverPreview>
+                            </div>
+                            <div className="hero-premium-lower-copy">
+                              <p className="hero-premium-lower-title">{item.title}</p>
+                              <p className="hero-premium-lower-description">{item.genres.join(" • ") || "Catalogue premium"}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>
